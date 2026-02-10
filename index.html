@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V40 - Layout Reset</title>
+    <title>Finanzas V41 - CFO Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -41,10 +41,11 @@
     <style>
         body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
         
-        /* --- CURSOR SYSTEM BLINDADO --- */
+        /* --- CURSOR SYSTEM --- */
         html body * { cursor: default !important; }
         input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
         .section-header:active, .drag-handle:active { cursor: grabbing !important; }
+        .cursor-pointer { cursor: pointer !important; }
 
         /* Layout Utils */
         .sidebar-drawer { transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; background: white; border-right: 1px solid #e2e8f0; }
@@ -83,18 +84,24 @@
         .rotate-icon { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .rotate-icon.collapsed { transform: rotate(-90deg); }
 
-        /* Coach */
-        .coach-tip-item { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; align-items: flex-start; animation: slideIn 0.5s ease-out; }
-        .coach-icon { color: #facc15; font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
-        .coach-text { color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; }
+        /* Coach Pro */
+        .coach-tip-item { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start; animation: slideIn 0.5s ease-out; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; }
+        .coach-icon { color: #facc15; font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
+        .coach-text strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem;}
+        .coach-text { color: #94a3b8; font-size: 0.85rem; line-height: 1.4; }
+        .health-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; margin-top: 8px;}
+        .health-bar-fill { height: 100%; border-radius: 99px; transition: width 1s ease-out; }
 
         /* Masonry & Sortable Helpers */
         .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 200px; transition: background 0.3s; border-radius: 1rem; }
-        /* Visual cue for drop zones in Edit mode */
         body.edit-mode .masonry-col { background: rgba(241, 245, 249, 0.5); border: 2px dashed #e2e8f0; }
-        
         .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
         .sortable-ghost { opacity: 0.3; background: #f1f5f9; border: 2px dashed #cbd5e1; transform: scale(0.98); }
+        
+        .btn-delete-item { opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+        body.edit-mode .btn-delete-item { opacity: 1; pointer-events: auto; cursor: pointer !important; }
+        .section-delete-btn { display: none; }
+        body.edit-mode .section-delete-btn { display: flex; cursor: pointer !important; }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
@@ -114,12 +121,12 @@
     <aside id="drawer" class="sidebar-drawer flex flex-col shadow-2xl">
         <div class="h-24 flex items-center px-6 border-b border-slate-100 justify-between bg-white">
             <h1 class="font-extrabold text-2xl tracking-tight text-slate-900">CFO<span class="text-brand-600">.</span>Panel</h1>
-            <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 p-2 bg-slate-100 rounded-lg btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
+            <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 p-2 bg-slate-100 rounded-lg btn-anim cursor-pointer"><i class="ph-bold ph-x text-xl"></i></button>
         </div>
         <nav id="month-nav-container" class="flex-1 overflow-y-auto px-6 py-8 space-y-2 custom-scrollbar bg-slate-50/50"></nav>
         <div class="p-6 border-t border-slate-100 bg-white">
-            <button onclick="openCloneModal()" class="w-full mb-3 py-3.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:border-brand-500 hover:text-brand-600 transition-all btn-anim"><i class="ph-bold ph-copy text-lg"></i> Duplicar Mes</button>
-            <button onclick="openSettings()" class="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all btn-anim"><i class="ph-bold ph-gear text-lg"></i> Ajustes</button>
+            <button onclick="openCloneModal()" class="w-full mb-3 py-3.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:border-brand-500 hover:text-brand-600 transition-all btn-anim cursor-pointer"><i class="ph-bold ph-copy text-lg"></i> Duplicar Mes</button>
+            <button onclick="openSettings()" class="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all btn-anim cursor-pointer"><i class="ph-bold ph-gear text-lg"></i> Ajustes</button>
         </div>
     </aside>
 
@@ -127,7 +134,7 @@
         <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 bg-white">
             <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-chart-polar text-brand-600"></i> Sala de Juntas</h2>
             <div class="flex items-center gap-3">
-                <button onclick="closeAnalytics()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
+                <button onclick="closeAnalytics()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 btn-anim cursor-pointer"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
         </div>
         <div class="flex-1 overflow-y-auto p-6 bg-[#f8fafc] custom-scrollbar">
@@ -148,12 +155,12 @@
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 p-8 modal-content border border-slate-100">
             <h3 class="font-bold text-2xl mb-2 text-slate-800">Duplicar Mes</h3>
             <div class="relative mb-6">
-                <select id="target-month-select" class="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-4 px-5 rounded-2xl focus:outline-none focus:border-brand-500 transition-all"></select>
+                <select id="target-month-select" class="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-4 px-5 rounded-2xl focus:outline-none focus:border-brand-500 transition-all cursor-pointer"></select>
                 <div class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"><i class="ph-bold ph-caret-down text-xl"></i></div>
             </div>
             <div class="flex gap-3">
-                <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 btn-anim">Cancelar</button>
-                <button onclick="executeClone()" class="flex-1 py-3.5 bg-brand-600 text-white rounded-xl font-bold text-sm hover:bg-brand-700 shadow-lg shadow-brand-500/20 btn-anim">Confirmar</button>
+                <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 btn-anim cursor-pointer">Cancelar</button>
+                <button onclick="executeClone()" class="flex-1 py-3.5 bg-brand-600 text-white rounded-xl font-bold text-sm hover:bg-brand-700 shadow-lg shadow-brand-500/20 btn-anim cursor-pointer">Confirmar</button>
             </div>
         </div>
     </div>
@@ -168,8 +175,8 @@
                 Se eliminarán todos los registros de <span id="delete-month-name" class="font-bold text-slate-800">Enero</span>. No podrás deshacerlo.
             </p>
             <div class="flex gap-3">
-                <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 btn-anim">Cancelar</button>
-                <button onclick="executeDelete()" class="flex-1 py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm hover:bg-rose-600 shadow-lg shadow-rose-500/30 btn-anim">Sí, Limpiar</button>
+                <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 btn-anim cursor-pointer">Cancelar</button>
+                <button onclick="executeDelete()" class="flex-1 py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm hover:bg-rose-600 shadow-lg shadow-rose-500/30 btn-anim cursor-pointer">Sí, Limpiar</button>
             </div>
         </div>
     </div>
@@ -178,11 +185,11 @@
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden modal-content border border-slate-100">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="ph-fill ph-gear text-slate-500"></i> Herramientas</h3>
-                <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
+                <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 btn-anim cursor-pointer"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <button onclick="exportExcel('current')" class="w-full py-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl btn-anim">Exportar CSV</button>
-                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 rounded-xl transition-all btn-anim">Reiniciar Todo (Fábrica)</button>
+                <button onclick="exportExcel('current')" class="w-full py-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl btn-anim cursor-pointer">Exportar CSV</button>
+                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 rounded-xl transition-all btn-anim cursor-pointer">Reiniciar Todo (Fábrica)</button>
             </div>
         </div>
     </div>
@@ -191,11 +198,11 @@
         
         <header class="h-24 flex items-center justify-between px-6 md:px-12 z-10 sticky top-0 bg-[#f8fafc]/90 backdrop-blur-md transition-all border-b border-slate-200">
             <div class="flex items-center gap-5">
-                <button onclick="openMenu()" class="p-3 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl transition-all btn-anim"><i class="ph-bold ph-list text-3xl"></i></button>
+                <button onclick="openMenu()" class="p-3 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl transition-all btn-anim cursor-pointer"><i class="ph-bold ph-list text-3xl"></i></button>
                 <div>
                     <div class="flex items-center gap-3">
                         <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop">Enero</h2>
-                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim" title="Borrar este mes">
+                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim cursor-pointer" title="Borrar este mes">
                             <i class="ph-bold ph-trash text-lg"></i>
                         </button>
                     </div>
@@ -206,13 +213,13 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="openAnalytics()" class="w-11 h-11 rounded-xl bg-brand-50 border-2 border-brand-200 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm btn-anim" title="Sala de Juntas"><i class="ph-fill ph-chart-line-up text-xl"></i></button>
-                <button onclick="toggleGlobalCollapse()" class="w-11 h-11 rounded-xl bg-white border-2 border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-400 flex items-center justify-center transition-all shadow-sm btn-anim" title="Expandir/Contraer">
+                <button onclick="openAnalytics()" class="w-11 h-11 rounded-xl bg-brand-50 border-2 border-brand-200 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm btn-anim cursor-pointer" title="Sala de Juntas"><i class="ph-fill ph-chart-line-up text-xl"></i></button>
+                <button onclick="toggleGlobalCollapse()" class="w-11 h-11 rounded-xl bg-white border-2 border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-400 flex items-center justify-center transition-all shadow-sm btn-anim cursor-pointer" title="Expandir/Contraer">
                     <i class="ph-bold ph-arrows-out-line-vertical text-xl" id="global-collapse-icon"></i>
                 </button>
                 <div class="flex bg-white p-1.5 rounded-xl border-2 border-slate-200 shadow-sm ml-2">
-                    <button onclick="setMode('view')" id="btn-view" class="px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim">Ver</button>
-                    <button onclick="setMode('edit')" id="btn-edit" class="px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition-all btn-anim">Editar</button>
+                    <button onclick="setMode('view')" id="btn-view" class="px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer">Ver</button>
+                    <button onclick="setMode('edit')" id="btn-edit" class="px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition-all btn-anim cursor-pointer">Editar</button>
                 </div>
             </div>
         </header>
@@ -267,22 +274,32 @@
                     <div class="relative z-10">
                         <div class="flex items-center justify-between mb-6">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center"><i class="ph-bold ph-chat-teardrop-text text-xl"></i></div>
-                                <h3 class="font-bold text-lg">Asistente Financiero</h3>
+                                <div class="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center"><i class="ph-bold ph-strategy text-xl"></i></div>
+                                <div>
+                                    <h3 class="font-bold text-lg">Reporte CFO</h3>
+                                    <p class="text-xs text-slate-400">Análisis Profesional</p>
+                                </div>
                             </div>
-                            <button onclick="refreshAnalysis()" class="px-5 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold flex items-center gap-2 hover:scale-105 transition-transform btn-anim"><i class="ph-bold ph-lightning"></i> Analizar</button>
+                            <button onclick="refreshAnalysis()" class="px-5 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold flex items-center gap-2 hover:scale-105 transition-transform btn-anim cursor-pointer"><i class="ph-bold ph-lightning"></i> Generar Reporte</button>
                         </div>
                         
-                        <div class="flex flex-col md:flex-row gap-6">
-                            <div class="w-full md:w-1/3 border-r border-white/10 pr-6">
-                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-2">Diagnóstico</p>
-                                <p id="advisor-text" class="text-slate-200 text-sm leading-relaxed">Presiona "Analizar" para revisar tus números.</p>
-                                <div class="mt-4 px-3 py-1 bg-white/10 rounded-lg inline-block backdrop-blur-sm"><p id="advisor-status" class="text-xs font-bold text-slate-300">--</p></div>
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="w-full md:w-1/4 border-r border-white/10 pr-6">
+                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-1">Salud Financiera</p>
+                                <div class="flex items-end gap-2 mb-2">
+                                    <span id="health-score" class="text-5xl font-extrabold text-white tracking-tighter">--</span>
+                                    <span class="text-sm text-slate-400 font-medium mb-1">/ 100</span>
+                                </div>
+                                <div class="health-bar-bg"><div id="health-bar" class="health-bar-fill bg-slate-600" style="width: 0%"></div></div>
+                                <p id="advisor-status" class="mt-3 text-sm font-bold text-slate-300">Sin Datos</p>
                             </div>
-                            <div class="w-full md:w-2/3">
-                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-3">Plan de Acción</p>
-                                <div id="advisor-tips" class="hidden space-y-3"></div>
-                                <p id="advisor-placeholder" class="text-sm text-slate-500 italic">Esperando análisis...</p>
+                            
+                            <div class="w-full md:w-3/4 pl-0 md:pl-4">
+                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-4">Estrategia del Mes</p>
+                                <div id="advisor-tips" class="hidden space-y-1"></div>
+                                <div id="advisor-placeholder" class="text-sm text-slate-500 italic flex items-center gap-2">
+                                    <i class="ph-bold ph-info"></i> Registra ingresos y gastos para activar la IA.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -320,36 +337,22 @@
 
         async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ structure: state.structure, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
         async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); 
-            // APPLY FORCE RESET IF NEEDED
-            applyLayoutReset();
-            renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
+            applyLayoutReset(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            // NOTE: Using the same storage key to keep user data, but script below handles the reset logic
-            const s = localStorage.getItem('finanzas_v40_reset');
+            const s = localStorage.getItem('finanzas_v41_cfo');
             if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
-            
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
-            
-            // Cursor Force
-            setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"] { cursor: text !important; }`; }, 1000);
+            setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"], .cursor-pointer { cursor: pointer !important; } .cursor-text { cursor: text !important; }`; }, 1000);
         }
 
-        // --- NEW RESET LOGIC ---
         function applyLayoutReset() {
             const hasReset = localStorage.getItem('v40_forced_distribution_done');
-            if (!hasReset) {
-                console.log("Forcing 50/50 Layout Reset...");
-                state.structure.forEach((s, i) => {
-                    s.col = i % 2; // Force 0, 1, 0, 1...
-                });
-                localStorage.setItem('v40_forced_distribution_done', 'true');
-                saveLocal();
-            }
+            if (!hasReset) { state.structure.forEach((s, i) => { s.col = i % 2; }); localStorage.setItem('v40_forced_distribution_done', 'true'); saveLocal(); }
         }
 
-        function saveLocal() { localStorage.setItem('finanzas_v40_reset', JSON.stringify({ structure: state.structure, data: state.data })); }
+        function saveLocal() { localStorage.setItem('finanzas_v41_cfo', JSON.stringify({ structure: state.structure, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
         function renderDashboard() {
@@ -365,12 +368,7 @@
             
             state.structure.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
-                
-                // MASONRY LOGIC
-                // Check if sec.col is undefined, default to alternate
-                let targetCol = sec.col;
-                if (targetCol === undefined || targetCol === null) targetCol = sIdx % 2;
-                
+                let targetCol = sec.col; if (targetCol === undefined || targetCol === null) targetCol = sIdx % 2;
                 const targetContainer = (targetCol === 1) ? colRight : colLeft;
 
                 const card = document.createElement('div');
@@ -381,11 +379,14 @@
 
                 let html = `<div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 section-header" onclick="toggleSection(${sIdx})">
                     <div class="flex items-center gap-3 w-full">
-                        <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
+                        <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto cursor-text" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="font-extrabold text-slate-800 text-sm bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm whitespace-nowrap">${formatMoney(total)}</span>
-                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><i class="ph-bold ph-caret-down rotate-icon ${isCollapsed ? 'collapsed' : ''}"></i></div>
+                        ${state.mode==='edit' 
+                            ? `<div onclick="event.stopPropagation(); deleteSection(${sIdx})" class="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center section-delete-btn hover:bg-rose-500 hover:text-white transition-colors cursor-pointer" title="Borrar Sección"><i class="ph-bold ph-trash"></i></div>` 
+                            : `<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><i class="ph-bold ph-caret-down rotate-icon ${isCollapsed ? 'collapsed' : ''}"></i></div>`
+                        }
                     </div>
                 </div>
                 <div class="accordion-content ${isCollapsed ? 'collapsed' : ''}">
@@ -397,20 +398,22 @@
                     html += `<div class="flex justify-between items-center text-sm group" data-item-idx="${iIdx}">
                         <div class="flex items-center gap-3">
                             ${state.mode==='edit' ? '<i class="ph-bold ph-dots-six-vertical drag-handle text-lg text-slate-300 hover:text-slate-600"></i>' : ''}
-                            <span class="text-slate-700 font-bold text-[15px] group-hover:text-black transition-colors">${state.mode==='view' ? item : `<input class="border-b-2 border-slate-300 font-bold" onclick="event.stopPropagation()" onchange="updStr('renI',${sIdx},${iIdx},this.value)" value="${item}">`}</span>
+                            <span class="text-slate-700 font-bold text-[15px] group-hover:text-black transition-colors">${state.mode==='view' ? item : `<input class="border-b-2 border-slate-300 font-bold cursor-text" onclick="event.stopPropagation()" onchange="updStr('renI',${sIdx},${iIdx},this.value)" value="${item}">`}</span>
                         </div>
-                        <div class="relative"><input type="text" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event, ${sIdx}, ${iIdx})"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="relative"><input type="text" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white cursor-text" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event, ${sIdx}, ${iIdx})"></div>
+                            ${state.mode==='edit' ? `<button onclick="deleteItem(${sIdx}, ${iIdx})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white btn-delete-item flex items-center justify-center"><i class="ph-bold ph-trash"></i></button>` : ''}
+                        </div>
                     </div><div class="border-b border-slate-100 last:border-0"></div>`;
                 });
                 
-                if(state.mode==='edit') html += `<button onclick="event.stopPropagation(); updStr('addI',${sIdx})" class="w-full py-3 text-xs font-bold border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-brand-600 hover:border-brand-500 hover:bg-brand-50 transition-all mt-2 btn-anim">+ Añadir Concepto</button>`;
+                if(state.mode==='edit') html += `<button onclick="event.stopPropagation(); updStr('addI',${sIdx})" class="w-full py-3 text-xs font-bold border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-brand-600 hover:border-brand-500 hover:bg-brand-50 transition-all mt-2 btn-anim cursor-pointer">+ Añadir Concepto</button>`;
                 html += `</div></div>`;
                 card.innerHTML = html;
                 targetContainer.appendChild(card);
             });
             
             if(state.mode==='edit') {
-                 // Boton añadir nueva seccion al final de la columna izquierda
                  const btn = document.createElement('div'); btn.className="border-4 border-dashed border-slate-200 rounded-3xl p-8 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all btn-anim mt-6";
                  btn.innerHTML=`<span class="text-slate-400 font-extrabold text-sm uppercase tracking-widest">+ Nueva Sección</span>`;
                  btn.onclick=()=>updStr('addSec'); 
@@ -423,57 +426,138 @@
             calcKPIs(false);
         }
 
+        function deleteItem(sIdx, iIdx) {
+            if(!confirm('¿Eliminar este concepto?')) return;
+            // Clean data keys for this item before removing it structure-wise?
+            // Actually, simply removing from structure is safer for now. Data orphan keys are fine.
+            state.structure[sIdx].items.splice(iIdx, 1);
+            commitChanges();
+            renderDashboard();
+        }
+
+        function deleteSection(sIdx) {
+            if(!confirm('¿Eliminar TODA la sección y sus datos?')) return;
+            const secId = state.structure[sIdx].id;
+            // Clean Data
+            Object.keys(state.data).forEach(k => {
+                if(k.includes(`-${secId}-`)) delete state.data[k];
+            });
+            state.structure.splice(sIdx, 1);
+            commitChanges();
+            renderDashboard();
+        }
+
         function toggleSection(sIdx) { state.structure[sIdx].collapsed = !state.structure[sIdx].collapsed; renderDashboard(); }
         function toggleGlobalCollapse() { state.allCollapsed = !state.allCollapsed; state.structure.forEach(sec => sec.collapsed = state.allCollapsed); renderDashboard(); }
         function handleInputKey(e, sIdx, iIdx) { if(e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.target.blur(); const nextInput = document.getElementById(`inp-${sIdx}-${iIdx+1}`); if(nextInput) nextInput.focus(); } }
-
         function initSortable() {
             const cols = [document.getElementById('col-left'), document.getElementById('col-right')];
             cols.forEach(col => {
                 new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
                          const newStructure = [];
-                         // Read Left
-                         const leftEls = document.getElementById('col-left').children;
-                         Array.from(leftEls).forEach(el => {
-                            if(el.hasAttribute('data-db-id')) {
-                                const id = el.getAttribute('data-db-id');
-                                const item = state.structure.find(s => s.id === id);
-                                if(item) { item.col = 0; newStructure.push(item); } 
-                            }
-                         });
-                         // Read Right
-                         const rightEls = document.getElementById('col-right').children;
-                         Array.from(rightEls).forEach(el => {
-                            if(el.hasAttribute('data-db-id')) {
-                                const id = el.getAttribute('data-db-id');
-                                const item = state.structure.find(s => s.id === id);
-                                if(item) { item.col = 1; newStructure.push(item); } 
-                            }
-                         });
-                         state.structure = newStructure;
-                         commitChanges(); 
-                         renderDashboard();
+                         Array.from(document.getElementById('col-left').children).forEach(el => { if(el.hasAttribute('data-db-id')) { const item = state.structure.find(s => s.id === el.getAttribute('data-db-id')); if(item) { item.col = 0; newStructure.push(item); } } });
+                         Array.from(document.getElementById('col-right').children).forEach(el => { if(el.hasAttribute('data-db-id')) { const item = state.structure.find(s => s.id === el.getAttribute('data-db-id')); if(item) { item.col = 1; newStructure.push(item); } } });
+                         state.structure = newStructure; commitChanges(); renderDashboard();
                 }});
             });
             document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const oldIdx = Math.floor(evt.oldIndex / 2); const newIdx = Math.floor(evt.newIndex / 2); const items = state.structure[secIdx].items; const [movedItem] = items.splice(oldIdx, 1); items.splice(newIdx, 0, movedItem); commitChanges(); renderDashboard(); }}); });
         }
 
-        function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
+        function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; renderDashboard(); }
         
-        // --- PREVIOUS FUNCTIONS KEPT INTACT ---
-        function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerText = "Calculando..."; setTimeout(() => { calcKPIs(true); }, 1000); }
+        // --- CFO ANALYTICS ENGINE ---
+        function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Procesando datos...`; setTimeout(() => { calcKPIs(true); }, 800); }
+        
         function analyzeFinance(i, e, s, bd_details) {
-            const advisorText = document.getElementById('advisor-text'); const advisorStatus = document.getElementById('advisor-status'); const tipsContainer = document.getElementById('advisor-tips'); const placeholder = document.getElementById('advisor-placeholder');
-            if(i === 0) { advisorText.innerText = "¡Hola! Registra tus ingresos para comenzar."; advisorStatus.innerText = "SIN DATOS"; advisorStatus.className = "text-xs font-bold text-slate-400"; tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerText = "Esperando ingresos..."; return; }
-            const balance = i - e - s; const savingsRate = (s / i) * 100; const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; const hormiga = bd_details['Gastos Hormiga'] || 0; const hormigaRatio = (hormiga / i) * 100;
-            let msg = "", status = "", color = "", tips = [];
-            if (balance < 0) { msg = `Alerta: Gastaste S/ ${Math.abs(balance).toFixed(0)} más de lo que ganaste.`; status = "DÉFICIT"; color = "text-rose-400"; tips.push({icon: "✂️", text: "Recorta gastos no esenciales inmediatamente."}); tips.push({icon: "🛑", text: "Evita usar tarjetas de crédito este mes."}); } 
-            else if (debtRatio > 30) { msg = `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu sueldo.`; status = "RIESGO DEUDA"; color = "text-orange-400"; tips.push({icon: "📉", text: "Aplica el método 'Bola de Nieve' para pagar."}); tips.push({icon: "🚫", text: "No adquieras nuevas cuotas."}); } 
-            else if (hormigaRatio > 10) { msg = `El ${hormigaRatio.toFixed(0)}% se va en gastos pequeños.`; status = "FUGA GASTOS"; color = "text-yellow-400"; tips.push({icon: "☕", text: "Evita compras impulsivas diarias."}); tips.push({icon: "📺", text: "Revisa suscripciones que no uses."}); } 
-            else if (savingsRate < 10) { if (balance > 100) { msg = `Tienes S/ ${balance.toFixed(0)} libres. ¡Ahorra!`; tips.push({icon: "💰", text: "Transfiere ese saldo a ahorros ahora."}); } else { msg = "Margen ajustado. Necesitamos liquidez."; tips.push({icon: "⚡", text: "Busca reducir facturas de servicios fijos."}); } status = "MEJORABLE"; color = "text-blue-400"; } 
-            else { msg = "¡Excelente gestión! Finanzas sanas."; status = "SÓLIDO"; color = "text-emerald-400"; tips.push({icon: "📈", text: "Investiga fondos de inversión."}); tips.push({icon: "🏖️", text: "Planifica una meta a largo plazo."}); }
-            advisorText.innerText = msg; advisorStatus.innerText = status; advisorStatus.className = `text-xs font-bold ${color}`; tipsContainer.innerHTML = ""; if(tips.length > 0) { tips.forEach(t => { tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text">${t.text}</div></div>`; }); tipsContainer.classList.remove('hidden'); placeholder.classList.add('hidden'); }
+            const tipsContainer = document.getElementById('advisor-tips'); 
+            const placeholder = document.getElementById('advisor-placeholder');
+            const scoreEl = document.getElementById('health-score');
+            const barEl = document.getElementById('health-bar');
+            const statusEl = document.getElementById('advisor-status');
+
+            if(i === 0) { 
+                scoreEl.innerText = "0"; barEl.style.width = "0%"; statusEl.innerText = "Esperando Ingresos";
+                tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerHTML = `<i class="ph-bold ph-info"></i> Registra tus ingresos para iniciar el análisis.`;
+                return; 
+            }
+
+            // --- METRICS ---
+            const balance = i - e - s;
+            const savingsRate = (s / i) * 100;
+            const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; 
+            const debtRatio = (debt / i) * 100;
+            const hormiga = bd_details['Gastos Hormiga'] || 0; 
+            const annualHormiga = hormiga * 12;
+
+            // --- SCORING ALGORITHM (0-100) ---
+            let score = 100;
+            if (balance < 0) score -= 40; // Deficit punishment
+            if (savingsRate < 20) score -= (20 - savingsRate); // Savings penalty
+            if (debtRatio > 30) score -= (debtRatio - 30); // High debt penalty
+            if (hormiga > (i * 0.05)) score -= 10; // Hormiga penalty
+            score = Math.max(0, Math.min(100, Math.round(score)));
+
+            // --- RENDER SCORE ---
+            scoreEl.innerText = score;
+            barEl.style.width = `${score}%`;
+            
+            let colorClass = "bg-emerald-500";
+            let statusText = "Excelente";
+            if (score < 80) { colorClass = "bg-blue-500"; statusText = "Bueno"; }
+            if (score < 60) { colorClass = "bg-yellow-500"; statusText = "Aceptable"; }
+            if (score < 40) { colorClass = "bg-orange-500"; statusText = "En Riesgo"; }
+            if (score < 20) { colorClass = "bg-rose-500"; statusText = "Crítico"; }
+            
+            barEl.className = `health-bar-fill ${colorClass}`;
+            statusEl.innerText = statusText;
+            statusEl.className = `mt-3 text-sm font-bold ${colorClass.replace('bg-', 'text-')}`;
+
+            // --- STRATEGY GENERATION ---
+            let strategies = [];
+
+            // 1. Debt Strategy
+            if (debtRatio > 0) {
+                if (debtRatio > 35) {
+                    strategies.push({icon: "📉", title: "Alerta de Endeudamiento", text: `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu ingreso. <b>Acción:</b> Aplica el método 'Bola de Nieve' (paga la más chica primero) para liberar flujo de caja.`});
+                } else {
+                     strategies.push({icon: "💳", title: "Control de Deuda", text: `Estás destinando S/ ${debt.toFixed(2)} a deuda. Si puedes prepagar, hazlo para ahorrar intereses futuros.`});
+                }
+            }
+
+            // 2. Savings Strategy
+            if (savingsRate < 20) {
+                const gap = (i * 0.20) - s;
+                strategies.push({icon: "💰", title: "Objetivo de Ahorro (Regla 20%)", text: `Estás ahorrando el ${savingsRate.toFixed(0)}%. Para llegar al ideal del 20%, deberías separar <b>S/ ${gap.toFixed(2)} adicionales</b> este mes.`});
+            } else {
+                strategies.push({icon: "🚀", title: "Ahorro Potente", text: `¡Bien! Superas el 20% de ahorro. Considera mover el excedente a un Fondo Mutuo o Depósito a Plazo.`});
+            }
+
+            // 3. Hormiga Strategy
+            if (hormiga > 0) {
+                strategies.push({icon: "☕", title: "Fuga 'Hormiga'", text: `Cuidado: Si mantienes este ritmo de gastos pequeños, perderás <b>S/ ${annualHormiga.toFixed(2)} al año</b>. ¿Vale la pena?`});
+            }
+
+            // 4. Cashflow
+            if (balance < 0) {
+                strategies.unshift({icon: "🚨", title: "DÉFICIT DETECTADO", text: `Estás gastando S/ ${Math.abs(balance).toFixed(2)} más de lo que ingresas. Detén gastos variables inmediatamente.`});
+            } else if (balance > 0 && savingsRate < 10) {
+                 strategies.push({icon: "👁️", title: "Dinero Ocioso", text: `Tienes S/ ${balance.toFixed(2)} libres sin asignar a ahorro. ¡No los gastes! Muévelos a tu meta de ahorro.`});
+            }
+
+            // RENDER TIPS
+            tipsContainer.innerHTML = "";
+            strategies.slice(0, 3).forEach(t => { // Show top 3
+                tipsContainer.innerHTML += `
+                <div class="coach-tip-item">
+                    <div class="coach-icon">${t.icon}</div>
+                    <div class="coach-text"><strong>${t.title}</strong>${t.text}</div>
+                </div>`;
+            });
+            
+            tipsContainer.classList.remove('hidden');
+            placeholder.classList.add('hidden');
         }
+
         function calcKPIs(runAnalysis = false) {
             let i=0, e=0, s=0, bd={};
             state.structure.forEach(sec => { let sum = 0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i += sum; else if(sec.type==='savings') s += sum; else { e += sum; if(sum > 0) bd[sec.title] = sum; } });
@@ -487,21 +571,7 @@
         function renderAdvancedCharts() { const incomeTrend=[], expenseTrend=[]; MONTHS.forEach((_, mIdx) => { let i=0, e=0; state.structure.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); incomeTrend.push(i); expenseTrend.push(e); }); const ctxT = document.getElementById('trendChart'); if(trendChart) trendChart.destroy(); trendChart = new Chart(ctxT, { type: 'line', data: { labels: MONTHS, datasets: [ { label: 'Ingresos', data: incomeTrend, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }, { label: 'Gastos', data: expenseTrend, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); const categories = {}; state.structure.forEach(sec => { if(sec.type === 'expense') { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sum > 0) categories[sec.title] = sum; } }); const ctxC = document.getElementById('categoryChart'); if(catChart) catChart.destroy(); catChart = new Chart(ctxC, { type: 'bar', data: { labels: Object.keys(categories), datasets: [{ label: 'Gasto por Categoría', data: Object.values(categories), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } }); }
 
         function openDeleteModal() { document.getElementById('delete-modal').classList.add('open'); document.getElementById('settings-modal').classList.remove('open'); }
-        function executeDelete() { 
-            const prefix = `${state.currentMonth}-`; 
-            closeAll();
-            const container = document.getElementById('dashboard-content');
-            container.classList.add('vanish-effect');
-            setTimeout(() => {
-                Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); 
-                commitChanges(); 
-                const successOverlay = document.getElementById('success-overlay');
-                successOverlay.classList.add('show');
-                renderDashboard();
-                container.classList.remove('vanish-effect');
-                setTimeout(() => { successOverlay.classList.remove('show'); }, 1500);
-            }, 500); 
-        }
+        function executeDelete() { const prefix = `${state.currentMonth}-`; closeAll(); const container = document.getElementById('dashboard-content'); container.classList.add('vanish-effect'); setTimeout(() => { Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); commitChanges(); const successOverlay = document.getElementById('success-overlay'); successOverlay.classList.add('show'); renderDashboard(); container.classList.remove('vanish-effect'); setTimeout(() => { successOverlay.classList.remove('show'); }, 1500); }, 500); }
         function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
         function updStr(act,s,i,v) { if(act==='ren') state.structure[s].title=v; if(act==='renI') state.structure[s].items[i]=v; if(act==='addI') state.structure[s].items.push("Nuevo"); if(act==='addSec') state.structure.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); commitChanges(); renderDashboard(); }
         function formatMoney(n) { return "S/ " + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -511,12 +581,12 @@
         function openMenu() { document.getElementById('drawer').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
         function openSettings() { document.getElementById('settings-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
         function closeAll() { document.getElementById('drawer').classList.remove('open'); document.getElementById('main-backdrop').classList.remove('open'); document.querySelectorAll('.modal-container').forEach(m => m.classList.remove('open')); closeAnalytics(); }
-        function renderMenu() { const nav = document.getElementById('month-nav-container'); nav.innerHTML = ''; MONTHS.forEach((m,i) => { const b = document.createElement('button'); b.className = `w-full text-left px-5 py-4 rounded-2xl transition-all mb-1 btn-anim ${i===state.currentMonth?'bg-slate-900 text-white font-bold shadow-lg shadow-slate-300':'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-bold'}`; b.innerText = m; b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeAll(); }; nav.appendChild(b); }); }
+        function renderMenu() { const nav = document.getElementById('month-nav-container'); nav.innerHTML = ''; MONTHS.forEach((m,i) => { const b = document.createElement('button'); b.className = `w-full text-left px-5 py-4 rounded-2xl transition-all mb-1 btn-anim cursor-pointer ${i===state.currentMonth?'bg-slate-900 text-white font-bold shadow-lg shadow-slate-300':'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-bold'}`; b.innerText = m; b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeAll(); }; nav.appendChild(b); }); }
         function openCloneModal() { const sel=document.getElementById('target-month-select'); sel.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.currentMonth){const o=document.createElement('option');o.value=i;o.innerText=m;if(i===state.currentMonth+1)o.selected=true;sel.appendChild(o);}}); document.getElementById('clone-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
         function executeClone() { const dest=parseInt(document.getElementById('target-month-select').value); const sp=`${state.currentMonth}-`, dp=`${dest}-`; Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];}); Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];}); state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
-        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v40_reset'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v41_cfo'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
 
         init();
     </script>

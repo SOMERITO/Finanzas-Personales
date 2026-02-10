@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V39 - Perfect Layout</title>
+    <title>Finanzas V40 - Layout Reset</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -44,7 +44,7 @@
         /* --- CURSOR SYSTEM BLINDADO --- */
         html body * { cursor: default !important; }
         input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
-        .section-header:active { cursor: grabbing !important; }
+        .section-header:active, .drag-handle:active { cursor: grabbing !important; }
 
         /* Layout Utils */
         .sidebar-drawer { transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; background: white; border-right: 1px solid #e2e8f0; }
@@ -89,7 +89,10 @@
         .coach-text { color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; }
 
         /* Masonry & Sortable Helpers */
-        .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 150px; } /* Altura mínima para recibir items */
+        .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 200px; transition: background 0.3s; border-radius: 1rem; }
+        /* Visual cue for drop zones in Edit mode */
+        body.edit-mode .masonry-col { background: rgba(241, 245, 249, 0.5); border: 2px dashed #e2e8f0; }
+        
         .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
         .sortable-ghost { opacity: 0.3; background: #f1f5f9; border: 2px dashed #cbd5e1; transform: scale(0.98); }
     </style>
@@ -291,9 +294,9 @@
                     <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-400"></i> Desglose de Operaciones</h3>
                 </div>
 
-                <div class="flex flex-col md:flex-row gap-6 items-start w-full">
-                    <div id="col-left" class="w-full md:w-1/2 masonry-col sortable-col"></div>
-                    <div id="col-right" class="w-full md:w-1/2 masonry-col sortable-col"></div>
+                <div class="flex flex-col sm:flex-row gap-6 items-start w-full">
+                    <div id="col-left" class="w-full sm:w-1/2 masonry-col sortable-col"></div>
+                    <div id="col-right" class="w-full sm:w-1/2 masonry-col sortable-col"></div>
                 </div>
 
             </div>
@@ -316,28 +319,37 @@
         let ch1 = null, ch2 = null, trendChart = null, catChart = null;
 
         async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ structure: state.structure, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
-        async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
+        async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); 
+            // APPLY FORCE RESET IF NEEDED
+            applyLayoutReset();
+            renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            const s = localStorage.getItem('finanzas_v39_perfect');
+            // NOTE: Using the same storage key to keep user data, but script below handles the reset logic
+            const s = localStorage.getItem('finanzas_v40_reset');
             if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
             
-            // --- AUTO CORRECCIÓN DE COLUMNAS (Fix Apilado) ---
-            // Si detectamos que TODAS las secciones tienen col:0 o undefined, las redistribuimos
-            const allZero = state.structure.every(s => !s.col || s.col === 0);
-            if(allZero) {
-                state.structure.forEach((s, i) => s.col = i % 2); // 0, 1, 0, 1...
-            }
-            // Asegurar que siempre tengan valor
-            state.structure.forEach((s, i) => { if(s.col === undefined) s.col = i % 2; });
-
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
             
-            // Fuerza Bruta Cursor
+            // Cursor Force
             setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"] { cursor: text !important; }`; }, 1000);
         }
-        function saveLocal() { localStorage.setItem('finanzas_v39_perfect', JSON.stringify({ structure: state.structure, data: state.data })); }
+
+        // --- NEW RESET LOGIC ---
+        function applyLayoutReset() {
+            const hasReset = localStorage.getItem('v40_forced_distribution_done');
+            if (!hasReset) {
+                console.log("Forcing 50/50 Layout Reset...");
+                state.structure.forEach((s, i) => {
+                    s.col = i % 2; // Force 0, 1, 0, 1...
+                });
+                localStorage.setItem('v40_forced_distribution_done', 'true');
+                saveLocal();
+            }
+        }
+
+        function saveLocal() { localStorage.setItem('finanzas_v40_reset', JSON.stringify({ structure: state.structure, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
         function renderDashboard() {
@@ -354,15 +366,15 @@
             state.structure.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
                 
-                // MASONRY LOGIC MANUAL (Respetando la propiedad .col)
-                // Si es pantalla pequeña (mobile), todo va a Left (que se apila verticalmente por CSS flex-col del wrapper)
-                // Pero Sortable necesita contenedores distintos si queremos mover.
-                // En mobile, colRight se oculta visualmente si usamos css hidden? No, mejor dejamos que CSS maneje el layout flex.
+                // MASONRY LOGIC
+                // Check if sec.col is undefined, default to alternate
+                let targetCol = sec.col;
+                if (targetCol === undefined || targetCol === null) targetCol = sIdx % 2;
                 
-                const targetContainer = (sec.col === 1) ? colRight : colLeft;
+                const targetContainer = (targetCol === 1) ? colRight : colLeft;
 
                 const card = document.createElement('div');
-                card.setAttribute('data-db-id', sec.id); // Usamos ID estable para identificar
+                card.setAttribute('data-db-id', sec.id); 
                 card.className = `bg-white rounded-3xl card-premium overflow-hidden transition-all animate-slide-in ${state.mode==='edit'?'border-dashed border-2 border-slate-400 shadow-none':''}`;
                 
                 const isCollapsed = sec.collapsed === true;
@@ -398,10 +410,14 @@
             });
             
             if(state.mode==='edit') {
-                 const btn = document.createElement('div'); btn.className="border-4 border-dashed border-slate-200 rounded-3xl p-8 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all btn-anim";
+                 // Boton añadir nueva seccion al final de la columna izquierda
+                 const btn = document.createElement('div'); btn.className="border-4 border-dashed border-slate-200 rounded-3xl p-8 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all btn-anim mt-6";
                  btn.innerHTML=`<span class="text-slate-400 font-extrabold text-sm uppercase tracking-widest">+ Nueva Sección</span>`;
                  btn.onclick=()=>updStr('addSec'); 
                  colLeft.appendChild(btn); 
+                 document.body.classList.add('edit-mode');
+            } else {
+                 document.body.classList.remove('edit-mode');
             }
             initSortable();
             calcKPIs(false);
@@ -416,8 +432,7 @@
             cols.forEach(col => {
                 new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
                          const newStructure = [];
-                         
-                         // 1. Leer columna izquierda (forzar col=0)
+                         // Read Left
                          const leftEls = document.getElementById('col-left').children;
                          Array.from(leftEls).forEach(el => {
                             if(el.hasAttribute('data-db-id')) {
@@ -426,8 +441,7 @@
                                 if(item) { item.col = 0; newStructure.push(item); } 
                             }
                          });
-                         
-                         // 2. Leer columna derecha (forzar col=1)
+                         // Read Right
                          const rightEls = document.getElementById('col-right').children;
                          Array.from(rightEls).forEach(el => {
                             if(el.hasAttribute('data-db-id')) {
@@ -436,33 +450,21 @@
                                 if(item) { item.col = 1; newStructure.push(item); } 
                             }
                          });
-
-                         // 3. Guardar
                          state.structure = newStructure;
                          commitChanges(); 
-                         // No llamamos renderDashboard() aquí para evitar parpadeo, ya está visualmente en su sitio.
-                         // Pero sí necesitamos recalcular si hubiera dependencias (aquí no hay).
-                         // Mejor llamarlo para asegurar consistencia del estado visual vs datos.
                          renderDashboard();
                 }});
             });
             document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const oldIdx = Math.floor(evt.oldIndex / 2); const newIdx = Math.floor(evt.newIndex / 2); const items = state.structure[secIdx].items; const [movedItem] = items.splice(oldIdx, 1); items.splice(newIdx, 0, movedItem); commitChanges(); renderDashboard(); }}); });
         }
 
-        function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerText = "Calculando..."; setTimeout(() => { calcKPIs(true); }, 1000); }
+        function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
         
+        // --- PREVIOUS FUNCTIONS KEPT INTACT ---
+        function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerText = "Calculando..."; setTimeout(() => { calcKPIs(true); }, 1000); }
         function analyzeFinance(i, e, s, bd_details) {
-            const advisorText = document.getElementById('advisor-text'); 
-            const advisorStatus = document.getElementById('advisor-status');
-            const tipsContainer = document.getElementById('advisor-tips');
-            const placeholder = document.getElementById('advisor-placeholder');
-            
-            if(i === 0) { 
-                advisorText.innerText = "¡Hola! Registra tus ingresos para comenzar."; 
-                advisorStatus.innerText = "SIN DATOS"; advisorStatus.className = "text-xs font-bold text-slate-400";
-                tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerText = "Esperando ingresos...";
-                return; 
-            }
+            const advisorText = document.getElementById('advisor-text'); const advisorStatus = document.getElementById('advisor-status'); const tipsContainer = document.getElementById('advisor-tips'); const placeholder = document.getElementById('advisor-placeholder');
+            if(i === 0) { advisorText.innerText = "¡Hola! Registra tus ingresos para comenzar."; advisorStatus.innerText = "SIN DATOS"; advisorStatus.className = "text-xs font-bold text-slate-400"; tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerText = "Esperando ingresos..."; return; }
             const balance = i - e - s; const savingsRate = (s / i) * 100; const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; const hormiga = bd_details['Gastos Hormiga'] || 0; const hormigaRatio = (hormiga / i) * 100;
             let msg = "", status = "", color = "", tips = [];
             if (balance < 0) { msg = `Alerta: Gastaste S/ ${Math.abs(balance).toFixed(0)} más de lo que ganaste.`; status = "DÉFICIT"; color = "text-rose-400"; tips.push({icon: "✂️", text: "Recorta gastos no esenciales inmediatamente."}); tips.push({icon: "🛑", text: "Evita usar tarjetas de crédito este mes."}); } 
@@ -472,7 +474,6 @@
             else { msg = "¡Excelente gestión! Finanzas sanas."; status = "SÓLIDO"; color = "text-emerald-400"; tips.push({icon: "📈", text: "Investiga fondos de inversión."}); tips.push({icon: "🏖️", text: "Planifica una meta a largo plazo."}); }
             advisorText.innerText = msg; advisorStatus.innerText = status; advisorStatus.className = `text-xs font-bold ${color}`; tipsContainer.innerHTML = ""; if(tips.length > 0) { tips.forEach(t => { tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text">${t.text}</div></div>`; }); tipsContainer.classList.remove('hidden'); placeholder.classList.add('hidden'); }
         }
-
         function calcKPIs(runAnalysis = false) {
             let i=0, e=0, s=0, bd={};
             state.structure.forEach(sec => { let sum = 0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i += sum; else if(sec.type==='savings') s += sum; else { e += sum; if(sum > 0) bd[sec.title] = sum; } });
@@ -513,10 +514,9 @@
         function renderMenu() { const nav = document.getElementById('month-nav-container'); nav.innerHTML = ''; MONTHS.forEach((m,i) => { const b = document.createElement('button'); b.className = `w-full text-left px-5 py-4 rounded-2xl transition-all mb-1 btn-anim ${i===state.currentMonth?'bg-slate-900 text-white font-bold shadow-lg shadow-slate-300':'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-bold'}`; b.innerText = m; b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeAll(); }; nav.appendChild(b); }); }
         function openCloneModal() { const sel=document.getElementById('target-month-select'); sel.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.currentMonth){const o=document.createElement('option');o.value=i;o.innerText=m;if(i===state.currentMonth+1)o.selected=true;sel.appendChild(o);}}); document.getElementById('clone-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
         function executeClone() { const dest=parseInt(document.getElementById('target-month-select').value); const sp=`${state.currentMonth}-`, dp=`${dest}-`; Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];}); Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];}); state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); }
-        function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
-        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v39_perfect'); location.reload(); }}
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v40_reset'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
 
         init();
     </script>

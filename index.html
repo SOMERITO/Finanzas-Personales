@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V35 - Layout Blindado</title>
+    <title>Finanzas V36 - Feature Complete</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -22,11 +22,13 @@
                     },
                     animation: { 
                         'pop': 'pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-                        'slide-in': 'slideIn 0.4s ease-out forwards'
+                        'slide-in': 'slideIn 0.4s ease-out forwards',
+                        'pulse-red': 'pulseRed 2s infinite'
                     },
                     keyframes: { 
                         pop: { '0%': { opacity: '0', transform: 'scale(0.96) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
-                        slideIn: { '0%': { opacity: '0', transform: 'translateX(-10px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } }
+                        slideIn: { '0%': { opacity: '0', transform: 'translateX(-10px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
+                        pulseRed: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(244, 63, 94, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(244, 63, 94, 0)' } }
                     }
                 }
             }
@@ -36,13 +38,8 @@
         body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
         
         /* --- CURSOR SYSTEM: FUERZA BRUTA --- */
-        /* Forzamos el cursor default en TODO, con la mayor especificidad posible */
         html body * { cursor: default !important; }
-        
-        /* Excepciones solo para inputs de escritura */
-        input[type="text"], input[type="number"], input[type="email"], textarea {
-            cursor: text !important;
-        }
+        input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
 
         /* Layout Utils */
         .sidebar-drawer { transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; background: white; border-right: 1px solid #e2e8f0; }
@@ -136,6 +133,22 @@
         </div>
     </div>
 
+    <div id="delete-modal" class="modal-container">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm relative z-10 p-8 modal-content border border-rose-100 text-center">
+            <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center mx-auto mb-4 animate-pulse-red">
+                <i class="ph-fill ph-warning text-3xl"></i>
+            </div>
+            <h3 class="font-extrabold text-2xl mb-2 text-slate-900">¿Estás seguro?</h3>
+            <p class="text-sm text-slate-500 font-medium mb-8 leading-relaxed">
+                Vas a eliminar todos los registros de <span id="delete-month-name" class="font-bold text-slate-800">Enero</span>.
+            </p>
+            <div class="flex gap-3">
+                <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 btn-anim">Cancelar</button>
+                <button onclick="executeDelete()" class="flex-1 py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm hover:bg-rose-600 shadow-lg shadow-rose-500/30 btn-anim">Sí, Borrar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="settings-modal" class="modal-container">
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden modal-content border border-slate-100">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -143,8 +156,15 @@
                 <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <button onclick="exportExcel('current')" class="w-full py-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl btn-anim">Exportar CSV</button>
-                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 rounded-xl transition-all btn-anim">Reiniciar Todo</button>
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Reportes</h4>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportExcel('current')" class="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex flex-col items-center gap-2 btn-anim"><i class="ph-bold ph-file-csv text-2xl"></i> Mes Actual</button>
+                    <button onclick="exportExcel('all')" class="p-4 bg-brand-50 border border-brand-100 rounded-2xl hover:bg-brand-100 text-brand-700 font-bold text-xs flex flex-col items-center gap-2 btn-anim"><i class="ph-bold ph-files text-2xl"></i> Año Completo</button>
+                </div>
+                <hr class="border-slate-100 my-2">
+                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Zona de Peligro</h4>
+                <button onclick="openDeleteModal()" class="w-full py-3 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-all btn-anim shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2"><i class="ph-bold ph-trash"></i> Borrar datos de <span id="settings-delete-month">Este Mes</span></button>
+                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all btn-anim">Reiniciar Todo (Fábrica)</button>
             </div>
         </div>
     </div>
@@ -252,11 +272,8 @@
                 </div>
 
                 <div class="flex flex-col md:flex-row gap-6 items-start w-full">
-                    
                     <div id="col-left" class="w-full md:w-1/2 masonry-col sortable-col"></div>
-                    
                     <div id="col-right" class="w-full md:w-1/2 masonry-col sortable-col"></div>
-
                 </div>
 
             </div>
@@ -282,23 +299,24 @@
         async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            const s = localStorage.getItem('finanzas_v35_layout');
+            const s = localStorage.getItem('finanzas_v36_final');
             if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
             
-            // FUERZA BRUTA: Matar cursor 'pointer' cada segundo
+            // FUERZA BRUTA PARA EL CURSOR
             setInterval(() => {
                 const styles = document.createElement('style');
                 styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"] { cursor: text !important; }`;
-                // No lo agregamos al DOM repetidamente, es solo un concepto, pero el CSS arriba es suficiente.
             }, 1000);
         }
-        function saveLocal() { localStorage.setItem('finanzas_v35_layout', JSON.stringify({ structure: state.structure, data: state.data })); }
+        function saveLocal() { localStorage.setItem('finanzas_v36_final', JSON.stringify({ structure: state.structure, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
         function renderDashboard() {
             document.getElementById('current-month-display').innerText = MONTHS[state.currentMonth];
+            document.getElementById('delete-month-name').innerText = MONTHS[state.currentMonth];
+            document.getElementById('settings-delete-month').innerText = MONTHS[state.currentMonth];
             const icon = document.getElementById('global-collapse-icon');
             if(state.allCollapsed) { icon.classList.remove('ph-arrows-out-line-vertical'); icon.classList.add('ph-arrows-in-line-vertical'); }
             else { icon.classList.add('ph-arrows-out-line-vertical'); icon.classList.remove('ph-arrows-in-line-vertical'); }
@@ -307,15 +325,10 @@
             const colRight = document.getElementById('col-right');
             colLeft.innerHTML = ''; colRight.innerHTML = '';
             
-            // LOGICA BLINDADA: Distribución por Índice (Par/Impar)
-            // Esto asegura que SIEMPRE se llenen ambas columnas, independientemente del tamaño de pantalla.
-            // CSS (flex-col md:flex-row) se encargará de apilarlas o ponerlas lado a lado.
-            
             state.structure.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
                 
-                // Si el índice es par (0, 2, 4...) -> Izquierda
-                // Si el índice es impar (1, 3, 5...) -> Derecha
+                // ASIGNACIÓN PAR/IMPAR PARA GARANTIZAR LLENADO
                 const targetContainer = (sIdx % 2 === 0) ? colLeft : colRight;
 
                 const card = document.createElement('div');
@@ -358,7 +371,6 @@
                  const btn = document.createElement('div'); btn.className="border-4 border-dashed border-slate-200 rounded-3xl p-8 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all btn-anim";
                  btn.innerHTML=`<span class="text-slate-400 font-extrabold text-sm uppercase tracking-widest">+ Nueva Sección</span>`;
                  btn.onclick=()=>updStr('addSec'); 
-                 // Poner el botón "Agregar" al final de la columna más corta (simple lógica visual)
                  colLeft.appendChild(btn); 
             }
             initSortable();
@@ -373,31 +385,9 @@
             const cols = [document.getElementById('col-left'), document.getElementById('col-right')];
             cols.forEach(col => {
                 new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
-                        // Reconstruir estructura basada en DOM
-                        const newStructure = [];
-                        const leftItems = document.getElementById('col-left').children;
-                        const rightItems = document.getElementById('col-right').children;
-                        // Mezclamos como cremallera (o simplemente concatenamos si la lógica de pares/impares se rompe al mover)
-                        // Para simplificar: al mover, reconstruimos el array plano.
-                        // La próxima vez que se renderice, se volverá a dividir en pares/impares.
-                        // Esto significa que al soltar, el item podría "saltar" de columna si el orden cambia los índices.
-                        // Para evitar saltos bruscos visuales, aceptamos el nuevo orden lineal.
-                        
-                        // Recogemos todos los items visibles en orden
-                        const allItems = [...leftItems, ...rightItems].sort((a,b) => {
-                            // Esta lógica es compleja para mantener "Masonry".
-                            // Simplemente leemos: Todo Left + Todo Right y guardamos.
-                            return 0; 
-                        });
-                        
-                        // Mejor estrategia: Reconstruir array basado en la nueva posición visual
-                        // Pero como forzamos par/impar en render, el usuario no puede decidir "quiero esto a la derecha".
-                        // Si el usuario QUIERE control manual, necesitamos persistir la columna.
-                        // Como pidió que "se muevan para apilarse", la lógica automática Par/Impar es la mejor para rellenar huecos.
-                        
-                        // Recogemos todo lo de la izquierda primero, luego derecha (orden de lectura flex-col mobile)
-                        // O alternado. Vamos a simplificar: al mover, solo actualizamos el orden del array global.
                          const tempStruct = [];
+                         const leftItems = document.getElementById('col-left').children;
+                         const rightItems = document.getElementById('col-right').children;
                          [...leftItems, ...rightItems].forEach(el => {
                              if(el.hasAttribute('data-id')) tempStruct.push(state.structure[parseInt(el.getAttribute('data-id'))]);
                          });
@@ -503,7 +493,7 @@
         function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
-        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v35_layout'); location.reload(); }}
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v36_final'); location.reload(); }}
 
         init();
     </script>

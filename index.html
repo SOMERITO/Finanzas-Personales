@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V37 - Clean UI</title>
+    <title>Finanzas V39 - Perfect Layout</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -44,6 +44,7 @@
         /* --- CURSOR SYSTEM BLINDADO --- */
         html body * { cursor: default !important; }
         input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
+        .section-header:active { cursor: grabbing !important; }
 
         /* Layout Utils */
         .sidebar-drawer { transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; background: white; border-right: 1px solid #e2e8f0; }
@@ -60,7 +61,7 @@
         .analytics-sheet { position: fixed; inset: 0; background: #fff; z-index: 70; transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; }
         .analytics-sheet.open { transform: translateY(0); }
 
-        /* SUCCESS OVERLAY (Nueva animación bonita) */
+        /* SUCCESS OVERLAY */
         .success-overlay { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
         .success-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 2rem; border-radius: 2rem; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.15); text-align: center; transform: scale(0.8); transition: transform 0.3s; border: 1px solid #e2e8f0; }
@@ -87,9 +88,10 @@
         .coach-icon { color: #facc15; font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
         .coach-text { color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; }
 
-        /* Masonry & Animations */
-        .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; }
+        /* Masonry & Sortable Helpers */
+        .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 150px; } /* Altura mínima para recibir items */
         .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
+        .sortable-ghost { opacity: 0.3; background: #f1f5f9; border: 2px dashed #cbd5e1; transform: scale(0.98); }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
@@ -303,11 +305,11 @@
         const BIN_ID = "698a256fd0ea881f40adab7d";
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const DEFAULT_STR = [
-            { id: 'ing', title: 'Ingresos', type: 'income', items: ['Sueldo', 'Extras'], collapsed: false }, 
-            { id: 'deu', title: 'Deudas', type: 'expense', items: ['Préstamos'], collapsed: false },
-            { id: 'fijos', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler', 'Luz'], collapsed: false },
-            { id: 'horm', title: 'Gastos Hormiga', type: 'expense', items: ['Netflix', 'Spotify'], collapsed: false },
-            { id: 'aho', "title": 'Ahorros', type: 'savings', items: ['Fondo Emergencia'], collapsed: false }
+            { id: 'ing', title: 'Ingresos', type: 'income', items: ['Sueldo', 'Extras'], collapsed: false, col: 0 }, 
+            { id: 'deu', title: 'Deudas', type: 'expense', items: ['Préstamos'], collapsed: false, col: 1 },
+            { id: 'fijos', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler', 'Luz'], collapsed: false, col: 0 },
+            { id: 'horm', title: 'Gastos Hormiga', type: 'expense', items: ['Netflix', 'Spotify'], collapsed: false, col: 1 },
+            { id: 'aho', "title": 'Ahorros', type: 'savings', items: ['Fondo Emergencia'], collapsed: false, col: 0 }
         ];
 
         let state = { currentMonth: 0, mode: 'view', allCollapsed: false, structure: [], data: {} };
@@ -317,15 +319,25 @@
         async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            const s = localStorage.getItem('finanzas_v37_clean');
+            const s = localStorage.getItem('finanzas_v39_perfect');
             if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
+            
+            // --- AUTO CORRECCIÓN DE COLUMNAS (Fix Apilado) ---
+            // Si detectamos que TODAS las secciones tienen col:0 o undefined, las redistribuimos
+            const allZero = state.structure.every(s => !s.col || s.col === 0);
+            if(allZero) {
+                state.structure.forEach((s, i) => s.col = i % 2); // 0, 1, 0, 1...
+            }
+            // Asegurar que siempre tengan valor
+            state.structure.forEach((s, i) => { if(s.col === undefined) s.col = i % 2; });
+
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
             
             // Fuerza Bruta Cursor
             setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"] { cursor: text !important; }`; }, 1000);
         }
-        function saveLocal() { localStorage.setItem('finanzas_v37_clean', JSON.stringify({ structure: state.structure, data: state.data })); }
+        function saveLocal() { localStorage.setItem('finanzas_v39_perfect', JSON.stringify({ structure: state.structure, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
         function renderDashboard() {
@@ -342,10 +354,15 @@
             state.structure.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
                 
-                const targetContainer = (sIdx % 2 === 0) ? colLeft : colRight;
+                // MASONRY LOGIC MANUAL (Respetando la propiedad .col)
+                // Si es pantalla pequeña (mobile), todo va a Left (que se apila verticalmente por CSS flex-col del wrapper)
+                // Pero Sortable necesita contenedores distintos si queremos mover.
+                // En mobile, colRight se oculta visualmente si usamos css hidden? No, mejor dejamos que CSS maneje el layout flex.
+                
+                const targetContainer = (sec.col === 1) ? colRight : colLeft;
 
                 const card = document.createElement('div');
-                card.setAttribute('data-id', sIdx);
+                card.setAttribute('data-db-id', sec.id); // Usamos ID estable para identificar
                 card.className = `bg-white rounded-3xl card-premium overflow-hidden transition-all animate-slide-in ${state.mode==='edit'?'border-dashed border-2 border-slate-400 shadow-none':''}`;
                 
                 const isCollapsed = sec.collapsed === true;
@@ -398,14 +415,34 @@
             const cols = [document.getElementById('col-left'), document.getElementById('col-right')];
             cols.forEach(col => {
                 new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
-                         const tempStruct = [];
-                         const leftItems = document.getElementById('col-left').children;
-                         const rightItems = document.getElementById('col-right').children;
-                         [...leftItems, ...rightItems].forEach(el => {
-                             if(el.hasAttribute('data-id')) tempStruct.push(state.structure[parseInt(el.getAttribute('data-id'))]);
+                         const newStructure = [];
+                         
+                         // 1. Leer columna izquierda (forzar col=0)
+                         const leftEls = document.getElementById('col-left').children;
+                         Array.from(leftEls).forEach(el => {
+                            if(el.hasAttribute('data-db-id')) {
+                                const id = el.getAttribute('data-db-id');
+                                const item = state.structure.find(s => s.id === id);
+                                if(item) { item.col = 0; newStructure.push(item); } 
+                            }
                          });
-                         state.structure = tempStruct;
+                         
+                         // 2. Leer columna derecha (forzar col=1)
+                         const rightEls = document.getElementById('col-right').children;
+                         Array.from(rightEls).forEach(el => {
+                            if(el.hasAttribute('data-db-id')) {
+                                const id = el.getAttribute('data-db-id');
+                                const item = state.structure.find(s => s.id === id);
+                                if(item) { item.col = 1; newStructure.push(item); } 
+                            }
+                         });
+
+                         // 3. Guardar
+                         state.structure = newStructure;
                          commitChanges(); 
+                         // No llamamos renderDashboard() aquí para evitar parpadeo, ya está visualmente en su sitio.
+                         // Pero sí necesitamos recalcular si hubiera dependencias (aquí no hay).
+                         // Mejor llamarlo para asegurar consistencia del estado visual vs datos.
                          renderDashboard();
                 }});
             });
@@ -426,55 +463,14 @@
                 tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerText = "Esperando ingresos...";
                 return; 
             }
-
-            const balance = i - e - s; const savingsRate = (s / i) * 100; 
-            const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; 
-            const hormiga = bd_details['Gastos Hormiga'] || 0; const hormigaRatio = (hormiga / i) * 100;
-            
+            const balance = i - e - s; const savingsRate = (s / i) * 100; const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; const hormiga = bd_details['Gastos Hormiga'] || 0; const hormigaRatio = (hormiga / i) * 100;
             let msg = "", status = "", color = "", tips = [];
-
-            if (balance < 0) { 
-                msg = `Alerta: Gastaste S/ ${Math.abs(balance).toFixed(0)} más de lo que ganaste.`; 
-                status = "DÉFICIT"; color = "text-rose-400"; 
-                tips.push({icon: "✂️", text: "Recorta gastos no esenciales inmediatamente."});
-                tips.push({icon: "🛑", text: "Evita usar tarjetas de crédito este mes."});
-            } else if (debtRatio > 30) { 
-                msg = `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu sueldo.`; 
-                status = "RIESGO DEUDA"; color = "text-orange-400";
-                tips.push({icon: "📉", text: "Aplica el método 'Bola de Nieve' para pagar."});
-                tips.push({icon: "🚫", text: "No adquieras nuevas cuotas."});
-            } else if (hormigaRatio > 10) { 
-                msg = `El ${hormigaRatio.toFixed(0)}% se va en gastos pequeños.`; 
-                status = "FUGA GASTOS"; color = "text-yellow-400"; 
-                tips.push({icon: "☕", text: "Evita compras impulsivas diarias."});
-                tips.push({icon: "📺", text: "Revisa suscripciones que no uses."});
-            } else if (savingsRate < 10) { 
-                if (balance > 100) { 
-                    msg = `Tienes S/ ${balance.toFixed(0)} libres. ¡Ahorra!`; 
-                    tips.push({icon: "💰", text: "Transfiere ese saldo a ahorros ahora."});
-                } else { 
-                    msg = "Margen ajustado. Necesitamos liquidez."; 
-                    tips.push({icon: "⚡", text: "Busca reducir facturas de servicios fijos."});
-                }
-                status = "MEJORABLE"; color = "text-blue-400"; 
-            } else { 
-                msg = "¡Excelente gestión! Finanzas sanas."; 
-                status = "SÓLIDO"; color = "text-emerald-400";
-                tips.push({icon: "📈", text: "Investiga fondos de inversión."});
-                tips.push({icon: "🏖️", text: "Planifica una meta a largo plazo."});
-            }
-
-            advisorText.innerText = msg; 
-            advisorStatus.innerText = status; advisorStatus.className = `text-xs font-bold ${color}`;
-            
-            tipsContainer.innerHTML = "";
-            if(tips.length > 0) {
-                tips.forEach(t => {
-                    tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text">${t.text}</div></div>`;
-                });
-                tipsContainer.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            }
+            if (balance < 0) { msg = `Alerta: Gastaste S/ ${Math.abs(balance).toFixed(0)} más de lo que ganaste.`; status = "DÉFICIT"; color = "text-rose-400"; tips.push({icon: "✂️", text: "Recorta gastos no esenciales inmediatamente."}); tips.push({icon: "🛑", text: "Evita usar tarjetas de crédito este mes."}); } 
+            else if (debtRatio > 30) { msg = `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu sueldo.`; status = "RIESGO DEUDA"; color = "text-orange-400"; tips.push({icon: "📉", text: "Aplica el método 'Bola de Nieve' para pagar."}); tips.push({icon: "🚫", text: "No adquieras nuevas cuotas."}); } 
+            else if (hormigaRatio > 10) { msg = `El ${hormigaRatio.toFixed(0)}% se va en gastos pequeños.`; status = "FUGA GASTOS"; color = "text-yellow-400"; tips.push({icon: "☕", text: "Evita compras impulsivas diarias."}); tips.push({icon: "📺", text: "Revisa suscripciones que no uses."}); } 
+            else if (savingsRate < 10) { if (balance > 100) { msg = `Tienes S/ ${balance.toFixed(0)} libres. ¡Ahorra!`; tips.push({icon: "💰", text: "Transfiere ese saldo a ahorros ahora."}); } else { msg = "Margen ajustado. Necesitamos liquidez."; tips.push({icon: "⚡", text: "Busca reducir facturas de servicios fijos."}); } status = "MEJORABLE"; color = "text-blue-400"; } 
+            else { msg = "¡Excelente gestión! Finanzas sanas."; status = "SÓLIDO"; color = "text-emerald-400"; tips.push({icon: "📈", text: "Investiga fondos de inversión."}); tips.push({icon: "🏖️", text: "Planifica una meta a largo plazo."}); }
+            advisorText.innerText = msg; advisorStatus.innerText = status; advisorStatus.className = `text-xs font-bold ${color}`; tipsContainer.innerHTML = ""; if(tips.length > 0) { tips.forEach(t => { tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text">${t.text}</div></div>`; }); tipsContainer.classList.remove('hidden'); placeholder.classList.add('hidden'); }
         }
 
         function calcKPIs(runAnalysis = false) {
@@ -492,31 +488,18 @@
         function openDeleteModal() { document.getElementById('delete-modal').classList.add('open'); document.getElementById('settings-modal').classList.remove('open'); }
         function executeDelete() { 
             const prefix = `${state.currentMonth}-`; 
-            // 1. Cerrar Modal
             closeAll();
-            
-            // 2. Animar Desaparición
             const container = document.getElementById('dashboard-content');
             container.classList.add('vanish-effect');
-            
             setTimeout(() => {
-                // 3. Borrar Datos Realmente
                 Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); 
                 commitChanges(); 
-                
-                // 4. Mostrar Success Overlay
                 const successOverlay = document.getElementById('success-overlay');
                 successOverlay.classList.add('show');
-                
-                // 5. Resetear Vista
                 renderDashboard();
                 container.classList.remove('vanish-effect');
-                
-                // 6. Ocultar Success después de un tiempo
-                setTimeout(() => {
-                    successOverlay.classList.remove('show');
-                }, 1500);
-            }, 500); // Esperar a que termine la animación vanish
+                setTimeout(() => { successOverlay.classList.remove('show'); }, 1500);
+            }, 500); 
         }
         function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
         function updStr(act,s,i,v) { if(act==='ren') state.structure[s].title=v; if(act==='renI') state.structure[s].items[i]=v; if(act==='addI') state.structure[s].items.push("Nuevo"); if(act==='addSec') state.structure.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); commitChanges(); renderDashboard(); }
@@ -533,7 +516,7 @@
         function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
-        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v37_clean'); location.reload(); }}
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v39_perfect'); location.reload(); }}
 
         init();
     </script>

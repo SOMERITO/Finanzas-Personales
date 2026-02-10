@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V41 - CFO Edition</title>
+    <title>Finanzas V42 - Independent</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -95,6 +95,7 @@
         /* Masonry & Sortable Helpers */
         .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 200px; transition: background 0.3s; border-radius: 1rem; }
         body.edit-mode .masonry-col { background: rgba(241, 245, 249, 0.5); border: 2px dashed #e2e8f0; }
+        
         .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
         .sortable-ghost { opacity: 0.3; background: #f1f5f9; border: 2px dashed #cbd5e1; transform: scale(0.98); }
         
@@ -102,6 +103,8 @@
         body.edit-mode .btn-delete-item { opacity: 1; pointer-events: auto; cursor: pointer !important; }
         .section-delete-btn { display: none; }
         body.edit-mode .section-delete-btn { display: flex; cursor: pointer !important; }
+        
+        .month-badge { font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
@@ -293,7 +296,6 @@
                                 <div class="health-bar-bg"><div id="health-bar" class="health-bar-fill bg-slate-600" style="width: 0%"></div></div>
                                 <p id="advisor-status" class="mt-3 text-sm font-bold text-slate-300">Sin Datos</p>
                             </div>
-                            
                             <div class="w-full md:w-3/4 pl-0 md:pl-4">
                                 <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-4">Estrategia del Mes</p>
                                 <div id="advisor-tips" class="hidden space-y-1"></div>
@@ -308,7 +310,7 @@
                 <div class="h-px bg-slate-200 w-full my-10"></div>
 
                 <div class="flex items-center gap-4 mb-6">
-                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-400"></i> Desglose de Operaciones</h3>
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-400"></i> Desglose de Operaciones <span class="month-badge" id="breakdown-month-badge">ENERO</span></h3>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-6 items-start w-full">
@@ -332,32 +334,54 @@
             { id: 'aho', "title": 'Ahorros', type: 'savings', items: ['Fondo Emergencia'], collapsed: false, col: 0 }
         ];
 
-        let state = { currentMonth: 0, mode: 'view', allCollapsed: false, structure: [], data: {} };
+        // NEW STATE MODEL: monthly_structures array
+        let state = { currentMonth: 0, mode: 'view', allCollapsed: false, monthly_structures: [], data: {} };
         let ch1 = null, ch2 = null, trendChart = null, catChart = null;
 
-        async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ structure: state.structure, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
-        async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); 
-            applyLayoutReset(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
+        async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ monthly_structures: state.monthly_structures, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
+        async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); 
+            if(json.record) { 
+                // Migration Logic: If old "structure" exists but "monthly_structures" doesn't
+                if (json.record.monthly_structures) {
+                    state.monthly_structures = json.record.monthly_structures;
+                } else if (json.record.structure) {
+                    console.log("Migrating to Independent Structures...");
+                    // Clone single structure to all 12 months
+                    state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(json.record.structure)));
+                } else {
+                    state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
+                }
+                state.data = json.record.data || {}; 
+                saveLocal(); 
+                renderDashboard(); 
+                document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; 
+            } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            const s = localStorage.getItem('finanzas_v41_cfo');
-            if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
+            const s = localStorage.getItem('finanzas_v42_independent');
+            if(s) { 
+                const p = JSON.parse(s); 
+                state.monthly_structures = p.monthly_structures || Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
+                // Migration local check
+                if(!state.monthly_structures || state.monthly_structures.length === 0) {
+                     state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(p.structure || DEFAULT_STR)));
+                }
+                state.data = p.data || {}; 
+            } else {
+                state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
+            }
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
             setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"], .cursor-pointer { cursor: pointer !important; } .cursor-text { cursor: text !important; }`; }, 1000);
         }
 
-        function applyLayoutReset() {
-            const hasReset = localStorage.getItem('v40_forced_distribution_done');
-            if (!hasReset) { state.structure.forEach((s, i) => { s.col = i % 2; }); localStorage.setItem('v40_forced_distribution_done', 'true'); saveLocal(); }
-        }
-
-        function saveLocal() { localStorage.setItem('finanzas_v41_cfo', JSON.stringify({ structure: state.structure, data: state.data })); }
+        function saveLocal() { localStorage.setItem('finanzas_v42_independent', JSON.stringify({ monthly_structures: state.monthly_structures, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
         function renderDashboard() {
             document.getElementById('current-month-display').innerText = MONTHS[state.currentMonth];
             document.getElementById('delete-month-name').innerText = MONTHS[state.currentMonth];
+            document.getElementById('breakdown-month-badge').innerText = MONTHS[state.currentMonth];
             const icon = document.getElementById('global-collapse-icon');
             if(state.allCollapsed) { icon.classList.remove('ph-arrows-out-line-vertical'); icon.classList.add('ph-arrows-in-line-vertical'); }
             else { icon.classList.add('ph-arrows-out-line-vertical'); icon.classList.remove('ph-arrows-in-line-vertical'); }
@@ -366,7 +390,10 @@
             const colRight = document.getElementById('col-right');
             colLeft.innerHTML = ''; colRight.innerHTML = '';
             
-            state.structure.forEach((sec, sIdx) => {
+            // USE CURRENT MONTH STRUCTURE ONLY
+            const currentStruct = state.monthly_structures[state.currentMonth];
+
+            currentStruct.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
                 let targetCol = sec.col; if (targetCol === undefined || targetCol === null) targetCol = sIdx % 2;
                 const targetContainer = (targetCol === 1) ? colRight : colLeft;
@@ -426,141 +453,92 @@
             calcKPIs(false);
         }
 
+        function getStruct() { return state.monthly_structures[state.currentMonth]; }
+
         function deleteItem(sIdx, iIdx) {
             if(!confirm('¿Eliminar este concepto?')) return;
-            // Clean data keys for this item before removing it structure-wise?
-            // Actually, simply removing from structure is safer for now. Data orphan keys are fine.
-            state.structure[sIdx].items.splice(iIdx, 1);
+            getStruct()[sIdx].items.splice(iIdx, 1);
             commitChanges();
             renderDashboard();
         }
 
         function deleteSection(sIdx) {
             if(!confirm('¿Eliminar TODA la sección y sus datos?')) return;
-            const secId = state.structure[sIdx].id;
-            // Clean Data
-            Object.keys(state.data).forEach(k => {
-                if(k.includes(`-${secId}-`)) delete state.data[k];
-            });
-            state.structure.splice(sIdx, 1);
+            const secId = getStruct()[sIdx].id;
+            Object.keys(state.data).forEach(k => { if(k.startsWith(`${state.currentMonth}-${secId}-`)) delete state.data[k]; });
+            getStruct().splice(sIdx, 1);
             commitChanges();
             renderDashboard();
         }
 
-        function toggleSection(sIdx) { state.structure[sIdx].collapsed = !state.structure[sIdx].collapsed; renderDashboard(); }
-        function toggleGlobalCollapse() { state.allCollapsed = !state.allCollapsed; state.structure.forEach(sec => sec.collapsed = state.allCollapsed); renderDashboard(); }
+        function toggleSection(sIdx) { const s=getStruct()[sIdx]; s.collapsed = !s.collapsed; renderDashboard(); }
+        function toggleGlobalCollapse() { state.allCollapsed = !state.allCollapsed; getStruct().forEach(sec => sec.collapsed = state.allCollapsed); renderDashboard(); }
+        
+        // Updates target ONLY current month structure
+        function updStr(act,s,i,v) { 
+            const st = getStruct();
+            if(act==='ren') st[s].title=v; 
+            if(act==='renI') st[s].items[i]=v; 
+            if(act==='addI') st[s].items.push("Nuevo"); 
+            if(act==='addSec') st.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); 
+            commitChanges(); renderDashboard(); 
+        }
+
         function handleInputKey(e, sIdx, iIdx) { if(e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.target.blur(); const nextInput = document.getElementById(`inp-${sIdx}-${iIdx+1}`); if(nextInput) nextInput.focus(); } }
+        
         function initSortable() {
             const cols = [document.getElementById('col-left'), document.getElementById('col-right')];
             cols.forEach(col => {
                 new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
                          const newStructure = [];
-                         Array.from(document.getElementById('col-left').children).forEach(el => { if(el.hasAttribute('data-db-id')) { const item = state.structure.find(s => s.id === el.getAttribute('data-db-id')); if(item) { item.col = 0; newStructure.push(item); } } });
-                         Array.from(document.getElementById('col-right').children).forEach(el => { if(el.hasAttribute('data-db-id')) { const item = state.structure.find(s => s.id === el.getAttribute('data-db-id')); if(item) { item.col = 1; newStructure.push(item); } } });
-                         state.structure = newStructure; commitChanges(); renderDashboard();
+                         const st = getStruct();
+                         // We need to reconstruct items based on DOM order because we are in independent mode
+                         // Map DOM IDs back to structure objects
+                         Array.from(document.getElementById('col-left').children).forEach(el => { 
+                             if(el.hasAttribute('data-db-id')) { 
+                                 const item = st.find(s => s.id === el.getAttribute('data-db-id')); 
+                                 if(item) { item.col = 0; newStructure.push(item); } 
+                             } 
+                         });
+                         Array.from(document.getElementById('col-right').children).forEach(el => { 
+                             if(el.hasAttribute('data-db-id')) { 
+                                 const item = st.find(s => s.id === el.getAttribute('data-db-id')); 
+                                 if(item) { item.col = 1; newStructure.push(item); } 
+                             } 
+                         });
+                         // Update ONLY current month structure
+                         state.monthly_structures[state.currentMonth] = newStructure;
+                         commitChanges(); renderDashboard();
                 }});
             });
-            document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const oldIdx = Math.floor(evt.oldIndex / 2); const newIdx = Math.floor(evt.newIndex / 2); const items = state.structure[secIdx].items; const [movedItem] = items.splice(oldIdx, 1); items.splice(newIdx, 0, movedItem); commitChanges(); renderDashboard(); }}); });
+            document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const oldIdx = Math.floor(evt.oldIndex / 2); const newIdx = Math.floor(evt.newIndex / 2); const items = getStruct()[secIdx].items; const [movedItem] = items.splice(oldIdx, 1); items.splice(newIdx, 0, movedItem); commitChanges(); renderDashboard(); }}); });
         }
 
         function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; renderDashboard(); }
         
-        // --- CFO ANALYTICS ENGINE ---
+        // --- CFO ANALYTICS (Same Logic, updated references) ---
         function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Procesando datos...`; setTimeout(() => { calcKPIs(true); }, 800); }
-        
         function analyzeFinance(i, e, s, bd_details) {
-            const tipsContainer = document.getElementById('advisor-tips'); 
-            const placeholder = document.getElementById('advisor-placeholder');
-            const scoreEl = document.getElementById('health-score');
-            const barEl = document.getElementById('health-bar');
-            const statusEl = document.getElementById('advisor-status');
-
-            if(i === 0) { 
-                scoreEl.innerText = "0"; barEl.style.width = "0%"; statusEl.innerText = "Esperando Ingresos";
-                tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerHTML = `<i class="ph-bold ph-info"></i> Registra tus ingresos para iniciar el análisis.`;
-                return; 
-            }
-
-            // --- METRICS ---
-            const balance = i - e - s;
-            const savingsRate = (s / i) * 100;
-            const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; 
-            const debtRatio = (debt / i) * 100;
-            const hormiga = bd_details['Gastos Hormiga'] || 0; 
-            const annualHormiga = hormiga * 12;
-
-            // --- SCORING ALGORITHM (0-100) ---
-            let score = 100;
-            if (balance < 0) score -= 40; // Deficit punishment
-            if (savingsRate < 20) score -= (20 - savingsRate); // Savings penalty
-            if (debtRatio > 30) score -= (debtRatio - 30); // High debt penalty
-            if (hormiga > (i * 0.05)) score -= 10; // Hormiga penalty
-            score = Math.max(0, Math.min(100, Math.round(score)));
-
-            // --- RENDER SCORE ---
-            scoreEl.innerText = score;
-            barEl.style.width = `${score}%`;
-            
-            let colorClass = "bg-emerald-500";
-            let statusText = "Excelente";
-            if (score < 80) { colorClass = "bg-blue-500"; statusText = "Bueno"; }
-            if (score < 60) { colorClass = "bg-yellow-500"; statusText = "Aceptable"; }
-            if (score < 40) { colorClass = "bg-orange-500"; statusText = "En Riesgo"; }
-            if (score < 20) { colorClass = "bg-rose-500"; statusText = "Crítico"; }
-            
-            barEl.className = `health-bar-fill ${colorClass}`;
-            statusEl.innerText = statusText;
-            statusEl.className = `mt-3 text-sm font-bold ${colorClass.replace('bg-', 'text-')}`;
-
-            // --- STRATEGY GENERATION ---
+            const tipsContainer = document.getElementById('advisor-tips'); const placeholder = document.getElementById('advisor-placeholder'); const scoreEl = document.getElementById('health-score'); const barEl = document.getElementById('health-bar'); const statusEl = document.getElementById('advisor-status');
+            if(i === 0) { scoreEl.innerText = "0"; barEl.style.width = "0%"; statusEl.innerText = "Esperando Ingresos"; tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerHTML = `<i class="ph-bold ph-info"></i> Registra tus ingresos para iniciar el análisis.`; return; }
+            const balance = i - e - s; const savingsRate = (s / i) * 100; const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; const hormiga = bd_details['Gastos Hormiga'] || 0; const annualHormiga = hormiga * 12;
+            let score = 100; if (balance < 0) score -= 40; if (savingsRate < 20) score -= (20 - savingsRate); if (debtRatio > 30) score -= (debtRatio - 30); if (hormiga > (i * 0.05)) score -= 10; score = Math.max(0, Math.min(100, Math.round(score)));
+            scoreEl.innerText = score; barEl.style.width = `${score}%`;
+            let colorClass = "bg-emerald-500"; let statusText = "Excelente"; if (score < 80) { colorClass = "bg-blue-500"; statusText = "Bueno"; } if (score < 60) { colorClass = "bg-yellow-500"; statusText = "Aceptable"; } if (score < 40) { colorClass = "bg-orange-500"; statusText = "En Riesgo"; } if (score < 20) { colorClass = "bg-rose-500"; statusText = "Crítico"; }
+            barEl.className = `health-bar-fill ${colorClass}`; statusEl.innerText = statusText; statusEl.className = `mt-3 text-sm font-bold ${colorClass.replace('bg-', 'text-')}`;
             let strategies = [];
-
-            // 1. Debt Strategy
-            if (debtRatio > 0) {
-                if (debtRatio > 35) {
-                    strategies.push({icon: "📉", title: "Alerta de Endeudamiento", text: `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu ingreso. <b>Acción:</b> Aplica el método 'Bola de Nieve' (paga la más chica primero) para liberar flujo de caja.`});
-                } else {
-                     strategies.push({icon: "💳", title: "Control de Deuda", text: `Estás destinando S/ ${debt.toFixed(2)} a deuda. Si puedes prepagar, hazlo para ahorrar intereses futuros.`});
-                }
-            }
-
-            // 2. Savings Strategy
-            if (savingsRate < 20) {
-                const gap = (i * 0.20) - s;
-                strategies.push({icon: "💰", title: "Objetivo de Ahorro (Regla 20%)", text: `Estás ahorrando el ${savingsRate.toFixed(0)}%. Para llegar al ideal del 20%, deberías separar <b>S/ ${gap.toFixed(2)} adicionales</b> este mes.`});
-            } else {
-                strategies.push({icon: "🚀", title: "Ahorro Potente", text: `¡Bien! Superas el 20% de ahorro. Considera mover el excedente a un Fondo Mutuo o Depósito a Plazo.`});
-            }
-
-            // 3. Hormiga Strategy
-            if (hormiga > 0) {
-                strategies.push({icon: "☕", title: "Fuga 'Hormiga'", text: `Cuidado: Si mantienes este ritmo de gastos pequeños, perderás <b>S/ ${annualHormiga.toFixed(2)} al año</b>. ¿Vale la pena?`});
-            }
-
-            // 4. Cashflow
-            if (balance < 0) {
-                strategies.unshift({icon: "🚨", title: "DÉFICIT DETECTADO", text: `Estás gastando S/ ${Math.abs(balance).toFixed(2)} más de lo que ingresas. Detén gastos variables inmediatamente.`});
-            } else if (balance > 0 && savingsRate < 10) {
-                 strategies.push({icon: "👁️", title: "Dinero Ocioso", text: `Tienes S/ ${balance.toFixed(2)} libres sin asignar a ahorro. ¡No los gastes! Muévelos a tu meta de ahorro.`});
-            }
-
-            // RENDER TIPS
-            tipsContainer.innerHTML = "";
-            strategies.slice(0, 3).forEach(t => { // Show top 3
-                tipsContainer.innerHTML += `
-                <div class="coach-tip-item">
-                    <div class="coach-icon">${t.icon}</div>
-                    <div class="coach-text"><strong>${t.title}</strong>${t.text}</div>
-                </div>`;
-            });
-            
-            tipsContainer.classList.remove('hidden');
-            placeholder.classList.add('hidden');
+            if (debtRatio > 0) { if (debtRatio > 35) { strategies.push({icon: "📉", title: "Alerta de Endeudamiento", text: `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu ingreso. <b>Acción:</b> Aplica el método 'Bola de Nieve' (paga la más chica primero) para liberar flujo de caja.`}); } else { strategies.push({icon: "💳", title: "Control de Deuda", text: `Estás destinando S/ ${debt.toFixed(2)} a deuda. Si puedes prepagar, hazlo para ahorrar intereses futuros.`}); } }
+            if (savingsRate < 20) { const gap = (i * 0.20) - s; strategies.push({icon: "💰", title: "Objetivo de Ahorro (Regla 20%)", text: `Estás ahorrando el ${savingsRate.toFixed(0)}%. Para llegar al ideal del 20%, deberías separar <b>S/ ${gap.toFixed(2)} adicionales</b> este mes.`}); } else { strategies.push({icon: "🚀", title: "Ahorro Potente", text: `¡Bien! Superas el 20% de ahorro. Considera mover el excedente a un Fondo Mutuo o Depósito a Plazo.`}); }
+            if (hormiga > 0) { strategies.push({icon: "☕", title: "Fuga 'Hormiga'", text: `Cuidado: Si mantienes este ritmo de gastos pequeños, perderás <b>S/ ${annualHormiga.toFixed(2)} al año</b>. ¿Vale la pena?`}); }
+            if (balance < 0) { strategies.unshift({icon: "🚨", title: "DÉFICIT DETECTADO", text: `Estás gastando S/ ${Math.abs(balance).toFixed(2)} más de lo que ingresas. Detén gastos variables inmediatamente.`}); } else if (balance > 0 && savingsRate < 10) { strategies.push({icon: "👁️", title: "Dinero Ocioso", text: `Tienes S/ ${balance.toFixed(2)} libres sin asignar a ahorro. ¡No los gastes! Muévelos a tu meta de ahorro.`}); }
+            tipsContainer.innerHTML = ""; strategies.slice(0, 3).forEach(t => { tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text"><strong>${t.title}</strong>${t.text}</div></div>`; });
+            tipsContainer.classList.remove('hidden'); placeholder.classList.add('hidden');
         }
 
         function calcKPIs(runAnalysis = false) {
             let i=0, e=0, s=0, bd={};
-            state.structure.forEach(sec => { let sum = 0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i += sum; else if(sec.type==='savings') s += sum; else { e += sum; if(sum > 0) bd[sec.title] = sum; } });
+            // Use getStruct() so we analyze only current month's structure
+            getStruct().forEach(sec => { let sum = 0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i += sum; else if(sec.type==='savings') s += sum; else { e += sum; if(sum > 0) bd[sec.title] = sum; } });
             const bal = i-e-s;
             document.getElementById('kpi-balance').innerText = formatMoney(bal); document.getElementById('kpi-income').innerText = formatMoney(i); document.getElementById('kpi-expenses').innerText = formatMoney(e); document.getElementById('kpi-savings').innerText = formatMoney(s); document.getElementById('center-total').innerText = formatMoney(e); document.getElementById('kpi-rate').innerText = i>0 ? ((s/i)*100).toFixed(0)+'%' : '0%';
             if(runAnalysis) analyzeFinance(i, e, s, bd);
@@ -568,12 +546,35 @@
             const ctx2 = document.getElementById('flowChart'); if (ch2) ch2.destroy(); ch2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Ingresos','Gastos','Ahorro'], datasets: [{ data:[i,e,s], backgroundColor:['#10b981','#f97316','#3b82f6'], borderRadius:12, barPercentage:0.45 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:false}, x:{grid:{display:false}}} } });
             if(document.getElementById('analytics-overlay').classList.contains('open')) renderAdvancedCharts();
         }
-        function renderAdvancedCharts() { const incomeTrend=[], expenseTrend=[]; MONTHS.forEach((_, mIdx) => { let i=0, e=0; state.structure.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); incomeTrend.push(i); expenseTrend.push(e); }); const ctxT = document.getElementById('trendChart'); if(trendChart) trendChart.destroy(); trendChart = new Chart(ctxT, { type: 'line', data: { labels: MONTHS, datasets: [ { label: 'Ingresos', data: incomeTrend, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }, { label: 'Gastos', data: expenseTrend, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); const categories = {}; state.structure.forEach(sec => { if(sec.type === 'expense') { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sum > 0) categories[sec.title] = sum; } }); const ctxC = document.getElementById('categoryChart'); if(catChart) catChart.destroy(); catChart = new Chart(ctxC, { type: 'bar', data: { labels: Object.keys(categories), datasets: [{ label: 'Gasto por Categoría', data: Object.values(categories), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } }); }
+        function renderAdvancedCharts() { 
+            const incomeTrend=[], expenseTrend=[]; 
+            MONTHS.forEach((_, mIdx) => { 
+                let i=0, e=0; 
+                // Careful: Historical charts now need to loop through specific monthly structures
+                const mStruct = state.monthly_structures[mIdx];
+                mStruct.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); 
+                incomeTrend.push(i); expenseTrend.push(e); 
+            }); 
+            const ctxT = document.getElementById('trendChart'); if(trendChart) trendChart.destroy(); trendChart = new Chart(ctxT, { type: 'line', data: { labels: MONTHS, datasets: [ { label: 'Ingresos', data: incomeTrend, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }, { label: 'Gastos', data: expenseTrend, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); const categories = {}; getStruct().forEach(sec => { if(sec.type === 'expense') { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sum > 0) categories[sec.title] = sum; } }); const ctxC = document.getElementById('categoryChart'); if(catChart) catChart.destroy(); catChart = new Chart(ctxC, { type: 'bar', data: { labels: Object.keys(categories), datasets: [{ label: 'Gasto por Categoría', data: Object.values(categories), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } }); 
+        }
 
         function openDeleteModal() { document.getElementById('delete-modal').classList.add('open'); document.getElementById('settings-modal').classList.remove('open'); }
-        function executeDelete() { const prefix = `${state.currentMonth}-`; closeAll(); const container = document.getElementById('dashboard-content'); container.classList.add('vanish-effect'); setTimeout(() => { Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); commitChanges(); const successOverlay = document.getElementById('success-overlay'); successOverlay.classList.add('show'); renderDashboard(); container.classList.remove('vanish-effect'); setTimeout(() => { successOverlay.classList.remove('show'); }, 1500); }, 500); }
+        function executeDelete() { 
+            const prefix = `${state.currentMonth}-`; 
+            closeAll();
+            const container = document.getElementById('dashboard-content');
+            container.classList.add('vanish-effect');
+            setTimeout(() => {
+                Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); 
+                commitChanges(); 
+                const successOverlay = document.getElementById('success-overlay');
+                successOverlay.classList.add('show');
+                renderDashboard();
+                container.classList.remove('vanish-effect');
+                setTimeout(() => { successOverlay.classList.remove('show'); }, 1500);
+            }, 500); 
+        }
         function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
-        function updStr(act,s,i,v) { if(act==='ren') state.structure[s].title=v; if(act==='renI') state.structure[s].items[i]=v; if(act==='addI') state.structure[s].items.push("Nuevo"); if(act==='addSec') state.structure.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); commitChanges(); renderDashboard(); }
         function formatMoney(n) { return "S/ " + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
         
         function openAnalytics() { document.getElementById('analytics-overlay').classList.add('open'); renderAdvancedCharts(); }
@@ -582,11 +583,25 @@
         function openSettings() { document.getElementById('settings-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
         function closeAll() { document.getElementById('drawer').classList.remove('open'); document.getElementById('main-backdrop').classList.remove('open'); document.querySelectorAll('.modal-container').forEach(m => m.classList.remove('open')); closeAnalytics(); }
         function renderMenu() { const nav = document.getElementById('month-nav-container'); nav.innerHTML = ''; MONTHS.forEach((m,i) => { const b = document.createElement('button'); b.className = `w-full text-left px-5 py-4 rounded-2xl transition-all mb-1 btn-anim cursor-pointer ${i===state.currentMonth?'bg-slate-900 text-white font-bold shadow-lg shadow-slate-300':'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-bold'}`; b.innerText = m; b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeAll(); }; nav.appendChild(b); }); }
+        
+        // --- SMART CLONE ---
         function openCloneModal() { const sel=document.getElementById('target-month-select'); sel.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.currentMonth){const o=document.createElement('option');o.value=i;o.innerText=m;if(i===state.currentMonth+1)o.selected=true;sel.appendChild(o);}}); document.getElementById('clone-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
-        function executeClone() { const dest=parseInt(document.getElementById('target-month-select').value); const sp=`${state.currentMonth}-`, dp=`${dest}-`; Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];}); Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];}); state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); }
-        function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
+        function executeClone() { 
+            const dest=parseInt(document.getElementById('target-month-select').value); 
+            const sp=`${state.currentMonth}-`, dp=`${dest}-`; 
+            
+            // 1. Clone Structure
+            state.monthly_structures[dest] = JSON.parse(JSON.stringify(state.monthly_structures[state.currentMonth]));
+            
+            // 2. Clone Data
+            Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];}); 
+            Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];}); 
+            
+            state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); 
+        }
+        function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.monthly_structures[mIdx].forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
-        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v41_cfo'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v42_independent'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
 
         init();
     </script>

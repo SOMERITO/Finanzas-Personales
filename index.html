@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V36 - Feature Complete</title>
+    <title>Finanzas V37 - Clean UI</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -23,12 +23,16 @@
                     animation: { 
                         'pop': 'pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
                         'slide-in': 'slideIn 0.4s ease-out forwards',
-                        'pulse-red': 'pulseRed 2s infinite'
+                        'pulse-red': 'pulseRed 2s infinite',
+                        'success-scale': 'successScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                        'vanish': 'vanish 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
                     },
                     keyframes: { 
                         pop: { '0%': { opacity: '0', transform: 'scale(0.96) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
                         slideIn: { '0%': { opacity: '0', transform: 'translateX(-10px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
-                        pulseRed: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(244, 63, 94, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(244, 63, 94, 0)' } }
+                        pulseRed: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(244, 63, 94, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(244, 63, 94, 0)' } },
+                        successScale: { '0%': { opacity: '0', transform: 'scale(0.5)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
+                        vanish: { '0%': { opacity: '1', transform: 'scale(1)', filter: 'blur(0)' }, '100%': { opacity: '0', transform: 'scale(0.9)', filter: 'blur(10px)' } }
                     }
                 }
             }
@@ -37,7 +41,7 @@
     <style>
         body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
         
-        /* --- CURSOR SYSTEM: FUERZA BRUTA --- */
+        /* --- CURSOR SYSTEM BLINDADO --- */
         html body * { cursor: default !important; }
         input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
 
@@ -47,7 +51,7 @@
         .backdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 40; }
         .backdrop.open { opacity: 1; pointer-events: auto; }
         
-        /* Modals & Analytics */
+        /* Modals & Sheets */
         .modal-container { opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 60; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
         .modal-container.open { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -56,13 +60,19 @@
         .analytics-sheet { position: fixed; inset: 0; background: #fff; z-index: 70; transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; }
         .analytics-sheet.open { transform: translateY(0); }
 
+        /* SUCCESS OVERLAY (Nueva animación bonita) */
+        .success-overlay { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+        .success-overlay.show { opacity: 1; pointer-events: auto; }
+        .success-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 2rem; border-radius: 2rem; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.15); text-align: center; transform: scale(0.8); transition: transform 0.3s; border: 1px solid #e2e8f0; }
+        .success-overlay.show .success-card { animation: successScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
         /* Inputs & UI */
         .input-pro { border: 2px solid #e2e8f0; background: #fff; border-radius: 0.75rem; color: #1e293b; font-weight: 700; transition: all 0.2s; }
         .input-pro:focus { border-color: #0ea5e9; outline: none; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
         .card-premium { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; }
         .bg-savings-gradient { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; }
         
-        /* Animaciones */
+        /* Animaciones UI */
         .btn-anim { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; justify-content: center; } 
         .btn-anim:active { transform: scale(0.95); }
         
@@ -77,14 +87,24 @@
         .coach-icon { color: #facc15; font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
         .coach-text { color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; }
 
-        /* Masonry Columns */
+        /* Masonry & Animations */
         .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; }
+        .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
 
     <div id="main-backdrop" class="backdrop" onclick="closeAll()"></div>
-    <div id="toast" class="toast flex items-center gap-2 hidden"><span>Listo</span></div>
+
+    <div id="success-overlay" class="success-overlay">
+        <div class="success-card">
+            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 text-emerald-500">
+                <i class="ph-fill ph-check-circle text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900">¡Mes Limpio!</h3>
+            <p class="text-slate-500 text-sm font-medium mt-1">Todo ha quedado en blanco.</p>
+        </div>
+    </div>
 
     <aside id="drawer" class="sidebar-drawer flex flex-col shadow-2xl">
         <div class="h-24 flex items-center px-6 border-b border-slate-100 justify-between bg-white">
@@ -138,13 +158,13 @@
             <div class="w-16 h-16 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center mx-auto mb-4 animate-pulse-red">
                 <i class="ph-fill ph-warning text-3xl"></i>
             </div>
-            <h3 class="font-extrabold text-2xl mb-2 text-slate-900">¿Estás seguro?</h3>
+            <h3 class="font-extrabold text-2xl mb-2 text-slate-900">¿Borrar Mes?</h3>
             <p class="text-sm text-slate-500 font-medium mb-8 leading-relaxed">
-                Vas a eliminar todos los registros de <span id="delete-month-name" class="font-bold text-slate-800">Enero</span>.
+                Se eliminarán todos los registros de <span id="delete-month-name" class="font-bold text-slate-800">Enero</span>. No podrás deshacerlo.
             </p>
             <div class="flex gap-3">
                 <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 btn-anim">Cancelar</button>
-                <button onclick="executeDelete()" class="flex-1 py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm hover:bg-rose-600 shadow-lg shadow-rose-500/30 btn-anim">Sí, Borrar</button>
+                <button onclick="executeDelete()" class="flex-1 py-3.5 bg-rose-500 text-white rounded-xl font-bold text-sm hover:bg-rose-600 shadow-lg shadow-rose-500/30 btn-anim">Sí, Limpiar</button>
             </div>
         </div>
     </div>
@@ -156,15 +176,8 @@
                 <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Reportes</h4>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="exportExcel('current')" class="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex flex-col items-center gap-2 btn-anim"><i class="ph-bold ph-file-csv text-2xl"></i> Mes Actual</button>
-                    <button onclick="exportExcel('all')" class="p-4 bg-brand-50 border border-brand-100 rounded-2xl hover:bg-brand-100 text-brand-700 font-bold text-xs flex flex-col items-center gap-2 btn-anim"><i class="ph-bold ph-files text-2xl"></i> Año Completo</button>
-                </div>
-                <hr class="border-slate-100 my-2">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Zona de Peligro</h4>
-                <button onclick="openDeleteModal()" class="w-full py-3 text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-all btn-anim shadow-lg shadow-rose-500/20 flex items-center justify-center gap-2"><i class="ph-bold ph-trash"></i> Borrar datos de <span id="settings-delete-month">Este Mes</span></button>
-                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all btn-anim">Reiniciar Todo (Fábrica)</button>
+                <button onclick="exportExcel('current')" class="w-full py-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl btn-anim">Exportar CSV</button>
+                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 rounded-xl transition-all btn-anim">Reiniciar Todo (Fábrica)</button>
             </div>
         </div>
     </div>
@@ -175,7 +188,12 @@
             <div class="flex items-center gap-5">
                 <button onclick="openMenu()" class="p-3 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl transition-all btn-anim"><i class="ph-bold ph-list text-3xl"></i></button>
                 <div>
-                    <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop">Enero</h2>
+                    <div class="flex items-center gap-3">
+                        <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop">Enero</h2>
+                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim" title="Borrar este mes">
+                            <i class="ph-bold ph-trash text-lg"></i>
+                        </button>
+                    </div>
                     <div id="sync-status" class="flex items-center gap-2 mt-1 opacity-0 transition-opacity duration-500">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
                         <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" id="sync-text">Conectando...</span>
@@ -194,7 +212,7 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        <div id="dashboard-content" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
             <div class="max-w-7xl mx-auto pb-32 animate-pop">
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -299,24 +317,20 @@
         async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            const s = localStorage.getItem('finanzas_v36_final');
+            const s = localStorage.getItem('finanzas_v37_clean');
             if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
             
-            // FUERZA BRUTA PARA EL CURSOR
-            setInterval(() => {
-                const styles = document.createElement('style');
-                styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"] { cursor: text !important; }`;
-            }, 1000);
+            // Fuerza Bruta Cursor
+            setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"] { cursor: text !important; }`; }, 1000);
         }
-        function saveLocal() { localStorage.setItem('finanzas_v36_final', JSON.stringify({ structure: state.structure, data: state.data })); }
+        function saveLocal() { localStorage.setItem('finanzas_v37_clean', JSON.stringify({ structure: state.structure, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
         function renderDashboard() {
             document.getElementById('current-month-display').innerText = MONTHS[state.currentMonth];
             document.getElementById('delete-month-name').innerText = MONTHS[state.currentMonth];
-            document.getElementById('settings-delete-month').innerText = MONTHS[state.currentMonth];
             const icon = document.getElementById('global-collapse-icon');
             if(state.allCollapsed) { icon.classList.remove('ph-arrows-out-line-vertical'); icon.classList.add('ph-arrows-in-line-vertical'); }
             else { icon.classList.add('ph-arrows-out-line-vertical'); icon.classList.remove('ph-arrows-in-line-vertical'); }
@@ -328,7 +342,6 @@
             state.structure.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
                 
-                // ASIGNACIÓN PAR/IMPAR PARA GARANTIZAR LLENADO
                 const targetContainer = (sIdx % 2 === 0) ? colLeft : colRight;
 
                 const card = document.createElement('div');
@@ -477,7 +490,34 @@
         function renderAdvancedCharts() { const incomeTrend=[], expenseTrend=[]; MONTHS.forEach((_, mIdx) => { let i=0, e=0; state.structure.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); incomeTrend.push(i); expenseTrend.push(e); }); const ctxT = document.getElementById('trendChart'); if(trendChart) trendChart.destroy(); trendChart = new Chart(ctxT, { type: 'line', data: { labels: MONTHS, datasets: [ { label: 'Ingresos', data: incomeTrend, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }, { label: 'Gastos', data: expenseTrend, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); const categories = {}; state.structure.forEach(sec => { if(sec.type === 'expense') { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sum > 0) categories[sec.title] = sum; } }); const ctxC = document.getElementById('categoryChart'); if(catChart) catChart.destroy(); catChart = new Chart(ctxC, { type: 'bar', data: { labels: Object.keys(categories), datasets: [{ label: 'Gasto por Categoría', data: Object.values(categories), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } }); }
 
         function openDeleteModal() { document.getElementById('delete-modal').classList.add('open'); document.getElementById('settings-modal').classList.remove('open'); }
-        function executeDelete() { const prefix = `${state.currentMonth}-`; Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); commitChanges(); renderDashboard(); closeAll(); showToast("Mes borrado"); }
+        function executeDelete() { 
+            const prefix = `${state.currentMonth}-`; 
+            // 1. Cerrar Modal
+            closeAll();
+            
+            // 2. Animar Desaparición
+            const container = document.getElementById('dashboard-content');
+            container.classList.add('vanish-effect');
+            
+            setTimeout(() => {
+                // 3. Borrar Datos Realmente
+                Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); 
+                commitChanges(); 
+                
+                // 4. Mostrar Success Overlay
+                const successOverlay = document.getElementById('success-overlay');
+                successOverlay.classList.add('show');
+                
+                // 5. Resetear Vista
+                renderDashboard();
+                container.classList.remove('vanish-effect');
+                
+                // 6. Ocultar Success después de un tiempo
+                setTimeout(() => {
+                    successOverlay.classList.remove('show');
+                }, 1500);
+            }, 500); // Esperar a que termine la animación vanish
+        }
         function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
         function updStr(act,s,i,v) { if(act==='ren') state.structure[s].title=v; if(act==='renI') state.structure[s].items[i]=v; if(act==='addI') state.structure[s].items.push("Nuevo"); if(act==='addSec') state.structure.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); commitChanges(); renderDashboard(); }
         function formatMoney(n) { return "S/ " + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -493,7 +533,7 @@
         function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
-        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v36_final'); location.reload(); }}
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v37_clean'); location.reload(); }}
 
         init();
     </script>

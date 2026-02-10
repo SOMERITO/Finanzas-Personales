@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V15 - Zen Mode</title>
+    <title>Finanzas V34 - Responsive Masonry</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -16,280 +17,480 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1' },
-                        slate: { 850: '#1e293b' }
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' },
+                        slate: { 850: '#1a202c', 900: '#111827' }
                     },
-                    animation: { 'fade-in': 'fadeIn 0.5s ease-out forwards' },
-                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                    animation: { 
+                        'pop': 'pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+                        'slide-in': 'slideIn 0.4s ease-out forwards'
+                    },
+                    keyframes: { 
+                        pop: { '0%': { opacity: '0', transform: 'scale(0.96) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
+                        slideIn: { '0%': { opacity: '0', transform: 'translateX(-10px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } }
+                    }
                 }
             }
         }
     </script>
     <style>
-        body { background-color: #f8fafc; color: #0f172a; }
+        body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
         
-        /* Sidebar Oculto por defecto (Off-canvas) */
-        .sidebar-drawer { 
-            transform: translateX(-100%); 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            z-index: 50;
-            position: fixed; top: 0; left: 0; bottom: 0; width: 18rem; 
-            background: white; border-right: 1px solid #e2e8f0;
+        /* --- CURSOR SYSTEM: NO HANDS --- */
+        html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video, button {
+            cursor: default !important;
         }
+        input[type="text"], input[type="number"], input[type="email"], textarea {
+            cursor: text !important;
+        }
+        .sortable-ghost, .sortable-drag, .sortable-chosen, [onclick], button, a, .btn-anim {
+            cursor: default !important;
+        }
+
+        /* Layout Utils */
+        .sidebar-drawer { transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; background: white; border-right: 1px solid #e2e8f0; }
         .sidebar-drawer.open { transform: translateX(0); }
-        
-        /* Backdrop */
-        .backdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 40; }
+        .backdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 40; }
         .backdrop.open { opacity: 1; pointer-events: auto; }
+        
+        /* Modals & Analytics */
+        .modal-container { opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 60; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+        .modal-container.open { opacity: 1; pointer-events: auto; }
+        .modal-content { transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-container.open .modal-content { transform: scale(1); }
+        
+        .analytics-sheet { position: fixed; inset: 0; background: #fff; z-index: 70; transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; }
+        .analytics-sheet.open { transform: translateY(0); }
 
-        /* Modal Clone */
-        .modal-container { opacity: 0; pointer-events: none; transition: all 0.3s; transform: scale(0.95); z-index: 60; }
-        .modal-container.open { opacity: 1; pointer-events: auto; transform: scale(1); }
-
-        /* Toast */
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0f172a; color: white; padding: 12px 24px; border-radius: 99px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); opacity: 0; transition: all 0.4s; pointer-events: none; z-index: 100; font-size: 0.9rem; font-weight: 500; }
+        /* Toast & Inputs */
+        .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1e293b; color: white; padding: 12px 28px; border-radius: 99px; opacity: 0; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 100; font-size: 0.9rem; font-weight: 600; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4); }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid #f8fafc; }
-        .input-pro { border: 1px solid #e2e8f0; transition: all 0.2s; background: #fff; }
-        .input-pro:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); outline: none; }
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02); }
+        .input-pro { border: 2px solid #e2e8f0; background: #fff; border-radius: 0.75rem; color: #1e293b; font-weight: 700; transition: all 0.2s; }
+        .input-pro:focus { border-color: #0ea5e9; outline: none; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+        .card-premium { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; }
+        .bg-savings-gradient { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; }
+        
+        /* Animaciones */
+        .btn-anim { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; justify-content: center; } 
+        .btn-anim:active { transform: scale(0.92); }
+        
+        /* Accordion */
+        .accordion-content { transition: max-height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s; overflow: hidden; max-height: 3000px; opacity: 1; }
+        .accordion-content.collapsed { max-height: 0; opacity: 0; }
+        .rotate-icon { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .rotate-icon.collapsed { transform: rotate(-90deg); }
+
+        /* Coach */
+        .coach-tip-item { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; align-items: flex-start; animation: slideIn 0.5s ease-out; }
+        .coach-icon { color: #facc15; font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+        .coach-text { color: #cbd5e1; font-size: 0.9rem; line-height: 1.4; }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
 
-    <div id="main-backdrop" class="backdrop" onclick="closeMenu()"></div>
-    <div id="toast" class="toast flex items-center gap-2"><i class="ph-fill ph-check-circle text-emerald-400 text-xl"></i><span id="toast-msg">Listo</span></div>
+    <div id="main-backdrop" class="backdrop" onclick="closeAll()"></div>
+    <div id="toast" class="toast flex items-center gap-2"><span>Listo</span></div>
 
-    <div id="clone-modal" class="fixed inset-0 flex items-center justify-center p-4 modal-container">
-        <div class="absolute inset-0" onclick="closeModal()"></div>
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden z-10 animate-fade-in">
-            <div class="bg-white border-b border-slate-100 p-5 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800 flex items-center gap-2 text-lg"><div class="bg-brand-50 text-brand-600 p-2 rounded-lg"><i class="ph-bold ph-copy"></i></div> Duplicar Mes</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
+    <aside id="drawer" class="sidebar-drawer flex flex-col shadow-2xl">
+        <div class="h-24 flex items-center px-6 border-b border-slate-100 justify-between bg-white">
+            <h1 class="font-extrabold text-2xl tracking-tight text-slate-900">CFO<span class="text-brand-600">.</span>Panel</h1>
+            <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 p-2 bg-slate-100 rounded-lg btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <nav id="month-nav-container" class="flex-1 overflow-y-auto px-6 py-8 space-y-2 custom-scrollbar bg-slate-50/50"></nav>
+        <div class="p-6 border-t border-slate-100 bg-white">
+            <button onclick="openCloneModal()" class="w-full mb-3 py-3.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:border-brand-500 hover:text-brand-600 transition-all btn-anim"><i class="ph-bold ph-copy text-lg"></i> Duplicar Mes</button>
+            <button onclick="openSettings()" class="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all btn-anim"><i class="ph-bold ph-gear text-lg"></i> Ajustes</button>
+        </div>
+    </aside>
+
+    <div id="analytics-overlay" class="analytics-sheet">
+        <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 bg-white">
+            <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-chart-polar text-brand-600"></i> Sala de Juntas</h2>
+            <div class="flex items-center gap-3">
+                <button onclick="closeAnalytics()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            <div class="p-6">
-                <p class="text-sm text-slate-500 mb-5 leading-relaxed">Se copiarán datos de <b id="src-month-name" class="text-slate-800">Mes Actual</b> al mes destino.</p>
-                <div class="relative mb-6">
-                    <select id="target-month-select" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-bold py-3.5 px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 transition-shadow cursor-pointer"></select>
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"><i class="ph-bold ph-caret-down"></i></div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 bg-[#f8fafc] custom-scrollbar">
+            <div class="max-w-6xl mx-auto space-y-8 animate-pop">
+                <div class="bg-white p-6 rounded-3xl card-premium">
+                    <h3 class="font-bold text-slate-800 mb-4">Tendencia Anual</h3>
+                    <div class="h-80"><canvas id="trendChart"></canvas></div>
                 </div>
-                <button onclick="executeClone()" class="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-brand-600 hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/25 flex justify-center items-center gap-2">Confirmar <i class="ph-bold ph-arrow-right"></i></button>
+                <div class="bg-white p-6 rounded-3xl card-premium">
+                    <h3 class="font-bold text-slate-800 mb-4">Top Categorías</h3>
+                    <div class="h-64"><canvas id="categoryChart"></canvas></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <aside id="drawer" class="sidebar-drawer shadow-2xl flex flex-col">
-        <div class="h-20 flex items-center px-6 border-b border-slate-100 bg-white justify-between">
-            <div class="flex items-center gap-3.5">
-                <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20"><i class="ph-bold ph-chart-polar text-xl"></i></div>
-                <div><h1 class="font-bold text-lg tracking-tight text-slate-800">Finanzas</h1><p class="text-[11px] text-slate-400 font-semibold uppercase tracking-wide">V15 Zen</p></div>
+    <div id="clone-modal" class="modal-container">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 p-8 modal-content border border-slate-100">
+            <h3 class="font-bold text-2xl mb-2 text-slate-800">Duplicar Mes</h3>
+            <div class="relative mb-6">
+                <select id="target-month-select" class="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-4 px-5 rounded-2xl focus:outline-none focus:border-brand-500 transition-all"></select>
+                <div class="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"><i class="ph-bold ph-caret-down text-xl"></i></div>
             </div>
-            <button onclick="closeMenu()" class="text-slate-400 hover:text-slate-800 p-2"><i class="ph-bold ph-x text-xl"></i></button>
-        </div>
-        
-        <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1">
-            <label class="px-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Navegación</label>
-            <div id="month-nav-container" class="space-y-1"></div>
-        </nav>
-
-        <div class="p-5 border-t border-slate-100 bg-slate-50/50 space-y-3">
-            <button onclick="openCloneModal()" class="w-full group text-xs bg-white border border-brand-200 text-brand-700 hover:bg-brand-600 hover:text-white py-3 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2"><i class="ph-bold ph-copy text-brand-500 group-hover:text-white"></i> Duplicar Mes</button>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="exportData()" class="flex flex-col items-center justify-center p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 text-[10px] font-bold hover:bg-white hover:border-brand-300 hover:text-brand-600 transition-all"><i class="ph-bold ph-download-simple mb-1 text-base"></i>Backup</button>
-                <label class="flex flex-col items-center justify-center p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 text-[10px] font-bold hover:bg-white hover:border-brand-300 hover:text-brand-600 transition-all cursor-pointer"><i class="ph-bold ph-upload-simple mb-1 text-base"></i>Restaurar<input type="file" class="hidden" onchange="importData(this)"></label>
+            <div class="flex gap-3">
+                <button onclick="closeAll()" class="flex-1 py-3.5 rounded-xl font-bold text-sm text-slate-500 bg-slate-100 hover:bg-slate-200 btn-anim">Cancelar</button>
+                <button onclick="executeClone()" class="flex-1 py-3.5 bg-brand-600 text-white rounded-xl font-bold text-sm hover:bg-brand-700 shadow-lg shadow-brand-500/20 btn-anim">Confirmar</button>
             </div>
-            <button onclick="resetAll()" class="w-full text-[10px] text-rose-400 hover:text-rose-600 py-2 font-medium">Reiniciar</button>
         </div>
-    </aside>
+    </div>
 
-    <main class="flex-1 flex flex-col h-full relative w-full bg-[#f8fafc]">
+    <div id="settings-modal" class="modal-container">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden modal-content border border-slate-100">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="ph-fill ph-gear text-slate-500"></i> Herramientas</h3>
+                <button onclick="closeAll()" class="text-slate-400 hover:text-slate-800 btn-anim"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <button onclick="exportExcel('current')" class="w-full py-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl btn-anim">Exportar CSV</button>
+                <button onclick="resetAll()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-slate-600 rounded-xl transition-all btn-anim">Reiniciar Todo</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 flex flex-col h-full relative w-full overflow-hidden">
         
-        <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/60 flex items-center justify-between px-6 md:px-10 shadow-sm z-10 sticky top-0 flex-none transition-all">
-            <div class="flex items-center gap-4">
-                <button onclick="openMenu()" class="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-all active:scale-95 group">
-                    <i class="ph-bold ph-list text-3xl group-hover:text-brand-600"></i>
-                </button>
-                
+        <header class="h-24 flex items-center justify-between px-6 md:px-12 z-10 sticky top-0 bg-[#f8fafc]/90 backdrop-blur-md transition-all border-b border-slate-200">
+            <div class="flex items-center gap-5">
+                <button onclick="openMenu()" class="p-3 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl transition-all btn-anim"><i class="ph-bold ph-list text-3xl"></i></button>
                 <div>
-                    <h2 id="current-month-display" class="text-2xl font-bold text-slate-800 tracking-tight">Enero 2026</h2>
+                    <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop">Enero</h2>
+                    <div id="sync-status" class="flex items-center gap-2 mt-1 opacity-0 transition-opacity duration-500">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider" id="sync-text">Conectando...</span>
+                    </div>
                 </div>
             </div>
-            
-            <div class="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200">
-                <button onclick="setMode('view')" id="btn-view" class="px-4 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 transition-all flex items-center gap-2"><i class="ph-bold ph-eye"></i> Ver</button>
-                <button onclick="setMode('edit')" id="btn-edit" class="px-4 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center gap-2"><i class="ph-bold ph-pencil-simple"></i> Editar</button>
+            <div class="flex items-center gap-3">
+                <button onclick="openAnalytics()" class="w-11 h-11 rounded-xl bg-brand-50 border-2 border-brand-200 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm btn-anim" title="Sala de Juntas"><i class="ph-fill ph-chart-line-up text-xl"></i></button>
+                <button onclick="toggleGlobalCollapse()" class="w-11 h-11 rounded-xl bg-white border-2 border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-400 flex items-center justify-center transition-all shadow-sm btn-anim" title="Expandir/Contraer">
+                    <i class="ph-bold ph-arrows-out-line-vertical text-xl" id="global-collapse-icon"></i>
+                </button>
+                <div class="flex bg-white p-1.5 rounded-xl border-2 border-slate-200 shadow-sm ml-2">
+                    <button onclick="setMode('view')" id="btn-view" class="px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim">Ver</button>
+                    <button onclick="setMode('edit')" id="btn-edit" class="px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition-all btn-anim">Editar</button>
+                </div>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 relative custom-scrollbar" id="main-scroll">
-            <div class="max-w-7xl mx-auto space-y-8 pb-32">
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+            <div class="max-w-7xl mx-auto pb-32 animate-pop">
                 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-fade-in">
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100/60 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity"><i class="ph-fill ph-wallet text-6xl"></i></div>
-                        <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Disponible</p>
-                        <h3 class="text-3xl font-bold text-slate-800 tracking-tight" id="kpi-balance">S/ 0.00</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-7 rounded-3xl card-premium flex flex-col justify-between h-36 border-l-8 border-slate-800">
+                        <p class="text-slate-500 text-[11px] font-extrabold uppercase tracking-widest">Disponible</p>
+                        <h3 class="text-4xl font-extrabold text-slate-900 tracking-tight" id="kpi-balance">S/ 0,00</h3>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100/60 border-l-4 border-l-emerald-500"><p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Ingresos</p><h3 class="text-2xl font-bold text-emerald-600 tracking-tight" id="kpi-income">S/ 0.00</h3></div>
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100/60 border-l-4 border-l-rose-500"><p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest mb-1">Gastos</p><h3 class="text-2xl font-bold text-rose-600 tracking-tight" id="kpi-expenses">S/ 0.00</h3></div>
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100/60 border-l-4 border-l-brand-500"><div class="flex justify-between items-center mb-1"><p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest">Ahorro</p><span id="kpi-rate" class="text-[10px] bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-bold border border-brand-100">0%</span></div><h3 class="text-2xl font-bold text-brand-600 tracking-tight" id="kpi-savings">S/ 0.00</h3></div>
+                    <div class="bg-white p-7 rounded-3xl card-premium flex flex-col justify-between h-36 border-l-8 border-emerald-500">
+                        <p class="text-slate-500 text-[11px] font-extrabold uppercase tracking-widest">Ingresos</p>
+                        <h3 class="text-3xl font-extrabold text-emerald-600 tracking-tight" id="kpi-income">S/ 0,00</h3>
+                    </div>
+                    <div class="bg-white p-7 rounded-3xl card-premium flex flex-col justify-between h-36 border-l-8 border-orange-500">
+                        <p class="text-slate-500 text-[11px] font-extrabold uppercase tracking-widest">Gastos</p>
+                        <h3 class="text-3xl font-extrabold text-orange-600 tracking-tight" id="kpi-expenses">S/ 0,00</h3>
+                    </div>
+                    <div class="bg-savings-gradient p-7 rounded-3xl shadow-xl flex flex-col justify-between h-36 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-700"><i class="ph-fill ph-piggy-bank text-9xl"></i></div>
+                        <div class="flex justify-between items-center relative z-10">
+                            <p class="text-slate-300 text-[11px] font-extrabold uppercase tracking-widest">Ahorro</p>
+                            <span id="kpi-rate" class="text-[11px] bg-white/20 px-2 py-1 rounded-md backdrop-blur-md font-bold text-white">0%</span>
+                        </div>
+                        <h3 class="text-3xl font-extrabold text-white tracking-tight relative z-10" id="kpi-savings">S/ 0,00</h3>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" id="charts-container" style="animation-delay: 100ms;">
-                    
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100/60 h-80 flex flex-col relative">
-                        <div class="flex justify-between items-center mb-4"><h4 class="text-slate-700 font-bold text-xs uppercase tracking-wider flex items-center gap-2"><i class="ph-bold ph-chart-pie-slice text-brand-500"></i> Distribución</h4></div>
-                        <div class="flex-1 relative">
-                            <canvas id="expenseChart"></canvas>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span class="text-[10px] text-slate-400 font-bold uppercase">Total Gastado</span>
-                                <span class="text-xl font-bold text-slate-800" id="center-total">S/ 0</span>
+                <div class="h-px bg-slate-200 w-full my-10"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" id="charts-container">
+                    <div class="bg-white p-8 rounded-3xl card-premium h-96 relative flex flex-col items-center justify-center border-2 border-slate-100">
+                        <h4 class="absolute top-6 left-6 text-slate-500 font-extrabold text-xs uppercase tracking-widest">Distribución</h4>
+                        <div class="w-full h-full relative"><canvas id="expenseChart"></canvas></div>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-4">
+                            <span class="text-[11px] text-slate-400 font-extrabold uppercase mb-1">Total Salidas</span>
+                            <span class="text-3xl font-extrabold text-slate-900 tracking-tight" id="center-total">S/ 0,00</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl card-premium h-96 col-span-2 flex flex-col justify-end border-2 border-slate-100">
+                        <h4 class="mb-6 text-slate-500 font-extrabold text-xs uppercase tracking-widest">Flujo Mensual</h4>
+                        <div class="flex-1 w-full"><canvas id="flowChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="h-px bg-slate-200 w-full my-10"></div>
+
+                <div class="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                    <div class="absolute top-0 right-0 p-6 opacity-10"><i class="ph-fill ph-brain text-9xl"></i></div>
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center"><i class="ph-bold ph-chat-teardrop-text text-xl"></i></div>
+                                <h3 class="font-bold text-lg">Asistente Financiero</h3>
+                            </div>
+                            <button onclick="refreshAnalysis()" class="px-5 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold flex items-center gap-2 hover:scale-105 transition-transform btn-anim"><i class="ph-bold ph-lightning"></i> Analizar</button>
+                        </div>
+                        
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="w-full md:w-1/3 border-r border-white/10 pr-6">
+                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-2">Diagnóstico</p>
+                                <p id="advisor-text" class="text-slate-200 text-sm leading-relaxed">Presiona "Analizar" para revisar tus números.</p>
+                                <div class="mt-4 px-3 py-1 bg-white/10 rounded-lg inline-block backdrop-blur-sm"><p id="advisor-status" class="text-xs font-bold text-slate-300">--</p></div>
+                            </div>
+                            <div class="w-full md:w-2/3">
+                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-3">Plan de Acción</p>
+                                <div id="advisor-tips" class="hidden space-y-3"></div>
+                                <p id="advisor-placeholder" class="text-sm text-slate-500 italic">Esperando análisis...</p>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bg-white p-6 rounded-2xl card-shadow border border-slate-100/60 h-80 col-span-1 lg:col-span-2 flex flex-col">
-                        <h4 class="text-slate-700 font-bold text-xs uppercase tracking-wider mb-4 flex items-center gap-2"><i class="ph-bold ph-chart-bar text-brand-500"></i> Flujo Mensual</h4>
-                        <div class="flex-1 relative w-full"><canvas id="flowChart"></canvas></div>
+                <div class="h-px bg-slate-200 w-full my-10"></div>
+
+                <div class="flex items-center gap-4 mb-6">
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-400"></i> Desglose de Operaciones</h3>
+                </div>
+
+                <div id="masonry-wrapper" class="flex flex-col gap-6">
+                    <div class="flex flex-col md:flex-row gap-8 items-start w-full">
+                         <div id="col-left" class="w-full md:w-1/2 flex flex-col gap-6 sortable-col"></div>
+                         <div id="col-right" class="w-full md:w-1/2 flex flex-col gap-6 sortable-col"></div>
                     </div>
                 </div>
 
-                <div class="space-y-6 animate-fade-in" style="animation-delay: 200ms;">
-                    <div class="flex items-center gap-4">
-                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-400"></i> Transacciones</h3>
-                        <div class="h-px bg-slate-200 flex-1"></div>
-                    </div>
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="sections-container"></div>
-                </div>
             </div>
         </div>
     </main>
 
     <script>
+        const API_KEY = "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm";
+        const BIN_ID = "698a256fd0ea881f40adab7d";
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        const DEFAULT_STRUCTURE = [{ id: 'ing', title: 'Ingresos', type: 'income', items: ['Sueldo', 'Extras'] }, { id: 'gas', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler', 'Servicios'] }, { id: 'horm', title: 'Gastos Hormiga', type: 'expense', items: ['Netflix', 'Spotify'] }, { id: 'deu', title: 'Deudas', type: 'expense', items: ['Préstamo'] }, { id: 'aho', title: 'Ahorros', type: 'savings', items: ['Fondo Emergencia'] }];
-        let state = { currentMonth: 0, mode: 'view', structure: [], data: {} };
-        let chart1 = null, chart2 = null;
+        const DEFAULT_STR = [
+            { id: 'ing', title: 'Ingresos', type: 'income', items: ['Sueldo', 'Extras'], collapsed: false, col: 0 }, 
+            { id: 'horm', title: 'Gastos Hormiga', type: 'expense', items: ['Netflix', 'Spotify'], collapsed: false, col: 1 },
+            { id: 'fijos', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler', 'Luz'], collapsed: false, col: 0 },
+            { id: 'deu', title: 'Deudas', type: 'expense', items: ['Préstamos'], collapsed: false, col: 1 },
+            { id: 'aho', "title": 'Ahorros', type: 'savings', items: ['Fondo Emergencia'], collapsed: false, col: 0 }
+        ];
+
+        let state = { currentMonth: 0, mode: 'view', allCollapsed: false, structure: [], data: {} };
+        let ch1 = null, ch2 = null, trendChart = null, catChart = null;
+
+        async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ structure: state.structure, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
+        async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); if(json.record) { state.structure = json.record.structure || DEFAULT_STR; state.data = json.record.data || {}; saveLocal(); renderDashboard(); document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
         function init() {
-            try { const s = localStorage.getItem('finanzas_V15'); if(s) { const p=JSON.parse(s); state.structure=p.structure; state.data=p.data; } else state.structure=JSON.parse(JSON.stringify(DEFAULT_STRUCTURE)); } catch(e) { state.structure=JSON.parse(JSON.stringify(DEFAULT_STRUCTURE)); }
-            renderMenu(); renderDashboard();
+            const s = localStorage.getItem('finanzas_v34_resp');
+            if(s) { const p = JSON.parse(s); state.structure = p.structure || DEFAULT_STR; state.data = p.data || {}; } else state.structure = DEFAULT_STR;
+            state.structure.forEach((s, i) => { if(s.col === undefined) s.col = i % 2; });
+            cloudPull(); renderMenu(); renderDashboard();
+            window.addEventListener('resize', handleResize); // Listen for screen changes
+            document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
         }
+        function saveLocal() { localStorage.setItem('finanzas_v34_resp', JSON.stringify({ structure: state.structure, data: state.data })); }
+        function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
 
-        // --- VISUALIZACIÓN ---
-        function openMenu() { document.getElementById('drawer').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
-        function closeMenu() { document.getElementById('drawer').classList.remove('open'); document.getElementById('main-backdrop').classList.remove('open'); closeModal(); }
-        function renderMenu() {
-            const nav = document.getElementById('month-nav-container'); nav.innerHTML='';
-            MONTHS.forEach((m,i) => {
-                const b = document.createElement('button');
-                b.className = `w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all flex justify-between items-center ${i===state.currentMonth?'bg-brand-50 text-brand-700 font-bold':'text-slate-500 hover:bg-slate-50'}`;
-                b.innerHTML = `<span>${m}</span>${i===state.currentMonth?'<span class="w-2 h-2 rounded-full bg-brand-500"></span>':''}`;
-                b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeMenu(); };
-                nav.appendChild(b);
-            });
-        }
+        // --- CORE RESPONSIVE LOGIC ---
+        function handleResize() { renderDashboard(); }
 
         function renderDashboard() {
-            document.getElementById('current-month-display').innerText = MONTHS[state.currentMonth] + " 2026";
-            const container = document.getElementById('sections-container'); if(!container) return; container.innerHTML='';
+            document.getElementById('current-month-display').innerText = MONTHS[state.currentMonth];
+            const icon = document.getElementById('global-collapse-icon');
+            if(state.allCollapsed) { icon.classList.remove('ph-arrows-out-line-vertical'); icon.classList.add('ph-arrows-in-line-vertical'); }
+            else { icon.classList.add('ph-arrows-out-line-vertical'); icon.classList.remove('ph-arrows-in-line-vertical'); }
+
+            const colLeft = document.getElementById('col-left');
+            const colRight = document.getElementById('col-right');
+            colLeft.innerHTML = ''; colRight.innerHTML = '';
             
+            // Detect Mobile (Less than 900px wide for laptop safety)
+            const isMobile = window.innerWidth < 900; 
+
+            // Show/Hide Right column container based on mode
+            if (isMobile) {
+                document.getElementById('col-right').style.display = 'none';
+            } else {
+                document.getElementById('col-right').style.display = 'flex';
+            }
+
             state.structure.forEach((sec, sIdx) => {
-                let secTotal = 0; sec.items.forEach((_, i) => secTotal += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
-                const isInc = sec.type === 'income', isSav = sec.type === 'savings';
-                const accent = isInc ? 'emerald' : (isSav ? 'brand' : 'rose');
-                const colors = { emerald: 'text-emerald-600 bg-emerald-50', brand: 'text-brand-600 bg-brand-50', rose: 'text-rose-600 bg-rose-50' };
+                let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
+                
+                // MASONRY LOGIC: 
+                // If Mobile: Everything goes to Left Col.
+                // If Desktop: Distribute based on `sec.col`.
+                let targetContainer;
+                if (isMobile) {
+                    targetContainer = colLeft;
+                } else {
+                    targetContainer = sec.col === 1 ? colRight : colLeft;
+                }
 
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-2xl card-shadow border border-slate-100/80 flex flex-col overflow-hidden ${state.mode==='edit'?'border-dashed border-slate-300':''}`;
+                card.setAttribute('data-id', sIdx);
+                card.className = `bg-white rounded-3xl card-premium overflow-hidden transition-all animate-slide-in ${state.mode==='edit'?'border-dashed border-2 border-slate-400 shadow-none':''}`;
                 
-                let header = state.mode === 'view' ? 
-                    `<div class="px-5 py-4 border-b border-slate-50 flex justify-between items-center bg-white"><div class="font-bold text-slate-700 flex items-center gap-2.5 text-sm"><div class="p-1.5 rounded-lg ${colors[accent]}"><i class="ph-bold ${isInc?'ph-money':(isSav?'ph-piggy-bank':'ph-receipt')}"></i></div>${sec.title}</div><div class="font-mono font-bold text-slate-700 text-sm bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">S/ ${formatMoney(secTotal)}</div></div>` :
-                    `<div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex flex-col gap-2"><div class="flex gap-2"><input type="text" value="${sec.title}" class="input-pro rounded-lg px-3 py-1.5 text-sm font-bold w-full bg-white" onchange="updStr('renameSec',${sIdx},null,this.value)"><button onclick="updStr('delSec',${sIdx})" class="text-rose-500 bg-white border border-rose-200 rounded-lg p-1.5 hover:bg-rose-50"><i class="ph-bold ph-trash"></i></button></div><select onchange="updStr('changeType',${sIdx},null,this.value)" class="input-pro text-xs rounded-lg px-2 py-1.5 bg-white font-medium text-slate-600"><option value="income" ${isInc?'selected':''}>Ingreso</option><option value="expense" ${sec.type==='expense'?'selected':''}>Gasto</option><option value="savings" ${isSav?'selected':''}>Ahorro</option></select></div>`;
+                const isCollapsed = sec.collapsed === true;
 
-                let body = `<div class="p-5 space-y-3 bg-white flex-1">`;
+                let html = `<div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 section-header" onclick="toggleSection(${sIdx})">
+                    <div class="flex items-center gap-3 w-full">
+                        <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-extrabold text-slate-800 text-sm bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm whitespace-nowrap">${formatMoney(total)}</span>
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><i class="ph-bold ph-caret-down rotate-icon ${isCollapsed ? 'collapsed' : ''}"></i></div>
+                    </div>
+                </div>
+                <div class="accordion-content ${isCollapsed ? 'collapsed' : ''}">
+                    <div class="p-6 space-y-5 item-sortable-list" data-idx="${sIdx}">`;
+
                 sec.items.forEach((item, iIdx) => {
                     const key = `${state.currentMonth}-${sec.id}-${iIdx}`, val = state.data[key] || 0;
-                    body += state.mode === 'view' ? 
-                        `<div class="flex justify-between items-center group"><label class="text-xs md:text-sm text-slate-500 font-medium truncate pr-2 w-1/2 group-hover:text-slate-800 transition-colors">${item}</label><div class="relative w-32"><span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none">S/</span><input type="number" step="0.1" value="${val===0?'':val}" placeholder="0" class="input-pro w-full rounded-lg py-1.5 pl-7 pr-3 text-right text-sm font-semibold text-slate-700 hover:border-slate-300" onchange="updVal('${key}',this.value)"></div></div>` :
-                        `<div class="flex gap-2 items-center"><button onclick="updStr('delItem',${sIdx},${iIdx})" class="text-rose-400 hover:text-rose-600"><i class="ph-bold ph-minus-circle"></i></button><input type="text" value="${item}" class="input-pro border-0 border-b w-full text-sm py-1 bg-transparent" onchange="updStr('renameItem',${sIdx},${iIdx},this.value)"></div>`;
+                    let displayVal = val !== 0 ? val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
+                    html += `<div class="flex justify-between items-center text-sm group" data-item-idx="${iIdx}">
+                        <div class="flex items-center gap-3">
+                            ${state.mode==='edit' ? '<i class="ph-bold ph-dots-six-vertical drag-handle text-lg text-slate-300 hover:text-slate-600"></i>' : ''}
+                            <span class="text-slate-700 font-bold text-[15px] group-hover:text-black transition-colors">${state.mode==='view' ? item : `<input class="border-b-2 border-slate-300 font-bold" onclick="event.stopPropagation()" onchange="updStr('renI',${sIdx},${iIdx},this.value)" value="${item}">`}</span>
+                        </div>
+                        <div class="relative"><input type="text" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event, ${sIdx}, ${iIdx})"></div>
+                    </div><div class="border-b border-slate-100 last:border-0"></div>`;
                 });
-                if(state.mode==='edit') body += `<button onclick="updStr('addItem',${sIdx})" class="w-full mt-3 py-2 text-xs font-bold border border-dashed border-slate-300 text-slate-400 rounded-lg hover:text-brand-600 hover:border-brand-400 hover:bg-brand-50 transition-all">+ Añadir Fila</button>`;
-                body += `</div>`; card.innerHTML = header + body; container.appendChild(card);
+                
+                if(state.mode==='edit') html += `<button onclick="event.stopPropagation(); updStr('addI',${sIdx})" class="w-full py-3 text-xs font-bold border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-brand-600 hover:border-brand-500 hover:bg-brand-50 transition-all mt-2 btn-anim">+ Añadir Concepto</button>`;
+                html += `</div></div>`;
+                card.innerHTML = html;
+                targetContainer.appendChild(card);
             });
-            if(state.mode==='edit') { const b=document.createElement('div'); b.className="border-2 border-dashed border-slate-300 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 hover:border-brand-300 transition-all min-h-[120px]"; b.onclick=()=>updStr('addSec'); b.innerHTML=`<i class="ph-bold ph-plus text-3xl text-slate-300 mb-2"></i><span class="text-sm font-bold text-slate-400">Crear Sección</span>`; container.appendChild(b); }
-            calcKPIs();
-        }
-
-        // --- GRÁFICOS PULIDOS ---
-        function renderCharts(i, e, s, bd) {
-            if (typeof Chart === 'undefined') return;
-            const ctx1 = document.getElementById('expenseChart'); const ctx2 = document.getElementById('flowChart');
-            if (!ctx1 || !ctx2 || state.mode === 'edit') return;
-            document.getElementById('center-total').innerText = 'S/ ' + formatMoney(e);
             
-            const gradient = (ctx, c1, c2) => { const g = ctx.createLinearGradient(0, 0, 0, 300); g.addColorStop(0, c1); g.addColorStop(1, c2); return g; };
-            const colors = { inc: ['#34d399', '#059669'], exp: ['#fb7185', '#be123c'], sav: ['#60a5fa', '#2563eb'], bd: [['#a78bfa','#7c3aed'], ['#fbbf24','#d97706'], ['#22d3ee','#0891b2'], ['#f472b6','#db2777'], ['#818cf8','#4f46e5']] };
-
-            if (chart1) chart1.destroy();
-            chart1 = new Chart(ctx1, {
-                type: 'doughnut',
-                data: { labels: Object.keys(bd), datasets: [{ data: Object.values(bd), backgroundColor: Object.keys(bd).map((_, i) => { const c = colors.bd[i % colors.bd.length]; return gradient(ctx1.getContext('2d'), c[0], c[1]); }), borderWidth: 0, borderRadius: 20, spacing: 5, hoverOffset: 10 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '88%', layout: { padding: 30 }, // PADDING AUMENTADO
-                animation: { animateScale: true, animateRotate: true, duration: 1200, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', bodyFont: { family: 'Inter' }, padding: 12, cornerRadius: 10 } } }
-            });
-
-            if (chart2) chart2.destroy();
-            const ctx2d = ctx2.getContext('2d');
-            chart2 = new Chart(ctx2, {
-                type: 'bar',
-                data: { labels: ['Ingresos', 'Gastos', 'Ahorro'], datasets: [{ data: [i, e, s], backgroundColor: [gradient(ctx2d, colors.inc[0], colors.inc[1]), gradient(ctx2d, colors.exp[0], colors.exp[1]), gradient(ctx2d, colors.sav[0], colors.sav[1])], borderRadius: 8, barPercentage: 0.45 }] },
-                options: { responsive: true, maintainAspectRatio: false, animation: { duration: 1000, easing: 'easeOutQuart', delay: c => c.dataIndex * 150 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e293b', padding: 12, cornerRadius: 8 } }, scales: { x: { grid: { display: false }, border: { display: false } }, y: { border: { display: false }, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 }, callback: v => 'S/ ' + v } } } }
-            });
+            if(state.mode==='edit') {
+                 const btn = document.createElement('div'); btn.className="border-4 border-dashed border-slate-200 rounded-3xl p-8 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all btn-anim";
+                 btn.innerHTML=`<span class="text-slate-400 font-extrabold text-sm uppercase tracking-widest">+ Nueva Sección</span>`;
+                 btn.onclick=()=>updStr('addSec'); colLeft.appendChild(btn);
+            }
+            initSortable();
+            calcKPIs(false);
         }
 
-        // --- LÓGICA ---
-        function calcKPIs() {
-            let i=0,e=0,s=0,bd={};
-            state.structure.forEach(sec => {
-                let sum=0; sec.items.forEach((_,idx) => sum+=(state.data[`${state.currentMonth}-${sec.id}-${idx}`]||0));
-                if(sec.type==='income')i+=sum; else if(sec.type==='savings')s+=sum; else {e+=sum; if(sum>0)bd[sec.title]=sum;}
+        function toggleSection(sIdx) { state.structure[sIdx].collapsed = !state.structure[sIdx].collapsed; renderDashboard(); }
+        function toggleGlobalCollapse() { state.allCollapsed = !state.allCollapsed; state.structure.forEach(sec => sec.collapsed = state.allCollapsed); renderDashboard(); }
+        function handleInputKey(e, sIdx, iIdx) { if(e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.target.blur(); const nextInput = document.getElementById(`inp-${sIdx}-${iIdx+1}`); if(nextInput) nextInput.focus(); } }
+
+        function initSortable() {
+            const cols = [document.getElementById('col-left'), document.getElementById('col-right')];
+            cols.forEach(col => {
+                new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
+                        const newStructure = [];
+                        const leftItems = document.getElementById('col-left').children;
+                        Array.from(leftItems).forEach(el => { if(el.hasAttribute('data-id')) { const obj = state.structure[parseInt(el.getAttribute('data-id'))]; obj.col = 0; newStructure.push(obj); } });
+                        // Only check right items if visible
+                        if(window.innerWidth >= 900) {
+                             const rightItems = document.getElementById('col-right').children;
+                             Array.from(rightItems).forEach(el => { if(el.hasAttribute('data-id')) { const obj = state.structure[parseInt(el.getAttribute('data-id'))]; obj.col = 1; newStructure.push(obj); } });
+                        }
+                        state.structure = newStructure; commitChanges(); renderDashboard();
+                }});
             });
-            ['balance','income','expenses','savings'].forEach(k=>document.getElementById('kpi-'+k).innerText='S/ '+formatMoney(k==='balance'?i-e-s:k==='income'?i:k==='expenses'?e:s));
-            document.getElementById('kpi-rate').innerText = i>0?((s/i)*100).toFixed(0)+'%':'0%';
-            renderCharts(i,e,s,bd);
+            document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const oldIdx = Math.floor(evt.oldIndex / 2); const newIdx = Math.floor(evt.newIndex / 2); const items = state.structure[secIdx].items; const [movedItem] = items.splice(oldIdx, 1); items.splice(newIdx, 0, movedItem); commitChanges(); renderDashboard(); }}); });
         }
-        function updVal(k,v) { const n=parseFloat(v); if(isNaN(n))delete state.data[k]; else state.data[k]=n; save(); calcKPIs(); }
-        function updStr(act,sIdx,iIdx,v) {
-            const s=state.structure; if(act==='renameSec')s[sIdx].title=v; if(act==='changeType')s[sIdx].type=v; if(act==='delSec'&&confirm('¿Borrar?'))s.splice(sIdx,1);
-            if(act==='addSec'){const n=prompt('Nombre:');if(n)s.push({id:'s'+Date.now(),title:n,type:'expense',items:['Item']});}
-            if(act==='renameItem')s[sIdx].items[iIdx]=v; if(act==='delItem')s[sIdx].items.splice(iIdx,1); if(act==='addItem')s[sIdx].items.push('Nuevo');
-            save(); renderDashboard();
+
+        function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerText = "Calculando..."; setTimeout(() => { calcKPIs(true); showToast("Análisis completado"); }, 1000); }
+        
+        function analyzeFinance(i, e, s, bd_details) {
+            const advisorText = document.getElementById('advisor-text'); 
+            const advisorStatus = document.getElementById('advisor-status');
+            const tipsContainer = document.getElementById('advisor-tips');
+            const placeholder = document.getElementById('advisor-placeholder');
+            
+            if(i === 0) { 
+                advisorText.innerText = "¡Hola! Registra tus ingresos para comenzar."; 
+                advisorStatus.innerText = "SIN DATOS"; advisorStatus.className = "text-xs font-bold text-slate-400";
+                tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerText = "Esperando ingresos...";
+                return; 
+            }
+
+            const balance = i - e - s; const savingsRate = (s / i) * 100; 
+            const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; 
+            const hormiga = bd_details['Gastos Hormiga'] || 0; const hormigaRatio = (hormiga / i) * 100;
+            
+            let msg = "", status = "", color = "", tips = [];
+
+            if (balance < 0) { 
+                msg = `Alerta: Gastaste S/ ${Math.abs(balance).toFixed(0)} más de lo que ganaste.`; 
+                status = "DÉFICIT"; color = "text-rose-400"; 
+                tips.push({icon: "✂️", text: "Recorta gastos no esenciales inmediatamente."});
+                tips.push({icon: "🛑", text: "Evita usar tarjetas de crédito este mes."});
+            } else if (debtRatio > 30) { 
+                msg = `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu sueldo.`; 
+                status = "RIESGO DEUDA"; color = "text-orange-400";
+                tips.push({icon: "📉", text: "Aplica el método 'Bola de Nieve' para pagar."});
+                tips.push({icon: "🚫", text: "No adquieras nuevas cuotas."});
+            } else if (hormigaRatio > 10) { 
+                msg = `El ${hormigaRatio.toFixed(0)}% se va en gastos pequeños.`; 
+                status = "FUGA GASTOS"; color = "text-yellow-400"; 
+                tips.push({icon: "☕", text: "Evita compras impulsivas diarias."});
+                tips.push({icon: "📺", text: "Revisa suscripciones que no uses."});
+            } else if (savingsRate < 10) { 
+                if (balance > 100) { 
+                    msg = `Tienes S/ ${balance.toFixed(0)} libres. ¡Ahorra!`; 
+                    tips.push({icon: "💰", text: "Transfiere ese saldo a ahorros ahora."});
+                } else { 
+                    msg = "Margen ajustado. Necesitamos liquidez."; 
+                    tips.push({icon: "⚡", text: "Busca reducir facturas de servicios fijos."});
+                }
+                status = "MEJORABLE"; color = "text-blue-400"; 
+            } else { 
+                msg = "¡Excelente gestión! Finanzas sanas."; 
+                status = "SÓLIDO"; color = "text-emerald-400";
+                tips.push({icon: "📈", text: "Investiga fondos de inversión."});
+                tips.push({icon: "🏖️", text: "Planifica una meta a largo plazo."});
+            }
+
+            advisorText.innerText = msg; 
+            advisorStatus.innerText = status; advisorStatus.className = `text-xs font-bold ${color}`;
+            
+            tipsContainer.innerHTML = "";
+            if(tips.length > 0) {
+                tips.forEach(t => {
+                    tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text">${t.text}</div></div>`;
+                });
+                tipsContainer.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            }
         }
-        function openCloneModal() {
-            document.getElementById('src-month-name').innerText = MONTHS[state.currentMonth];
-            const sel=document.getElementById('target-month-select'); sel.innerHTML='';
-            MONTHS.forEach((m,i)=>{if(i!==state.currentMonth){const o=document.createElement('option');o.value=i;o.innerText=m;if(i===state.currentMonth+1)o.selected=true;sel.appendChild(o);}});
-            document.getElementById('main-backdrop').classList.add('open'); document.getElementById('clone-modal').classList.add('open'); closeMenu();
+
+        function calcKPIs(runAnalysis = false) {
+            let i=0, e=0, s=0, bd={};
+            state.structure.forEach(sec => { let sum = 0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i += sum; else if(sec.type==='savings') s += sum; else { e += sum; if(sum > 0) bd[sec.title] = sum; } });
+            const bal = i-e-s;
+            document.getElementById('kpi-balance').innerText = formatMoney(bal); document.getElementById('kpi-income').innerText = formatMoney(i); document.getElementById('kpi-expenses').innerText = formatMoney(e); document.getElementById('kpi-savings').innerText = formatMoney(s); document.getElementById('center-total').innerText = formatMoney(e); document.getElementById('kpi-rate').innerText = i>0 ? ((s/i)*100).toFixed(0)+'%' : '0%';
+            if(runAnalysis) analyzeFinance(i, e, s, bd);
+            const ctx1 = document.getElementById('expenseChart'); if (ch1) ch1.destroy(); ch1 = new Chart(ctx1, { type: 'doughnut', data: { labels: Object.keys(bd), datasets: [{ data: Object.values(bd), backgroundColor: ['#f97316', '#14b8a6', '#6366f1', '#ec4899', '#f59e0b'], borderWidth: 0, borderRadius: 6, spacing: 6 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'90%', layout:{padding:20}, plugins:{legend:{display:false}} } });
+            const ctx2 = document.getElementById('flowChart'); if (ch2) ch2.destroy(); ch2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Ingresos','Gastos','Ahorro'], datasets: [{ data:[i,e,s], backgroundColor:['#10b981','#f97316','#3b82f6'], borderRadius:12, barPercentage:0.45 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:false}, x:{grid:{display:false}}} } });
+            if(document.getElementById('analytics-overlay').classList.contains('open')) renderAdvancedCharts();
         }
-        function closeModal() { document.getElementById('main-backdrop').classList.remove('open'); document.getElementById('clone-modal').classList.remove('open'); }
-        function executeClone() {
-            const dest=parseInt(document.getElementById('target-month-select').value);
-            const sp=`${state.currentMonth}-`, dp=`${dest}-`;
-            Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];});
-            Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];});
-            state.currentMonth=dest; save(); renderMenu(); renderDashboard(); closeModal(); showToast(`Copiado a ${MONTHS[dest]}`);
-        }
-        function showToast(m) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-        function save() { localStorage.setItem('finanzas_V15', JSON.stringify({structure:state.structure,data:state.data})); }
-        function setMode(m) { state.mode=m; const v=document.getElementById('btn-view'),e=document.getElementById('btn-edit'),c=document.getElementById('charts-container'); if(m==='view'){v.className="px-4 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-slate-800 flex items-center gap-2";e.className="px-4 py-2 text-xs font-bold rounded-lg text-slate-500 flex items-center gap-2";if(c)c.style.display='grid';}else{e.className="px-4 py-2 text-xs font-bold rounded-lg shadow-sm bg-white text-brand-600 ring-1 ring-brand-200 flex items-center gap-2";v.className="px-4 py-2 text-xs font-bold rounded-lg text-slate-500 flex items-center gap-2";if(c)c.style.display='none';} renderDashboard(); }
-        function formatMoney(n) { return n.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-        function exportData() { const a=document.createElement('a'); a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify({structure:state.structure,data:state.data})); a.download="Backup_V15.json"; a.click(); }
-        function importData(inp) { const r=new FileReader(); r.onload=e=>{ try{const j=JSON.parse(e.target.result); state.structure=j.structure; state.data=j.data; save(); location.reload();}catch(x){alert('Error');}}; r.readAsText(inp.files[0]); }
-        function resetAll() { if(confirm('¿Reiniciar?')) { localStorage.removeItem('finanzas_V15'); location.reload(); }}
+        function renderAdvancedCharts() { const incomeTrend=[], expenseTrend=[]; MONTHS.forEach((_, mIdx) => { let i=0, e=0; state.structure.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); incomeTrend.push(i); expenseTrend.push(e); }); const ctxT = document.getElementById('trendChart'); if(trendChart) trendChart.destroy(); trendChart = new Chart(ctxT, { type: 'line', data: { labels: MONTHS, datasets: [ { label: 'Ingresos', data: incomeTrend, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }, { label: 'Gastos', data: expenseTrend, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); const categories = {}; state.structure.forEach(sec => { if(sec.type === 'expense') { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sum > 0) categories[sec.title] = sum; } }); const ctxC = document.getElementById('categoryChart'); if(catChart) catChart.destroy(); catChart = new Chart(ctxC, { type: 'bar', data: { labels: Object.keys(categories), datasets: [{ label: 'Gasto por Categoría', data: Object.values(categories), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } }); }
+
+        function openDeleteModal() { document.getElementById('delete-modal').classList.add('open'); document.getElementById('settings-modal').classList.remove('open'); }
+        function executeDelete() { const prefix = `${state.currentMonth}-`; Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); commitChanges(); renderDashboard(); closeAll(); showToast("Mes borrado"); }
+        function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
+        function updStr(act,s,i,v) { if(act==='ren') state.structure[s].title=v; if(act==='renI') state.structure[s].items[i]=v; if(act==='addI') state.structure[s].items.push("Nuevo"); if(act==='addSec') state.structure.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); commitChanges(); renderDashboard(); }
+        function formatMoney(n) { return "S/ " + n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+        
+        function openAnalytics() { document.getElementById('analytics-overlay').classList.add('open'); renderAdvancedCharts(); }
+        function closeAnalytics() { document.getElementById('analytics-overlay').classList.remove('open'); }
+        function openMenu() { document.getElementById('drawer').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
+        function openSettings() { document.getElementById('settings-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
+        function closeAll() { document.getElementById('drawer').classList.remove('open'); document.getElementById('main-backdrop').classList.remove('open'); document.querySelectorAll('.modal-container').forEach(m => m.classList.remove('open')); closeAnalytics(); }
+        function renderMenu() { const nav = document.getElementById('month-nav-container'); nav.innerHTML = ''; MONTHS.forEach((m,i) => { const b = document.createElement('button'); b.className = `w-full text-left px-5 py-4 rounded-2xl transition-all mb-1 btn-anim ${i===state.currentMonth?'bg-slate-900 text-white font-bold shadow-lg shadow-slate-300':'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-bold'}`; b.innerText = m; b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeAll(); }; nav.appendChild(b); }); }
+        function openCloneModal() { const sel=document.getElementById('target-month-select'); sel.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.currentMonth){const o=document.createElement('option');o.value=i;o.innerText=m;if(i===state.currentMonth+1)o.selected=true;sel.appendChild(o);}}); document.getElementById('clone-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
+        function executeClone() { const dest=parseInt(document.getElementById('target-month-select').value); const sp=`${state.currentMonth}-`, dp=`${dest}-`; Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];}); Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];}); state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); }
+        function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim"; renderDashboard(); }
+        function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.structure.forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v34_resp'); location.reload(); }}
 
         init();
     </script>

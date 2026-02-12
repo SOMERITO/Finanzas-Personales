@@ -413,7 +413,7 @@
                                 <span class="text-slate-700 font-bold text-[15px] group-hover:text-black transition-colors">${state.mode==='view' ? item : `<input class="border-b-2 border-slate-300 font-bold cursor-text" onclick="event.stopPropagation()" onchange="updStr('renI',${sIdx},${iIdx},this.value)" value="${item}">`}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <div class="relative"><input type="number" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white cursor-text" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event)"></div>
+                                <div class="relative"><input type="text" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white cursor-text" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event)"></div>
                                 ${state.mode==='edit' ? `<button onclick="deleteItem(${sIdx}, ${iIdx})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white btn-delete-item flex items-center justify-center"><i class="ph-bold ph-trash"></i></button>` : ''}
                             </div>
                         </div><div class="border-b border-slate-100 last:border-0"></div>`;

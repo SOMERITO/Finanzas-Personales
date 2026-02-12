@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V46 - Single Input Savings</title>
+    <title>Finanzas V47 - Corrección Final</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -23,17 +23,11 @@
                     animation: { 
                         'pop': 'pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
                         'slide-in': 'slideIn 0.4s ease-out forwards',
-                        'pulse-red': 'pulseRed 2s infinite',
-                        'success-scale': 'successScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-                        'vanish': 'vanish 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
                         'zoom-in': 'zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
                     },
                     keyframes: { 
                         pop: { '0%': { opacity: '0', transform: 'scale(0.96) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
                         slideIn: { '0%': { opacity: '0', transform: 'translateX(-10px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
-                        pulseRed: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(244, 63, 94, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(244, 63, 94, 0)' } },
-                        successScale: { '0%': { opacity: '0', transform: 'scale(0.5)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
-                        vanish: { '0%': { opacity: '1', transform: 'scale(1)', filter: 'blur(0)' }, '100%': { opacity: '0', transform: 'scale(0.9)', filter: 'blur(10px)' } },
                         zoomIn: { '0%': { opacity: '0', transform: 'scale(0.9)' }, '100%': { opacity: '1', transform: 'scale(1)' } }
                     }
                 }
@@ -44,15 +38,11 @@
         body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
         html body * { cursor: default !important; }
         input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
-        .section-header:active, .drag-handle:active { cursor: grabbing !important; }
         .cursor-pointer { cursor: pointer !important; }
 
-        /* --- REMOVE SPINNERS (ARROWS) FROM NUMBER INPUTS --- */
+        /* Quitar flechas de input number */
         input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-          -webkit-appearance: none; 
-          margin: 0; 
-        }
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
         /* Layout Utils */
@@ -61,7 +51,6 @@
         .backdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 40; }
         .backdrop.open { opacity: 1; pointer-events: auto; }
         
-        /* Modals */
         .modal-container { opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 60; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
         .modal-container.open { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -70,7 +59,6 @@
         .analytics-sheet { position: fixed; inset: 0; background: #fff; z-index: 70; transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; }
         .analytics-sheet.open { transform: translateY(0); }
 
-        /* Components */
         .input-pro { border: 2px solid #e2e8f0; background: #fff; border-radius: 0.75rem; color: #1e293b; font-weight: 700; transition: all 0.2s; }
         .input-pro:focus { border-color: #0ea5e9; outline: none; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
         .card-premium { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; }
@@ -83,7 +71,6 @@
         .rotate-icon { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .rotate-icon.collapsed { transform: rotate(-90deg); }
 
-        /* Masonry & Edit Mode */
         .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 200px; transition: background 0.3s; border-radius: 1rem; }
         body.edit-mode .masonry-col { background: rgba(241, 245, 249, 0.5); border: 2px dashed #e2e8f0; }
         .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
@@ -97,10 +84,6 @@
         .back-to-top { position: fixed; bottom: 2rem; right: 2rem; width: 3.5rem; height: 3.5rem; background: #0f172a; color: white; border-radius: 50%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; z-index: 45; transition: all 0.3s; opacity: 0; pointer-events: none; transform: translateY(10px); }
         .back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
         .back-to-top:hover { background: #0ea5e9; transform: translateY(-3px); }
-
-        /* Savings Progress Bar */
-        .progress-container { width: 100%; height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 8px; position: relative; border:1px solid #e2e8f0;}
-        .progress-bar { height: 100%; border-radius: 99px; transition: width 1s ease-out; background: linear-gradient(90deg, #10b981, #0ea5e9); }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
@@ -108,10 +91,10 @@
     <div id="main-backdrop" class="backdrop" onclick="closeAll()"></div>
     <button id="btn-back-to-top" class="back-to-top btn-anim cursor-pointer" onclick="scrollToTop()"><i class="ph-bold ph-arrow-up text-xl"></i></button>
 
-    <div id="success-overlay" class="success-overlay" style="position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity 0.3s;">
-        <div class="success-card">
-            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 text-emerald-500"><i class="ph-fill ph-check-circle text-5xl"></i></div>
-            <h3 class="text-xl font-extrabold text-slate-900">¡Listo!</h3>
+    <div id="success-overlay" class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
+        <div class="bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl border border-slate-100 text-center transform scale-90">
+            <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3 text-emerald-500"><i class="ph-fill ph-check-circle text-4xl"></i></div>
+            <h3 class="text-lg font-extrabold text-slate-900">Guardado</h3>
         </div>
     </div>
 
@@ -132,12 +115,11 @@
             <div class="p-8 border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm rounded-t-3xl flex justify-between items-center">
                 <div>
                     <h3 class="font-extrabold text-2xl text-slate-900 flex items-center gap-2"><i class="ph-fill ph-target text-brand-600"></i> Mis Metas</h3>
-                    <p class="text-sm text-slate-500 font-medium mt-1">Define tus metas aquí. El dinero se asigna desde el Dashboard.</p>
+                    <p class="text-sm text-slate-500 font-medium mt-1">El dinero se asigna desde la casilla en el Dashboard.</p>
                 </div>
                 <button onclick="closeAll()" class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 btn-anim cursor-pointer"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
-            <div id="savings-list-container" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-                </div>
+            <div id="savings-list-container" class="p-8 space-y-6 overflow-y-auto custom-scrollbar"></div>
             <div class="p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl flex justify-between items-center">
                 <button onclick="addSavingsGoal()" class="px-6 py-3.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-bold hover:border-brand-500 hover:text-brand-600 transition-all btn-anim cursor-pointer">+ Nueva Meta</button>
                 <button onclick="closeAll()" class="px-6 py-3.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-500/20 btn-anim cursor-pointer">Cerrar</button>
@@ -219,10 +201,7 @@
                         <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-center btn-anim cursor-pointer"><i class="ph-bold ph-caret-left"></i></button>
                         <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop w-32 text-center">Enero</h2>
                         <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-center btn-anim cursor-pointer"><i class="ph-bold ph-caret-right"></i></button>
-                        
-                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim cursor-pointer ml-2" title="Borrar este mes">
-                            <i class="ph-bold ph-trash text-lg"></i>
-                        </button>
+                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim cursor-pointer ml-2" title="Borrar este mes"><i class="ph-bold ph-trash text-lg"></i></button>
                     </div>
                     <div id="sync-status" class="flex items-center gap-2 mt-1 opacity-0 transition-opacity duration-500">
                         <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
@@ -232,9 +211,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="openAnalytics()" class="w-11 h-11 rounded-xl bg-brand-50 border-2 border-brand-200 text-brand-600 hover:bg-brand-100 flex items-center justify-center transition-all shadow-sm btn-anim cursor-pointer" title="Sala de Juntas"><i class="ph-fill ph-chart-line-up text-xl"></i></button>
-                <button onclick="toggleGlobalCollapse()" class="w-11 h-11 rounded-xl bg-white border-2 border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-400 flex items-center justify-center transition-all shadow-sm btn-anim cursor-pointer" title="Expandir/Contraer">
-                    <i class="ph-bold ph-arrows-out-line-vertical text-xl" id="global-collapse-icon"></i>
-                </button>
+                <button onclick="toggleGlobalCollapse()" class="w-11 h-11 rounded-xl bg-white border-2 border-slate-200 text-slate-400 hover:text-slate-800 hover:border-slate-400 flex items-center justify-center transition-all shadow-sm btn-anim cursor-pointer" title="Expandir/Contraer"><i class="ph-bold ph-arrows-out-line-vertical text-xl" id="global-collapse-icon"></i></button>
                 <div class="flex bg-white p-1.5 rounded-xl border-2 border-slate-200 shadow-sm ml-2">
                     <button onclick="setMode('view')" id="btn-view" class="px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer">Ver</button>
                     <button onclick="setMode('edit')" id="btn-edit" class="px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-900 transition-all btn-anim cursor-pointer">Editar</button>
@@ -265,7 +242,7 @@
                             <span id="kpi-rate" class="text-[11px] bg-white/20 px-2 py-1 rounded-md backdrop-blur-md font-bold text-white">0%</span>
                         </div>
                         <h3 class="text-3xl font-extrabold text-white tracking-tight relative z-10" id="kpi-savings">S/ 0,00</h3>
-                        <p class="text-xs text-white/50 relative z-10 mt-1 font-medium"><i class="ph-bold ph-eye"></i> Gestionar Bolsa Común</p>
+                        <p class="text-xs text-white/50 relative z-10 mt-1 font-medium"><i class="ph-bold ph-eye"></i> Gestionar Metas</p>
                     </div>
                 </div>
 
@@ -287,44 +264,7 @@
                 </div>
 
                 <div class="h-px bg-slate-200 w-full my-10"></div>
-
-                <div class="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
-                    <div class="absolute top-0 right-0 p-6 opacity-10"><i class="ph-fill ph-brain text-9xl"></i></div>
-                    <div class="relative z-10">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center"><i class="ph-bold ph-strategy text-xl"></i></div>
-                                <div>
-                                    <h3 class="font-bold text-lg">Reporte CFO</h3>
-                                    <p class="text-xs text-slate-400">Análisis Profesional</p>
-                                </div>
-                            </div>
-                            <button onclick="refreshAnalysis()" class="px-5 py-2 bg-white text-slate-900 rounded-xl text-xs font-bold flex items-center gap-2 hover:scale-105 transition-transform btn-anim cursor-pointer"><i class="ph-bold ph-lightning"></i> Generar Reporte</button>
-                        </div>
-                        
-                        <div class="flex flex-col md:flex-row gap-8">
-                            <div class="w-full md:w-1/4 border-r border-white/10 pr-6">
-                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-1">Salud Financiera</p>
-                                <div class="flex items-end gap-2 mb-2">
-                                    <span id="health-score" class="text-5xl font-extrabold text-white tracking-tighter">--</span>
-                                    <span class="text-sm text-slate-400 font-medium mb-1">/ 100</span>
-                                </div>
-                                <div class="health-bar-bg"><div id="health-bar" class="health-bar-fill bg-slate-600" style="width: 0%"></div></div>
-                                <p id="advisor-status" class="mt-3 text-sm font-bold text-slate-300">Sin Datos</p>
-                            </div>
-                            <div class="w-full md:w-3/4 pl-0 md:pl-4">
-                                <p class="text-[11px] text-slate-400 uppercase font-bold tracking-widest mb-4">Estrategia del Mes</p>
-                                <div id="advisor-tips" class="hidden space-y-1"></div>
-                                <div id="advisor-placeholder" class="text-sm text-slate-500 italic flex items-center gap-2">
-                                    <i class="ph-bold ph-info"></i> Registra ingresos y gastos para activar la IA.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="h-px bg-slate-200 w-full my-10"></div>
-
+                
                 <div class="flex items-center gap-4 mb-6">
                     <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-list-dashes text-slate-400"></i> Desglose de Operaciones <span class="month-badge" id="breakdown-month-badge">ENERO</span></h3>
                 </div>
@@ -356,16 +296,10 @@
         async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ monthly_structures: state.monthly_structures, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
         async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); 
             if(json.record) { 
-                if (json.record.monthly_structures) {
-                    state.monthly_structures = json.record.monthly_structures;
-                } else if (json.record.structure) {
-                    state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(json.record.structure)));
-                } else {
-                    state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
-                }
+                if (json.record.monthly_structures) state.monthly_structures = json.record.monthly_structures;
+                else state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
                 state.data = json.record.data || {}; 
-                saveLocal(); 
-                renderDashboard(); 
+                saveLocal(); renderDashboard(); 
                 document.getElementById('sync-status').style.opacity = '1'; document.getElementById('sync-text').innerText = "Sincronizado"; 
             } } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
 
@@ -374,9 +308,6 @@
             if(s) { 
                 const p = JSON.parse(s); 
                 state.monthly_structures = p.monthly_structures || Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
-                if(!state.monthly_structures || state.monthly_structures.length === 0) {
-                      state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(p.structure || DEFAULT_STR)));
-                }
                 state.data = p.data || {}; 
             } else {
                 state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
@@ -396,10 +327,8 @@
 
         function changeMonth(delta) {
             let newMonth = state.currentMonth + delta;
-            if(newMonth < 0) newMonth = 0;
-            if(newMonth > 11) newMonth = 11;
-            state.currentMonth = newMonth;
-            renderMenu(); renderDashboard(); closeAll();
+            if(newMonth < 0) newMonth = 0; if(newMonth > 11) newMonth = 11;
+            state.currentMonth = newMonth; renderMenu(); renderDashboard(); closeAll();
         }
 
         function renderDashboard() {
@@ -426,9 +355,8 @@
                 
                 const isCollapsed = sec.collapsed === true;
                 
-                // IF SAVINGS TYPE -> SHOW SINGLE "TOTAL" INPUT
                 if (sec.type === 'savings') {
-                    // Calculate Total Sum of all goals in this section
+                    // Logic to sum total based on saved data
                     let totalSavings = 0;
                     sec.items.forEach((_, i) => totalSavings += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
                     
@@ -456,13 +384,11 @@
                                            onkeydown="handleInputKey(event)">
                                 </div>
                             </div>
-                            <p class="text-xs text-slate-400 mt-3 pl-14 leading-relaxed"><i class="ph-bold ph-info"></i> El monto ingresado aquí se dividirá equitativamente entre tus ${sec.items.length} metas definidas en la tarjeta superior (Chanchito).</p>
+                            <p class="text-xs text-slate-400 mt-3 pl-14 leading-relaxed"><i class="ph-bold ph-info"></i> El monto ingresado aquí se dividirá equitativamente entre tus ${sec.items.length} metas.</p>
                         </div>
                     </div>`;
                     card.innerHTML = html;
-                } 
-                else {
-                    // STANDARD LOGIC FOR INCOME/EXPENSE
+                } else {
                     let html = `<div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 section-header" onclick="toggleSection(${sIdx})">
                         <div class="flex items-center gap-3 w-full">
                             <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto cursor-text" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
@@ -499,33 +425,24 @@
                     html += `</div></div>`;
                     card.innerHTML = html;
                 }
-                
                 targetContainer.appendChild(card);
             });
             
             if(state.mode==='edit') {
                  const btn = document.createElement('div'); btn.className="border-4 border-dashed border-slate-200 rounded-3xl p-8 flex items-center justify-center cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-all btn-anim mt-6";
                  btn.innerHTML=`<span class="text-slate-400 font-extrabold text-sm uppercase tracking-widest">+ Nueva Sección</span>`;
-                 btn.onclick=()=>updStr('addSec'); 
-                 colLeft.appendChild(btn); 
-                 document.body.classList.add('edit-mode');
-            } else {
-                 document.body.classList.remove('edit-mode');
+                 btn.onclick=()=>updStr('addSec'); colLeft.appendChild(btn); 
             }
-            initSortable();
-            calcKPIs(false);
+            initSortable(); calcKPIs(false);
         }
 
-        // --- NEW CENTRALIZED SAVINGS MODAL WITH AUTO-DISTRIBUTION ---
         function openSavingsModal() {
             const container = document.getElementById('savings-list-container');
             container.innerHTML = '';
             
             const currentStruct = state.monthly_structures[state.currentMonth];
-            
             let savingsItems = [];
             let totalMonthSavings = 0;
-            let totalGlobalTarget = 0;
 
             currentStruct.forEach((sec, sIdx) => {
                 if(sec.type === 'savings') {
@@ -535,73 +452,60 @@
                         const targetKey = `${key}-target`;
                         const targetVal = state.data[targetKey] || 0;
                         totalMonthSavings += val;
-                        totalGlobalTarget += targetVal;
                         savingsItems.push({ sIdx, iIdx, item, key, val, targetKey, targetVal });
                     });
                 }
             });
 
-            // 1. Render CONTROL PANEL (Shared Pot Info Only - No Input here to avoid confusion, or Read Only)
-            // actually, better to keep it read only here and refer to dashboard, OR allow edit.
-            // Requirement says "de ese item (casilla ahorro) se dividirá". So input is on dashboard.
-            
             if(savingsItems.length === 0) {
                 container.innerHTML = `<div class="text-center py-10 text-slate-400"><i class="ph-bold ph-mask-sad text-4xl mb-2"></i><p>No tienes una sección de 'Ahorros' creada en este mes.</p></div>`;
-                document.getElementById('savings-modal').classList.add('open');
-                document.getElementById('main-backdrop').classList.add('open');
-                return;
-            }
-
-            // 2. Render List of Goals
-            const listGrid = document.createElement('div');
-            listGrid.className = "space-y-4";
-            
-            savingsItems.forEach(obj => {
-                let historicalAcc = 0;
-                for(let m = 0; m < state.currentMonth; m++) {
-                    const prevStruct = state.monthly_structures[m];
-                    if(prevStruct && prevStruct[obj.sIdx] && prevStruct[obj.sIdx].items[obj.iIdx] === obj.item) {
-                         historicalAcc += (state.data[`${m}-${currentStruct[obj.sIdx].id}-${obj.iIdx}`] || 0);
+            } else {
+                const listGrid = document.createElement('div');
+                listGrid.className = "space-y-4";
+                savingsItems.forEach(obj => {
+                    let historicalAcc = 0;
+                    for(let m = 0; m < state.currentMonth; m++) {
+                        const prevStruct = state.monthly_structures[m];
+                        if(prevStruct && prevStruct[obj.sIdx] && prevStruct[obj.sIdx].items[obj.iIdx] === obj.item) {
+                             historicalAcc += (state.data[`${m}-${currentStruct[obj.sIdx].id}-${obj.iIdx}`] || 0);
+                        }
                     }
-                }
-                const totalProgressVal = historicalAcc + obj.val;
-                const progress = obj.targetVal > 0 ? Math.min((totalProgressVal / obj.targetVal) * 100, 100) : 0;
-                
-                const itemDiv = document.createElement('div');
-                itemDiv.className = "bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex flex-col gap-4 animate-zoom-in";
-                itemDiv.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-200 font-bold text-sm">${(progress).toFixed(0)}%</div>
-                            <div class="flex-1">
-                                <input type="text" value="${obj.item}" 
-                                       class="font-bold text-slate-900 text-base bg-transparent border-b border-transparent focus:border-brand-500 outline-none w-full"
-                                       onchange="updStr('renI', ${obj.sIdx}, ${obj.iIdx}, this.value)">
-                                <p class="text-xs text-slate-400 mt-1">Acumulado Total: <span class="font-bold text-slate-600">${formatMoney(totalProgressVal)}</span></p>
+                    const totalProgressVal = historicalAcc + obj.val;
+                    const progress = obj.targetVal > 0 ? Math.min((totalProgressVal / obj.targetVal) * 100, 100) : 0;
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = "bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex flex-col gap-4 animate-zoom-in";
+                    itemDiv.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-200 font-bold text-sm">${(progress).toFixed(0)}%</div>
+                                <div class="flex-1">
+                                    <input type="text" value="${obj.item}" 
+                                           class="font-bold text-slate-900 text-base bg-transparent border-b border-transparent focus:border-brand-500 outline-none w-full"
+                                           onchange="updStr('renI', ${obj.sIdx}, ${obj.iIdx}, this.value)">
+                                    <p class="text-xs text-slate-400 mt-1">Acumulado Total: <span class="font-bold text-slate-600">${formatMoney(totalProgressVal)}</span></p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                 <div class="flex flex-col items-end">
+                                    <label class="text-[10px] font-bold text-slate-300 uppercase mb-1">Meta</label>
+                                    <input type="number" class="w-24 bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-right font-bold text-slate-700 text-sm focus:border-brand-500 outline-none" 
+                                        value="${obj.targetVal === 0 ? '' : obj.targetVal}" placeholder="Definir" onchange="updVal('${obj.targetKey}', this.value); openSavingsModal();">
+                                </div>
+                                 <button onclick="deleteItemInModal(${obj.sIdx}, ${obj.iIdx})" class="text-xs text-rose-400 hover:text-rose-600 font-bold"><i class="ph-bold ph-trash"></i></button>
                             </div>
                         </div>
-                        <div class="flex flex-col items-end gap-2">
-                             <div class="flex flex-col items-end">
-                                <label class="text-[10px] font-bold text-slate-300 uppercase mb-1">Meta</label>
-                                <input type="number" class="w-24 bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-right font-bold text-slate-700 text-sm focus:border-brand-500 outline-none" 
-                                    value="${obj.targetVal === 0 ? '' : obj.targetVal}" 
-                                    placeholder="Definir" 
-                                    onchange="updVal('${obj.targetKey}', this.value); openSavingsModal();">
-                            </div>
-                             <button onclick="deleteItemInModal(${obj.sIdx}, ${obj.iIdx})" class="text-xs text-rose-400 hover:text-rose-600 font-bold"><i class="ph-bold ph-trash"></i></button>
+                        <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-emerald-400 to-brand-500 transition-all duration-500" style="width: ${progress}%"></div>
                         </div>
-                    </div>
-                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-emerald-400 to-brand-500 transition-all duration-500" style="width: ${progress}%"></div>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
-                        <span class="text-xs font-bold text-slate-500">Asignado este mes:</span>
-                        <span class="font-extrabold text-brand-600 text-lg item-month-val" data-key="${obj.key}">+ ${formatMoney(obj.val)}</span>
-                    </div>
-                `;
-                listGrid.appendChild(itemDiv);
-            });
-            container.appendChild(listGrid);
+                        <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                            <span class="text-xs font-bold text-slate-500">Asignado este mes:</span>
+                            <span class="font-extrabold text-brand-600 text-lg item-month-val" data-key="${obj.key}">+ ${formatMoney(obj.val)}</span>
+                        </div>`;
+                    listGrid.appendChild(itemDiv);
+                });
+                container.appendChild(listGrid);
+            }
             document.getElementById('savings-modal').classList.add('open');
             document.getElementById('main-backdrop').classList.add('open');
         }
@@ -609,30 +513,16 @@
         function distributeSavings(totalValueStr) {
             const totalValue = parseFloat(totalValueStr) || 0;
             const currentStruct = state.monthly_structures[state.currentMonth];
-            
             let savingsKeys = [];
             currentStruct.forEach((sec, sIdx) => {
                 if(sec.type === 'savings') {
-                    sec.items.forEach((_, iIdx) => {
-                        savingsKeys.push(`${state.currentMonth}-${sec.id}-${iIdx}`);
-                    });
+                    sec.items.forEach((_, iIdx) => { savingsKeys.push(`${state.currentMonth}-${sec.id}-${iIdx}`); });
                 }
             });
-
             if(savingsKeys.length === 0) return;
-
             const splitAmount = totalValue / savingsKeys.length;
-
-            savingsKeys.forEach(key => {
-                state.data[key] = splitAmount;
-            });
-
-            commitChanges(); 
-            // We don't need to update UI manually because renderDashboard calls us, 
-            // BUT if we are in the modal, we might want to refresh.
-            // renderDashboard is already called by the onchange logic flow usually.
-            // Here we just save. renderDashboard will be triggered by the user action mostly or we force it.
-            renderDashboard(); 
+            savingsKeys.forEach(key => { state.data[key] = splitAmount; });
+            commitChanges(); renderDashboard();
         }
 
         function addSavingsGoal() {
@@ -640,44 +530,23 @@
              const savingsSec = currentStruct.find(s => s.type === 'savings');
              if(savingsSec) {
                  savingsSec.items.push("Nueva Meta");
-                 // Re-distribute existing total among new count of items? 
-                 // Or just add 0? Let's just add it. The user should re-enter total to redistribute or we redistribute current total.
-                 // Let's redistribute current total.
                  let currentTotal = 0;
                  savingsSec.items.forEach((_, i) => { if(i < savingsSec.items.length-1) currentTotal += (state.data[`${state.currentMonth}-${savingsSec.id}-${i}`] || 0); });
-                 
-                 // Save struct changes
                  commitChanges();
-                 
-                 // Trigger redistribution of the SAME total amount
                  if(currentTotal > 0) distributeSavings(currentTotal);
-                 
                  openSavingsModal(); 
              }
         }
 
         function deleteItemInModal(sIdx, iIdx) {
             if(!confirm('¿Eliminar esta meta?')) return;
-            // Get current total before deleting to preserve the "Bolsa"
             const currentStruct = state.monthly_structures[state.currentMonth];
             const sec = currentStruct[sIdx];
             let currentTotal = 0;
             sec.items.forEach((_, i) => currentTotal += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
-
-            // Delete item
             getStruct()[sIdx].items.splice(iIdx, 1);
-            
-            // Clean data
-            // Note: data cleaning is tricky with shifting indices, simpler to just commit struct
-            // and let the next distributeSavings overwrite the values.
-            // BUT we must clean the old keys or they remain as ghosts.
-            // Actually, distributeSavings overwrites based on index.
-            
             commitChanges();
-            
-            // Redistribute the SAME total among remaining items
             if(currentTotal > 0) distributeSavings(currentTotal);
-            
             openSavingsModal();
         }
 
@@ -709,24 +578,8 @@
 
         function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; renderDashboard(); }
         
-        function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Procesando datos...`; setTimeout(() => { calcKPIs(true); }, 800); }
-        function analyzeFinance(i, e, s, bd_details) {
-            const tipsContainer = document.getElementById('advisor-tips'); const placeholder = document.getElementById('advisor-placeholder'); const scoreEl = document.getElementById('health-score'); const barEl = document.getElementById('health-bar'); const statusEl = document.getElementById('advisor-status');
-            if(i === 0) { scoreEl.innerText = "0"; barEl.style.width = "0%"; statusEl.innerText = "Esperando Ingresos"; tipsContainer.classList.add('hidden'); placeholder.classList.remove('hidden'); placeholder.innerHTML = `<i class="ph-bold ph-info"></i> Registra tus ingresos para iniciar el análisis.`; return; }
-            const balance = i - e - s; const savingsRate = (s / i) * 100; const debt = bd_details['Deudas'] || bd_details['Deudas & Préstamos'] || 0; const debtRatio = (debt / i) * 100; const hormiga = bd_details['Gastos Hormiga'] || 0; const annualHormiga = hormiga * 12;
-            let score = 100; if (balance < 0) score -= 40; if (savingsRate < 20) score -= (20 - savingsRate); if (debtRatio > 30) score -= (debtRatio - 30); if (hormiga > (i * 0.05)) score -= 10; score = Math.max(0, Math.min(100, Math.round(score)));
-            scoreEl.innerText = score; barEl.style.width = `${score}%`;
-            let colorClass = "bg-emerald-500"; let statusText = "Excelente"; if (score < 80) { colorClass = "bg-blue-500"; statusText = "Bueno"; } if (score < 60) { colorClass = "bg-yellow-500"; statusText = "Aceptable"; } if (score < 40) { colorClass = "bg-orange-500"; statusText = "En Riesgo"; } if (score < 20) { colorClass = "bg-rose-500"; statusText = "Crítico"; }
-            barEl.className = `health-bar-fill ${colorClass}`; statusEl.innerText = statusText; statusEl.className = `mt-3 text-sm font-bold ${colorClass.replace('bg-', 'text-')}`;
-            let strategies = [];
-            if (debtRatio > 0) { if (debtRatio > 35) { strategies.push({icon: "📉", title: "Alerta de Endeudamiento", text: `Tus deudas consumen el ${debtRatio.toFixed(0)}% de tu ingreso. <b>Acción:</b> Aplica el método 'Bola de Nieve' (paga la más chica primero) para liberar flujo de caja.`}); } else { strategies.push({icon: "💳", title: "Control de Deuda", text: `Estás destinando S/ ${debt.toFixed(2)} a deuda. Si puedes prepagar, hazlo para ahorrar intereses futuros.`}); } }
-            if (savingsRate < 20) { const gap = (i * 0.20) - s; strategies.push({icon: "💰", title: "Objetivo de Ahorro (Regla 20%)", text: `Estás ahorrando el ${savingsRate.toFixed(0)}%. Para llegar al ideal del 20%, deberías separar <b>S/ ${gap.toFixed(2)} adicionales</b> este mes.`}); } else { strategies.push({icon: "🚀", title: "Ahorro Potente", text: `¡Bien! Superas el 20% de ahorro. Considera mover el excedente a un Fondo Mutuo o Depósito a Plazo.`}); }
-            if (hormiga > 0) { strategies.push({icon: "☕", title: "Fuga 'Hormiga'", text: `Cuidado: Si mantienes este ritmo de gastos pequeños, perderás <b>S/ ${annualHormiga.toFixed(2)} al año</b>. ¿Vale la pena?`}); }
-            if (balance < 0) { strategies.unshift({icon: "🚨", title: "DÉFICIT DETECTADO", text: `Estás gastando S/ ${Math.abs(balance).toFixed(2)} más de lo que ingresas. Detén gastos variables inmediatamente.`}); } else if (balance > 0 && savingsRate < 10) { strategies.push({icon: "👁️", title: "Dinero Ocioso", text: `Tienes S/ ${balance.toFixed(2)} libres sin asignar a ahorro. ¡No los gastes! Muévelos a tu meta de ahorro.`}); }
-            tipsContainer.innerHTML = ""; strategies.slice(0, 3).forEach(t => { tipsContainer.innerHTML += `<div class="coach-tip-item"><div class="coach-icon">${t.icon}</div><div class="coach-text"><strong>${t.title}</strong>${t.text}</div></div>`; });
-            tipsContainer.classList.remove('hidden'); placeholder.classList.add('hidden');
-        }
-
+        function refreshAnalysis() { showToast("Analizando..."); setTimeout(() => { calcKPIs(false); }, 800); }
+        
         function calcKPIs(runAnalysis = false) {
             let i=0, e=0, s_curr=0, bd={};
             getStruct().forEach(sec => { 
@@ -752,7 +605,7 @@
             document.getElementById('kpi-savings').innerText = formatMoney(s_acc);
             document.getElementById('center-total').innerText = formatMoney(e);
             document.getElementById('kpi-rate').innerText = i>0 ? ((s_curr/i)*100).toFixed(0)+'%' : '0%';
-            if(runAnalysis) analyzeFinance(i, e, s_curr, bd);
+            
             const ctx1 = document.getElementById('expenseChart'); if (ch1) ch1.destroy(); ch1 = new Chart(ctx1, { type: 'doughnut', data: { labels: Object.keys(bd), datasets: [{ data: Object.values(bd), backgroundColor: ['#f97316', '#14b8a6', '#6366f1', '#ec4899', '#f59e0b'], borderWidth: 0, borderRadius: 6, spacing: 6 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'90%', layout:{padding:20}, plugins:{legend:{display:false}} } });
             const ctx2 = document.getElementById('flowChart'); if (ch2) ch2.destroy(); ch2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Ingresos','Gastos','Ahorro'], datasets: [{ data:[i,e,s_curr], backgroundColor:['#10b981','#f97316','#3b82f6'], borderRadius:12, barPercentage:0.45 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:false}, x:{grid:{display:false}}} } });
             if(document.getElementById('analytics-overlay').classList.contains('open')) renderAdvancedCharts();
@@ -779,12 +632,8 @@
             container.classList.add('vanish-effect');
             setTimeout(() => {
                 Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); 
-                commitChanges(); 
-                const successOverlay = document.getElementById('success-overlay');
-                successOverlay.style.opacity = '1';
-                renderDashboard();
+                commitChanges(); showToast("Mes Eliminado"); renderDashboard();
                 container.classList.remove('vanish-effect');
-                setTimeout(() => { successOverlay.style.opacity = '0'; }, 1500);
             }, 500); 
         }
         function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
@@ -807,7 +656,7 @@
             state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); 
         }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.monthly_structures[mIdx].forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
-        function showToast(m) { const t=document.getElementById('success-overlay'); const c=t.querySelector('h3'); const old=c.innerText; c.innerText=m; t.style.opacity='1'; setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>{c.innerText=old},300);},1500); }
+        function showToast(m) { const t=document.getElementById('success-overlay'); const c=t.querySelector('h3'); c.innerText=m; t.classList.remove('opacity-0'); setTimeout(()=>{t.classList.add('opacity-0');},1500); }
         function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v42_independent'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
 
         init();

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Finanzas V42 - Independent</title>
+    <title>Finanzas V46 - Single Input Savings</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -25,14 +25,16 @@
                         'slide-in': 'slideIn 0.4s ease-out forwards',
                         'pulse-red': 'pulseRed 2s infinite',
                         'success-scale': 'successScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
-                        'vanish': 'vanish 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+                        'vanish': 'vanish 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                        'zoom-in': 'zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
                     },
                     keyframes: { 
                         pop: { '0%': { opacity: '0', transform: 'scale(0.96) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
                         slideIn: { '0%': { opacity: '0', transform: 'translateX(-10px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
                         pulseRed: { '0%, 100%': { boxShadow: '0 0 0 0 rgba(244, 63, 94, 0.7)' }, '70%': { boxShadow: '0 0 0 10px rgba(244, 63, 94, 0)' } },
                         successScale: { '0%': { opacity: '0', transform: 'scale(0.5)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
-                        vanish: { '0%': { opacity: '1', transform: 'scale(1)', filter: 'blur(0)' }, '100%': { opacity: '0', transform: 'scale(0.9)', filter: 'blur(10px)' } }
+                        vanish: { '0%': { opacity: '1', transform: 'scale(1)', filter: 'blur(0)' }, '100%': { opacity: '0', transform: 'scale(0.9)', filter: 'blur(10px)' } },
+                        zoomIn: { '0%': { opacity: '0', transform: 'scale(0.9)' }, '100%': { opacity: '1', transform: 'scale(1)' } }
                     }
                 }
             }
@@ -40,12 +42,18 @@
     </script>
     <style>
         body { background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
-        
-        /* --- CURSOR SYSTEM --- */
         html body * { cursor: default !important; }
         input[type="text"], input[type="number"], input[type="email"], textarea { cursor: text !important; }
         .section-header:active, .drag-handle:active { cursor: grabbing !important; }
         .cursor-pointer { cursor: pointer !important; }
+
+        /* --- REMOVE SPINNERS (ARROWS) FROM NUMBER INPUTS --- */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] { -moz-appearance: textfield; }
 
         /* Layout Utils */
         .sidebar-drawer { transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 50; position: fixed; top: 0; left: 0; bottom: 0; width: 20rem; background: white; border-right: 1px solid #e2e8f0; }
@@ -53,7 +61,7 @@
         .backdrop { opacity: 0; pointer-events: none; transition: opacity 0.3s; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 40; }
         .backdrop.open { opacity: 1; pointer-events: auto; }
         
-        /* Modals & Sheets */
+        /* Modals */
         .modal-container { opacity: 0; pointer-events: none; transition: all 0.3s; z-index: 60; position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
         .modal-container.open { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
@@ -62,62 +70,48 @@
         .analytics-sheet { position: fixed; inset: 0; background: #fff; z-index: 70; transform: translateY(100%); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; }
         .analytics-sheet.open { transform: translateY(0); }
 
-        /* SUCCESS OVERLAY */
-        .success-overlay { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
-        .success-overlay.show { opacity: 1; pointer-events: auto; }
-        .success-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 2rem; border-radius: 2rem; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.15); text-align: center; transform: scale(0.8); transition: transform 0.3s; border: 1px solid #e2e8f0; }
-        .success-overlay.show .success-card { animation: successScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-
-        /* Inputs & UI */
+        /* Components */
         .input-pro { border: 2px solid #e2e8f0; background: #fff; border-radius: 0.75rem; color: #1e293b; font-weight: 700; transition: all 0.2s; }
         .input-pro:focus { border-color: #0ea5e9; outline: none; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
         .card-premium { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; }
-        .bg-savings-gradient { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; }
-        
-        /* Animaciones UI */
+        .bg-savings-gradient { background: linear-gradient(135deg, #0f172a 0%, #334155 100%); color: white; cursor: pointer !important; }
         .btn-anim { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); display: inline-flex; align-items: center; justify-content: center; } 
         .btn-anim:active { transform: scale(0.95); }
         
-        /* Accordion */
         .accordion-content { transition: max-height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s; overflow: hidden; max-height: 3000px; opacity: 1; }
         .accordion-content.collapsed { max-height: 0; opacity: 0; }
         .rotate-icon { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .rotate-icon.collapsed { transform: rotate(-90deg); }
 
-        /* Coach Pro */
-        .coach-tip-item { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: flex-start; animation: slideIn 0.5s ease-out; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; }
-        .coach-icon { color: #facc15; font-size: 1.2rem; flex-shrink: 0; margin-top: 2px; }
-        .coach-text strong { color: #fff; display: block; margin-bottom: 2px; font-size: 0.9rem;}
-        .coach-text { color: #94a3b8; font-size: 0.85rem; line-height: 1.4; }
-        .health-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; margin-top: 8px;}
-        .health-bar-fill { height: 100%; border-radius: 99px; transition: width 1s ease-out; }
-
-        /* Masonry & Sortable Helpers */
+        /* Masonry & Edit Mode */
         .masonry-col { display: flex; flex-direction: column; gap: 1.5rem; min-height: 200px; transition: background 0.3s; border-radius: 1rem; }
         body.edit-mode .masonry-col { background: rgba(241, 245, 249, 0.5); border: 2px dashed #e2e8f0; }
-        
         .vanish-effect { animation: vanish 0.6s forwards; pointer-events: none; }
         .sortable-ghost { opacity: 0.3; background: #f1f5f9; border: 2px dashed #cbd5e1; transform: scale(0.98); }
-        
         .btn-delete-item { opacity: 0; transition: opacity 0.2s; pointer-events: none; }
         body.edit-mode .btn-delete-item { opacity: 1; pointer-events: auto; cursor: pointer !important; }
         .section-delete-btn { display: none; }
         body.edit-mode .section-delete-btn { display: flex; cursor: pointer !important; }
         
         .month-badge { font-size: 10px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #64748b; font-weight: 700; text-transform: uppercase; margin-left: 8px; }
+        .back-to-top { position: fixed; bottom: 2rem; right: 2rem; width: 3.5rem; height: 3.5rem; background: #0f172a; color: white; border-radius: 50%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; z-index: 45; transition: all 0.3s; opacity: 0; pointer-events: none; transform: translateY(10px); }
+        .back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .back-to-top:hover { background: #0ea5e9; transform: translateY(-3px); }
+
+        /* Savings Progress Bar */
+        .progress-container { width: 100%; height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden; margin-top: 8px; position: relative; border:1px solid #e2e8f0;}
+        .progress-bar { height: 100%; border-radius: 99px; transition: width 1s ease-out; background: linear-gradient(90deg, #10b981, #0ea5e9); }
     </style>
 </head>
 <body class="h-[100dvh] flex overflow-hidden bg-[#f8fafc]">
 
     <div id="main-backdrop" class="backdrop" onclick="closeAll()"></div>
+    <button id="btn-back-to-top" class="back-to-top btn-anim cursor-pointer" onclick="scrollToTop()"><i class="ph-bold ph-arrow-up text-xl"></i></button>
 
-    <div id="success-overlay" class="success-overlay">
+    <div id="success-overlay" class="success-overlay" style="position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity 0.3s;">
         <div class="success-card">
-            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 text-emerald-500">
-                <i class="ph-fill ph-check-circle text-5xl"></i>
-            </div>
-            <h3 class="text-xl font-extrabold text-slate-900">¡Mes Limpio!</h3>
-            <p class="text-slate-500 text-sm font-medium mt-1">Todo ha quedado en blanco.</p>
+            <div class="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4 text-emerald-500"><i class="ph-fill ph-check-circle text-5xl"></i></div>
+            <h3 class="text-xl font-extrabold text-slate-900">¡Listo!</h3>
         </div>
     </div>
 
@@ -132,6 +126,24 @@
             <button onclick="openSettings()" class="w-full py-3.5 bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 hover:bg-black transition-all btn-anim cursor-pointer"><i class="ph-bold ph-gear text-lg"></i> Ajustes</button>
         </div>
     </aside>
+
+    <div id="savings-modal" class="modal-container">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative z-10 modal-content border border-slate-100 flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm rounded-t-3xl flex justify-between items-center">
+                <div>
+                    <h3 class="font-extrabold text-2xl text-slate-900 flex items-center gap-2"><i class="ph-fill ph-target text-brand-600"></i> Mis Metas</h3>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Define tus metas aquí. El dinero se asigna desde el Dashboard.</p>
+                </div>
+                <button onclick="closeAll()" class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-900 btn-anim cursor-pointer"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div id="savings-list-container" class="p-8 space-y-6 overflow-y-auto custom-scrollbar">
+                </div>
+            <div class="p-6 border-t border-slate-100 bg-slate-50 rounded-b-3xl flex justify-between items-center">
+                <button onclick="addSavingsGoal()" class="px-6 py-3.5 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-bold hover:border-brand-500 hover:text-brand-600 transition-all btn-anim cursor-pointer">+ Nueva Meta</button>
+                <button onclick="closeAll()" class="px-6 py-3.5 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 shadow-lg shadow-brand-500/20 btn-anim cursor-pointer">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <div id="analytics-overlay" class="analytics-sheet">
         <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 bg-white">
@@ -203,9 +215,12 @@
             <div class="flex items-center gap-5">
                 <button onclick="openMenu()" class="p-3 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl transition-all btn-anim cursor-pointer"><i class="ph-bold ph-list text-3xl"></i></button>
                 <div>
-                    <div class="flex items-center gap-3">
-                        <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop">Enero</h2>
-                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim cursor-pointer" title="Borrar este mes">
+                    <div class="flex items-center gap-3 select-none">
+                        <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-center btn-anim cursor-pointer"><i class="ph-bold ph-caret-left"></i></button>
+                        <h2 id="current-month-display" class="text-3xl font-extrabold text-slate-900 tracking-tight animate-pop w-32 text-center">Enero</h2>
+                        <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full bg-white text-slate-400 border border-slate-200 hover:bg-slate-100 hover:text-slate-900 flex items-center justify-center btn-anim cursor-pointer"><i class="ph-bold ph-caret-right"></i></button>
+                        
+                        <button onclick="openDeleteModal()" class="w-8 h-8 rounded-full bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center transition-all btn-anim cursor-pointer ml-2" title="Borrar este mes">
                             <i class="ph-bold ph-trash text-lg"></i>
                         </button>
                     </div>
@@ -227,7 +242,7 @@
             </div>
         </header>
 
-        <div id="dashboard-content" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        <div id="dashboard-content" class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar scroll-smooth">
             <div class="max-w-7xl mx-auto pb-32 animate-pop">
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -243,13 +258,14 @@
                         <p class="text-slate-500 text-[11px] font-extrabold uppercase tracking-widest">Gastos</p>
                         <h3 class="text-3xl font-extrabold text-orange-600 tracking-tight" id="kpi-expenses">S/ 0,00</h3>
                     </div>
-                    <div class="bg-savings-gradient p-7 rounded-3xl shadow-xl flex flex-col justify-between h-36 relative overflow-hidden group">
+                    <div onclick="openSavingsModal()" class="bg-savings-gradient p-7 rounded-3xl shadow-xl flex flex-col justify-between h-36 relative overflow-hidden group btn-anim">
                         <div class="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-110 transition-transform duration-700"><i class="ph-fill ph-piggy-bank text-9xl"></i></div>
                         <div class="flex justify-between items-center relative z-10">
                             <p class="text-slate-300 text-[11px] font-extrabold uppercase tracking-widest">Ahorro</p>
                             <span id="kpi-rate" class="text-[11px] bg-white/20 px-2 py-1 rounded-md backdrop-blur-md font-bold text-white">0%</span>
                         </div>
                         <h3 class="text-3xl font-extrabold text-white tracking-tight relative z-10" id="kpi-savings">S/ 0,00</h3>
+                        <p class="text-xs text-white/50 relative z-10 mt-1 font-medium"><i class="ph-bold ph-eye"></i> Gestionar Bolsa Común</p>
                     </div>
                 </div>
 
@@ -331,22 +347,18 @@
             { id: 'deu', title: 'Deudas', type: 'expense', items: ['Préstamos'], collapsed: false, col: 1 },
             { id: 'fijos', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler', 'Luz'], collapsed: false, col: 0 },
             { id: 'horm', title: 'Gastos Hormiga', type: 'expense', items: ['Netflix', 'Spotify'], collapsed: false, col: 1 },
-            { id: 'aho', "title": 'Ahorros', type: 'savings', items: ['Fondo Emergencia'], collapsed: false, col: 0 }
+            { id: 'aho', "title": 'Ahorros', type: 'savings', items: ['Fondo Emergencia', 'Vacaciones'], collapsed: false, col: 0 }
         ];
 
-        // NEW STATE MODEL: monthly_structures array
         let state = { currentMonth: 0, mode: 'view', allCollapsed: false, monthly_structures: [], data: {} };
         let ch1 = null, ch2 = null, trendChart = null, catChart = null;
 
         async function cloudPush() { document.getElementById('sync-text').innerText = "Guardando..."; try { await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY }, body: JSON.stringify({ monthly_structures: state.monthly_structures, data: state.data }) }); setTimeout(() => document.getElementById('sync-text').innerText = "Sincronizado", 800); } catch(e) { document.getElementById('sync-text').innerText = "Offline"; } }
         async function cloudPull() { try { const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } }); const json = await res.json(); 
             if(json.record) { 
-                // Migration Logic: If old "structure" exists but "monthly_structures" doesn't
                 if (json.record.monthly_structures) {
                     state.monthly_structures = json.record.monthly_structures;
                 } else if (json.record.structure) {
-                    console.log("Migrating to Independent Structures...");
-                    // Clone single structure to all 12 months
                     state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(json.record.structure)));
                 } else {
                     state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
@@ -362,9 +374,8 @@
             if(s) { 
                 const p = JSON.parse(s); 
                 state.monthly_structures = p.monthly_structures || Array(12).fill(null).map(() => JSON.parse(JSON.stringify(DEFAULT_STR)));
-                // Migration local check
                 if(!state.monthly_structures || state.monthly_structures.length === 0) {
-                     state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(p.structure || DEFAULT_STR)));
+                      state.monthly_structures = Array(12).fill(null).map(() => JSON.parse(JSON.stringify(p.structure || DEFAULT_STR)));
                 }
                 state.data = p.data || {}; 
             } else {
@@ -372,11 +383,24 @@
             }
             cloudPull(); renderMenu(); renderDashboard();
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeAll(); });
-            setInterval(() => { const styles = document.createElement('style'); styles.innerHTML = `* { cursor: default !important; } input[type="text"], input[type="number"], .cursor-pointer { cursor: pointer !important; } .cursor-text { cursor: text !important; }`; }, 1000);
+            document.getElementById('dashboard-content').addEventListener('scroll', function() {
+                const btn = document.getElementById('btn-back-to-top');
+                if (this.scrollTop > 300) btn.classList.add('visible');
+                else btn.classList.remove('visible');
+            });
         }
 
+        function scrollToTop() { document.getElementById('dashboard-content').scrollTo({ top: 0, behavior: 'smooth' }); }
         function saveLocal() { localStorage.setItem('finanzas_v42_independent', JSON.stringify({ monthly_structures: state.monthly_structures, data: state.data })); }
         function commitChanges() { saveLocal(); cloudPush(); calcKPIs(false); }
+
+        function changeMonth(delta) {
+            let newMonth = state.currentMonth + delta;
+            if(newMonth < 0) newMonth = 0;
+            if(newMonth > 11) newMonth = 11;
+            state.currentMonth = newMonth;
+            renderMenu(); renderDashboard(); closeAll();
+        }
 
         function renderDashboard() {
             document.getElementById('current-month-display').innerText = MONTHS[state.currentMonth];
@@ -390,53 +414,92 @@
             const colRight = document.getElementById('col-right');
             colLeft.innerHTML = ''; colRight.innerHTML = '';
             
-            // USE CURRENT MONTH STRUCTURE ONLY
             const currentStruct = state.monthly_structures[state.currentMonth];
 
             currentStruct.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
-                let targetCol = sec.col; if (targetCol === undefined || targetCol === null) targetCol = sIdx % 2;
-                const targetContainer = (targetCol === 1) ? colRight : colLeft;
+                let targetContainer = (sIdx % 2 === 0) ? colLeft : colRight;
 
                 const card = document.createElement('div');
                 card.setAttribute('data-db-id', sec.id); 
                 card.className = `bg-white rounded-3xl card-premium overflow-hidden transition-all animate-slide-in ${state.mode==='edit'?'border-dashed border-2 border-slate-400 shadow-none':''}`;
                 
                 const isCollapsed = sec.collapsed === true;
-
-                let html = `<div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 section-header" onclick="toggleSection(${sIdx})">
-                    <div class="flex items-center gap-3 w-full">
-                        <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto cursor-text" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="font-extrabold text-slate-800 text-sm bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm whitespace-nowrap">${formatMoney(total)}</span>
-                        ${state.mode==='edit' 
-                            ? `<div onclick="event.stopPropagation(); deleteSection(${sIdx})" class="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center section-delete-btn hover:bg-rose-500 hover:text-white transition-colors cursor-pointer" title="Borrar Sección"><i class="ph-bold ph-trash"></i></div>` 
-                            : `<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><i class="ph-bold ph-caret-down rotate-icon ${isCollapsed ? 'collapsed' : ''}"></i></div>`
-                        }
-                    </div>
-                </div>
-                <div class="accordion-content ${isCollapsed ? 'collapsed' : ''}">
-                    <div class="p-6 space-y-5 item-sortable-list" data-idx="${sIdx}">`;
-
-                sec.items.forEach((item, iIdx) => {
-                    const key = `${state.currentMonth}-${sec.id}-${iIdx}`, val = state.data[key] || 0;
-                    let displayVal = val !== 0 ? val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
-                    html += `<div class="flex justify-between items-center text-sm group" data-item-idx="${iIdx}">
-                        <div class="flex items-center gap-3">
-                            ${state.mode==='edit' ? '<i class="ph-bold ph-dots-six-vertical drag-handle text-lg text-slate-300 hover:text-slate-600"></i>' : ''}
-                            <span class="text-slate-700 font-bold text-[15px] group-hover:text-black transition-colors">${state.mode==='view' ? item : `<input class="border-b-2 border-slate-300 font-bold cursor-text" onclick="event.stopPropagation()" onchange="updStr('renI',${sIdx},${iIdx},this.value)" value="${item}">`}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="relative"><input type="text" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white cursor-text" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event, ${sIdx}, ${iIdx})"></div>
-                            ${state.mode==='edit' ? `<button onclick="deleteItem(${sIdx}, ${iIdx})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white btn-delete-item flex items-center justify-center"><i class="ph-bold ph-trash"></i></button>` : ''}
-                        </div>
-                    </div><div class="border-b border-slate-100 last:border-0"></div>`;
-                });
                 
-                if(state.mode==='edit') html += `<button onclick="event.stopPropagation(); updStr('addI',${sIdx})" class="w-full py-3 text-xs font-bold border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-brand-600 hover:border-brand-500 hover:bg-brand-50 transition-all mt-2 btn-anim cursor-pointer">+ Añadir Concepto</button>`;
-                html += `</div></div>`;
-                card.innerHTML = html;
+                // IF SAVINGS TYPE -> SHOW SINGLE "TOTAL" INPUT
+                if (sec.type === 'savings') {
+                    // Calculate Total Sum of all goals in this section
+                    let totalSavings = 0;
+                    sec.items.forEach((_, i) => totalSavings += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
+                    
+                    let html = `<div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 section-header" onclick="toggleSection(${sIdx})">
+                        <div class="flex items-center gap-3 w-full">
+                            <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto cursor-text" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
+                        </div>
+                         <div class="flex items-center gap-3">
+                             <span class="font-extrabold text-emerald-600 text-sm bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm whitespace-nowrap">${formatMoney(totalSavings)}</span>
+                        </div>
+                    </div>
+                    <div class="accordion-content ${isCollapsed ? 'collapsed' : ''}">
+                         <div class="p-6">
+                            <div class="flex justify-between items-center text-sm">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center text-xl"><i class="ph-bold ph-piggy-bank"></i></div>
+                                    <span class="text-slate-700 font-bold text-[15px]">Bolsa de Ahorro</span>
+                                </div>
+                                <div class="relative">
+                                    <input type="number" inputmode="decimal"
+                                           value="${totalSavings === 0 ? '' : totalSavings}"
+                                           placeholder="S/ 0.00"
+                                           class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-brand-600 focus:bg-white cursor-text"
+                                           onchange="distributeSavings(this.value)"
+                                           onkeydown="handleInputKey(event)">
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-3 pl-14 leading-relaxed"><i class="ph-bold ph-info"></i> El monto ingresado aquí se dividirá equitativamente entre tus ${sec.items.length} metas definidas en la tarjeta superior (Chanchito).</p>
+                        </div>
+                    </div>`;
+                    card.innerHTML = html;
+                } 
+                else {
+                    // STANDARD LOGIC FOR INCOME/EXPENSE
+                    let html = `<div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50 section-header" onclick="toggleSection(${sIdx})">
+                        <div class="flex items-center gap-3 w-full">
+                            <span class="font-extrabold text-base text-slate-900 tracking-tight w-full pointer-events-none">${state.mode==='view' ? sec.title : `<input class="input-pro px-3 py-2 text-sm w-40 font-bold pointer-events-auto cursor-text" onclick="event.stopPropagation()" onchange="updStr('ren',${sIdx},0,this.value)" value="${sec.title}">`}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-extrabold text-slate-800 text-sm bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm whitespace-nowrap">${formatMoney(total)}</span>
+                            ${state.mode==='edit' 
+                                ? `<div onclick="event.stopPropagation(); deleteSection(${sIdx})" class="w-8 h-8 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center section-delete-btn hover:bg-rose-500 hover:text-white transition-colors cursor-pointer" title="Borrar Sección"><i class="ph-bold ph-trash"></i></div>` 
+                                : `<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-slate-200"><i class="ph-bold ph-caret-down rotate-icon ${isCollapsed ? 'collapsed' : ''}"></i></div>`
+                            }
+                        </div>
+                    </div>
+                    <div class="accordion-content ${isCollapsed ? 'collapsed' : ''}">
+                        <div class="p-6 space-y-5 item-sortable-list" data-idx="${sIdx}">`;
+
+                    sec.items.forEach((item, iIdx) => {
+                        const key = `${state.currentMonth}-${sec.id}-${iIdx}`;
+                        const val = state.data[key] || 0;
+                        let displayVal = val !== 0 ? val.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "";
+                        
+                        html += `<div class="flex justify-between items-center text-sm group" data-item-idx="${iIdx}">
+                            <div class="flex items-center gap-3">
+                                ${state.mode==='edit' ? '<i class="ph-bold ph-dots-six-vertical drag-handle text-lg text-slate-300 hover:text-slate-600"></i>' : ''}
+                                <span class="text-slate-700 font-bold text-[15px] group-hover:text-black transition-colors">${state.mode==='view' ? item : `<input class="border-b-2 border-slate-300 font-bold cursor-text" onclick="event.stopPropagation()" onchange="updStr('renI',${sIdx},${iIdx},this.value)" value="${item}">`}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="relative"><input type="number" inputmode="decimal" id="inp-${sIdx}-${iIdx}" value="${displayVal}" placeholder="0,00" class="input-pro w-32 py-2.5 pl-3 pr-3 text-right font-extrabold text-slate-900 placeholder:text-slate-300 focus:bg-white cursor-text" onclick="event.stopPropagation()" onfocus="this.value='${val===0?'':val}'" onblur="updVal('${key}',this.value)" onkeydown="handleInputKey(event)"></div>
+                                ${state.mode==='edit' ? `<button onclick="deleteItem(${sIdx}, ${iIdx})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white btn-delete-item flex items-center justify-center"><i class="ph-bold ph-trash"></i></button>` : ''}
+                            </div>
+                        </div><div class="border-b border-slate-100 last:border-0"></div>`;
+                    });
+                    
+                    if(state.mode==='edit') html += `<button onclick="event.stopPropagation(); updStr('addI',${sIdx})" class="w-full py-3 text-xs font-bold border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:text-brand-600 hover:border-brand-500 hover:bg-brand-50 transition-all mt-2 btn-anim cursor-pointer">+ Añadir Concepto</button>`;
+                    html += `</div></div>`;
+                    card.innerHTML = html;
+                }
+                
                 targetContainer.appendChild(card);
             });
             
@@ -453,38 +516,178 @@
             calcKPIs(false);
         }
 
-        function getStruct() { return state.monthly_structures[state.currentMonth]; }
+        // --- NEW CENTRALIZED SAVINGS MODAL WITH AUTO-DISTRIBUTION ---
+        function openSavingsModal() {
+            const container = document.getElementById('savings-list-container');
+            container.innerHTML = '';
+            
+            const currentStruct = state.monthly_structures[state.currentMonth];
+            
+            let savingsItems = [];
+            let totalMonthSavings = 0;
+            let totalGlobalTarget = 0;
 
-        function deleteItem(sIdx, iIdx) {
-            if(!confirm('¿Eliminar este concepto?')) return;
+            currentStruct.forEach((sec, sIdx) => {
+                if(sec.type === 'savings') {
+                    sec.items.forEach((item, iIdx) => {
+                        const key = `${state.currentMonth}-${sec.id}-${iIdx}`;
+                        const val = state.data[key] || 0;
+                        const targetKey = `${key}-target`;
+                        const targetVal = state.data[targetKey] || 0;
+                        totalMonthSavings += val;
+                        totalGlobalTarget += targetVal;
+                        savingsItems.push({ sIdx, iIdx, item, key, val, targetKey, targetVal });
+                    });
+                }
+            });
+
+            // 1. Render CONTROL PANEL (Shared Pot Info Only - No Input here to avoid confusion, or Read Only)
+            // actually, better to keep it read only here and refer to dashboard, OR allow edit.
+            // Requirement says "de ese item (casilla ahorro) se dividirá". So input is on dashboard.
+            
+            if(savingsItems.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400"><i class="ph-bold ph-mask-sad text-4xl mb-2"></i><p>No tienes una sección de 'Ahorros' creada en este mes.</p></div>`;
+                document.getElementById('savings-modal').classList.add('open');
+                document.getElementById('main-backdrop').classList.add('open');
+                return;
+            }
+
+            // 2. Render List of Goals
+            const listGrid = document.createElement('div');
+            listGrid.className = "space-y-4";
+            
+            savingsItems.forEach(obj => {
+                let historicalAcc = 0;
+                for(let m = 0; m < state.currentMonth; m++) {
+                    const prevStruct = state.monthly_structures[m];
+                    if(prevStruct && prevStruct[obj.sIdx] && prevStruct[obj.sIdx].items[obj.iIdx] === obj.item) {
+                         historicalAcc += (state.data[`${m}-${currentStruct[obj.sIdx].id}-${obj.iIdx}`] || 0);
+                    }
+                }
+                const totalProgressVal = historicalAcc + obj.val;
+                const progress = obj.targetVal > 0 ? Math.min((totalProgressVal / obj.targetVal) * 100, 100) : 0;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = "bg-white border border-slate-100 p-4 rounded-2xl shadow-sm flex flex-col gap-4 animate-zoom-in";
+                itemDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-500 flex items-center justify-center border border-slate-200 font-bold text-sm">${(progress).toFixed(0)}%</div>
+                            <div class="flex-1">
+                                <input type="text" value="${obj.item}" 
+                                       class="font-bold text-slate-900 text-base bg-transparent border-b border-transparent focus:border-brand-500 outline-none w-full"
+                                       onchange="updStr('renI', ${obj.sIdx}, ${obj.iIdx}, this.value)">
+                                <p class="text-xs text-slate-400 mt-1">Acumulado Total: <span class="font-bold text-slate-600">${formatMoney(totalProgressVal)}</span></p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                             <div class="flex flex-col items-end">
+                                <label class="text-[10px] font-bold text-slate-300 uppercase mb-1">Meta</label>
+                                <input type="number" class="w-24 bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-right font-bold text-slate-700 text-sm focus:border-brand-500 outline-none" 
+                                    value="${obj.targetVal === 0 ? '' : obj.targetVal}" 
+                                    placeholder="Definir" 
+                                    onchange="updVal('${obj.targetKey}', this.value); openSavingsModal();">
+                            </div>
+                             <button onclick="deleteItemInModal(${obj.sIdx}, ${obj.iIdx})" class="text-xs text-rose-400 hover:text-rose-600 font-bold"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-emerald-400 to-brand-500 transition-all duration-500" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                        <span class="text-xs font-bold text-slate-500">Asignado este mes:</span>
+                        <span class="font-extrabold text-brand-600 text-lg item-month-val" data-key="${obj.key}">+ ${formatMoney(obj.val)}</span>
+                    </div>
+                `;
+                listGrid.appendChild(itemDiv);
+            });
+            container.appendChild(listGrid);
+            document.getElementById('savings-modal').classList.add('open');
+            document.getElementById('main-backdrop').classList.add('open');
+        }
+
+        function distributeSavings(totalValueStr) {
+            const totalValue = parseFloat(totalValueStr) || 0;
+            const currentStruct = state.monthly_structures[state.currentMonth];
+            
+            let savingsKeys = [];
+            currentStruct.forEach((sec, sIdx) => {
+                if(sec.type === 'savings') {
+                    sec.items.forEach((_, iIdx) => {
+                        savingsKeys.push(`${state.currentMonth}-${sec.id}-${iIdx}`);
+                    });
+                }
+            });
+
+            if(savingsKeys.length === 0) return;
+
+            const splitAmount = totalValue / savingsKeys.length;
+
+            savingsKeys.forEach(key => {
+                state.data[key] = splitAmount;
+            });
+
+            commitChanges(); 
+            // We don't need to update UI manually because renderDashboard calls us, 
+            // BUT if we are in the modal, we might want to refresh.
+            // renderDashboard is already called by the onchange logic flow usually.
+            // Here we just save. renderDashboard will be triggered by the user action mostly or we force it.
+            renderDashboard(); 
+        }
+
+        function addSavingsGoal() {
+             const currentStruct = state.monthly_structures[state.currentMonth];
+             const savingsSec = currentStruct.find(s => s.type === 'savings');
+             if(savingsSec) {
+                 savingsSec.items.push("Nueva Meta");
+                 // Re-distribute existing total among new count of items? 
+                 // Or just add 0? Let's just add it. The user should re-enter total to redistribute or we redistribute current total.
+                 // Let's redistribute current total.
+                 let currentTotal = 0;
+                 savingsSec.items.forEach((_, i) => { if(i < savingsSec.items.length-1) currentTotal += (state.data[`${state.currentMonth}-${savingsSec.id}-${i}`] || 0); });
+                 
+                 // Save struct changes
+                 commitChanges();
+                 
+                 // Trigger redistribution of the SAME total amount
+                 if(currentTotal > 0) distributeSavings(currentTotal);
+                 
+                 openSavingsModal(); 
+             }
+        }
+
+        function deleteItemInModal(sIdx, iIdx) {
+            if(!confirm('¿Eliminar esta meta?')) return;
+            // Get current total before deleting to preserve the "Bolsa"
+            const currentStruct = state.monthly_structures[state.currentMonth];
+            const sec = currentStruct[sIdx];
+            let currentTotal = 0;
+            sec.items.forEach((_, i) => currentTotal += (state.data[`${state.currentMonth}-${sec.id}-${i}`] || 0));
+
+            // Delete item
             getStruct()[sIdx].items.splice(iIdx, 1);
+            
+            // Clean data
+            // Note: data cleaning is tricky with shifting indices, simpler to just commit struct
+            // and let the next distributeSavings overwrite the values.
+            // BUT we must clean the old keys or they remain as ghosts.
+            // Actually, distributeSavings overwrites based on index.
+            
             commitChanges();
-            renderDashboard();
+            
+            // Redistribute the SAME total among remaining items
+            if(currentTotal > 0) distributeSavings(currentTotal);
+            
+            openSavingsModal();
         }
 
-        function deleteSection(sIdx) {
-            if(!confirm('¿Eliminar TODA la sección y sus datos?')) return;
-            const secId = getStruct()[sIdx].id;
-            Object.keys(state.data).forEach(k => { if(k.startsWith(`${state.currentMonth}-${secId}-`)) delete state.data[k]; });
-            getStruct().splice(sIdx, 1);
-            commitChanges();
-            renderDashboard();
-        }
-
+        function getStruct() { return state.monthly_structures[state.currentMonth]; }
+        function deleteItem(sIdx, iIdx) { if(!confirm('¿Eliminar este concepto?')) return; getStruct()[sIdx].items.splice(iIdx, 1); commitChanges(); renderDashboard(); }
+        function deleteSection(sIdx) { if(!confirm('¿Eliminar TODA la sección y sus datos?')) return; const secId = getStruct()[sIdx].id; Object.keys(state.data).forEach(k => { if(k.startsWith(`${state.currentMonth}-${secId}-`)) delete state.data[k]; }); getStruct().splice(sIdx, 1); commitChanges(); renderDashboard(); }
         function toggleSection(sIdx) { const s=getStruct()[sIdx]; s.collapsed = !s.collapsed; renderDashboard(); }
         function toggleGlobalCollapse() { state.allCollapsed = !state.allCollapsed; getStruct().forEach(sec => sec.collapsed = state.allCollapsed); renderDashboard(); }
-        
-        // Updates target ONLY current month structure
-        function updStr(act,s,i,v) { 
-            const st = getStruct();
-            if(act==='ren') st[s].title=v; 
-            if(act==='renI') st[s].items[i]=v; 
-            if(act==='addI') st[s].items.push("Nuevo"); 
-            if(act==='addSec') st.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); 
-            commitChanges(); renderDashboard(); 
-        }
-
-        function handleInputKey(e, sIdx, iIdx) { if(e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.target.blur(); const nextInput = document.getElementById(`inp-${sIdx}-${iIdx+1}`); if(nextInput) nextInput.focus(); } }
+        function updStr(act,s,i,v) { const st = getStruct(); if(act==='ren') st[s].title=v; if(act==='renI') st[s].items[i]=v; if(act==='addI') st[s].items.push("Nuevo"); if(act==='addSec') st.push({id:'s'+Date.now(), title:'Nueva Sección', type:'expense', items:['Concepto'], col: 0}); commitChanges(); renderDashboard(); }
+        function handleInputKey(e) { if(e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); e.target.blur(); } }
         
         function initSortable() {
             const cols = [document.getElementById('col-left'), document.getElementById('col-right')];
@@ -492,31 +695,20 @@
                 new Sortable(col, { group: 'shared', handle: '.section-header', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) {
                          const newStructure = [];
                          const st = getStruct();
-                         // We need to reconstruct items based on DOM order because we are in independent mode
-                         // Map DOM IDs back to structure objects
-                         Array.from(document.getElementById('col-left').children).forEach(el => { 
-                             if(el.hasAttribute('data-db-id')) { 
-                                 const item = st.find(s => s.id === el.getAttribute('data-db-id')); 
-                                 if(item) { item.col = 0; newStructure.push(item); } 
-                             } 
+                         const allCards = document.querySelectorAll('.card-premium');
+                         allCards.forEach(card => {
+                             const dbId = card.getAttribute('data-db-id');
+                             if(dbId) { const item = st.find(s => s.id === dbId); if(item) newStructure.push(item); }
                          });
-                         Array.from(document.getElementById('col-right').children).forEach(el => { 
-                             if(el.hasAttribute('data-db-id')) { 
-                                 const item = st.find(s => s.id === el.getAttribute('data-db-id')); 
-                                 if(item) { item.col = 1; newStructure.push(item); } 
-                             } 
-                         });
-                         // Update ONLY current month structure
                          state.monthly_structures[state.currentMonth] = newStructure;
                          commitChanges(); renderDashboard();
                 }});
             });
-            document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const oldIdx = Math.floor(evt.oldIndex / 2); const newIdx = Math.floor(evt.newIndex / 2); const items = getStruct()[secIdx].items; const [movedItem] = items.splice(oldIdx, 1); items.splice(newIdx, 0, movedItem); commitChanges(); renderDashboard(); }}); });
+            document.querySelectorAll('.item-sortable-list').forEach(el => { new Sortable(el, { handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', onEnd: function (evt) { const secIdx = parseInt(evt.to.getAttribute('data-idx')); const items = getStruct()[secIdx].items; const oI = evt.oldIndex; const nI = evt.newIndex; const [moved] = items.splice(oI, 1); items.splice(nI, 0, moved); commitChanges(); renderDashboard(); }}); });
         }
 
         function setMode(m) { state.mode = m; document.getElementById('btn-view').className = m==='view' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; document.getElementById('btn-edit').className = m==='edit' ? "px-5 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow transition-all btn-anim cursor-pointer" : "px-5 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 bg-white border border-slate-200 transition-all btn-anim cursor-pointer"; renderDashboard(); }
         
-        // --- CFO ANALYTICS (Same Logic, updated references) ---
         function refreshAnalysis() { const ph = document.getElementById('advisor-placeholder'); ph.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Procesando datos...`; setTimeout(() => { calcKPIs(true); }, 800); }
         function analyzeFinance(i, e, s, bd_details) {
             const tipsContainer = document.getElementById('advisor-tips'); const placeholder = document.getElementById('advisor-placeholder'); const scoreEl = document.getElementById('health-score'); const barEl = document.getElementById('health-bar'); const statusEl = document.getElementById('advisor-status');
@@ -536,23 +728,44 @@
         }
 
         function calcKPIs(runAnalysis = false) {
-            let i=0, e=0, s=0, bd={};
-            // Use getStruct() so we analyze only current month's structure
-            getStruct().forEach(sec => { let sum = 0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i += sum; else if(sec.type==='savings') s += sum; else { e += sum; if(sum > 0) bd[sec.title] = sum; } });
-            const bal = i-e-s;
-            document.getElementById('kpi-balance').innerText = formatMoney(bal); document.getElementById('kpi-income').innerText = formatMoney(i); document.getElementById('kpi-expenses').innerText = formatMoney(e); document.getElementById('kpi-savings').innerText = formatMoney(s); document.getElementById('center-total').innerText = formatMoney(e); document.getElementById('kpi-rate').innerText = i>0 ? ((s/i)*100).toFixed(0)+'%' : '0%';
-            if(runAnalysis) analyzeFinance(i, e, s, bd);
+            let i=0, e=0, s_curr=0, bd={};
+            getStruct().forEach(sec => { 
+                let sum = 0; 
+                sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); 
+                if(sec.type==='income') i += sum; 
+                else if(sec.type==='savings') s_curr += sum; 
+                else { e += sum; if(sum > 0) bd[sec.title] = sum; } 
+            });
+            let s_acc = 0;
+            for(let m=0; m<=state.currentMonth; m++) {
+                const mStruct = state.monthly_structures[m];
+                if(mStruct) {
+                    mStruct.forEach(sec => {
+                        if(sec.type === 'savings') { sec.items.forEach((_, idx) => { s_acc += (state.data[`${m}-${sec.id}-${idx}`] || 0); }); }
+                    });
+                }
+            }
+            const bal = i - e - s_curr;
+            document.getElementById('kpi-balance').innerText = formatMoney(bal);
+            document.getElementById('kpi-income').innerText = formatMoney(i);
+            document.getElementById('kpi-expenses').innerText = formatMoney(e);
+            document.getElementById('kpi-savings').innerText = formatMoney(s_acc);
+            document.getElementById('center-total').innerText = formatMoney(e);
+            document.getElementById('kpi-rate').innerText = i>0 ? ((s_curr/i)*100).toFixed(0)+'%' : '0%';
+            if(runAnalysis) analyzeFinance(i, e, s_curr, bd);
             const ctx1 = document.getElementById('expenseChart'); if (ch1) ch1.destroy(); ch1 = new Chart(ctx1, { type: 'doughnut', data: { labels: Object.keys(bd), datasets: [{ data: Object.values(bd), backgroundColor: ['#f97316', '#14b8a6', '#6366f1', '#ec4899', '#f59e0b'], borderWidth: 0, borderRadius: 6, spacing: 6 }] }, options: { responsive:true, maintainAspectRatio:false, cutout:'90%', layout:{padding:20}, plugins:{legend:{display:false}} } });
-            const ctx2 = document.getElementById('flowChart'); if (ch2) ch2.destroy(); ch2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Ingresos','Gastos','Ahorro'], datasets: [{ data:[i,e,s], backgroundColor:['#10b981','#f97316','#3b82f6'], borderRadius:12, barPercentage:0.45 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:false}, x:{grid:{display:false}}} } });
+            const ctx2 = document.getElementById('flowChart'); if (ch2) ch2.destroy(); ch2 = new Chart(ctx2, { type: 'bar', data: { labels: ['Ingresos','Gastos','Ahorro'], datasets: [{ data:[i,e,s_curr], backgroundColor:['#10b981','#f97316','#3b82f6'], borderRadius:12, barPercentage:0.45 }] }, options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:false}, x:{grid:{display:false}}} } });
             if(document.getElementById('analytics-overlay').classList.contains('open')) renderAdvancedCharts();
         }
+
         function renderAdvancedCharts() { 
             const incomeTrend=[], expenseTrend=[]; 
             MONTHS.forEach((_, mIdx) => { 
                 let i=0, e=0; 
-                // Careful: Historical charts now need to loop through specific monthly structures
                 const mStruct = state.monthly_structures[mIdx];
-                mStruct.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); 
+                if(mStruct) {
+                    mStruct.forEach(sec => { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${mIdx}-${sec.id}-${idx}`] || 0)); if(sec.type==='income') i+=sum; else if(sec.type!=='savings') e+=sum; }); 
+                }
                 incomeTrend.push(i); expenseTrend.push(e); 
             }); 
             const ctxT = document.getElementById('trendChart'); if(trendChart) trendChart.destroy(); trendChart = new Chart(ctxT, { type: 'line', data: { labels: MONTHS, datasets: [ { label: 'Ingresos', data: incomeTrend, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.4 }, { label: 'Gastos', data: expenseTrend, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.1)', fill: true, tension: 0.4 } ] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); const categories = {}; getStruct().forEach(sec => { if(sec.type === 'expense') { let sum=0; sec.items.forEach((_, idx) => sum += (state.data[`${state.currentMonth}-${sec.id}-${idx}`] || 0)); if(sum > 0) categories[sec.title] = sum; } }); const ctxC = document.getElementById('categoryChart'); if(catChart) catChart.destroy(); catChart = new Chart(ctxC, { type: 'bar', data: { labels: Object.keys(categories), datasets: [{ label: 'Gasto por Categoría', data: Object.values(categories), backgroundColor: '#3b82f6', borderRadius: 8 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false } }); 
@@ -568,10 +781,10 @@
                 Object.keys(state.data).forEach(k => { if(k.startsWith(prefix)) delete state.data[k]; }); 
                 commitChanges(); 
                 const successOverlay = document.getElementById('success-overlay');
-                successOverlay.classList.add('show');
+                successOverlay.style.opacity = '1';
                 renderDashboard();
                 container.classList.remove('vanish-effect');
-                setTimeout(() => { successOverlay.classList.remove('show'); }, 1500);
+                setTimeout(() => { successOverlay.style.opacity = '0'; }, 1500);
             }, 500); 
         }
         function updVal(k, v) { let floatVal = parseFloat(v.replace(',', '.')) || 0; state.data[k] = floatVal; commitChanges(); renderDashboard(); }
@@ -584,23 +797,17 @@
         function closeAll() { document.getElementById('drawer').classList.remove('open'); document.getElementById('main-backdrop').classList.remove('open'); document.querySelectorAll('.modal-container').forEach(m => m.classList.remove('open')); closeAnalytics(); }
         function renderMenu() { const nav = document.getElementById('month-nav-container'); nav.innerHTML = ''; MONTHS.forEach((m,i) => { const b = document.createElement('button'); b.className = `w-full text-left px-5 py-4 rounded-2xl transition-all mb-1 btn-anim cursor-pointer ${i===state.currentMonth?'bg-slate-900 text-white font-bold shadow-lg shadow-slate-300':'text-slate-500 hover:bg-slate-100 hover:text-slate-900 font-bold'}`; b.innerText = m; b.onclick = () => { state.currentMonth=i; renderMenu(); renderDashboard(); closeAll(); }; nav.appendChild(b); }); }
         
-        // --- SMART CLONE ---
         function openCloneModal() { const sel=document.getElementById('target-month-select'); sel.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.currentMonth){const o=document.createElement('option');o.value=i;o.innerText=m;if(i===state.currentMonth+1)o.selected=true;sel.appendChild(o);}}); document.getElementById('clone-modal').classList.add('open'); document.getElementById('main-backdrop').classList.add('open'); }
         function executeClone() { 
             const dest=parseInt(document.getElementById('target-month-select').value); 
             const sp=`${state.currentMonth}-`, dp=`${dest}-`; 
-            
-            // 1. Clone Structure
             state.monthly_structures[dest] = JSON.parse(JSON.stringify(state.monthly_structures[state.currentMonth]));
-            
-            // 2. Clone Data
             Object.keys(state.data).forEach(k=>{if(k.startsWith(dp))delete state.data[k];}); 
             Object.keys(state.data).forEach(k=>{if(k.startsWith(sp))state.data[dp+k.substring(sp.length)]=state.data[k];}); 
-            
             state.currentMonth=dest; commitChanges(); renderMenu(); renderDashboard(); closeAll(); showToast(`Copiado a ${MONTHS[dest]}`); 
         }
         function exportExcel(scope) { let csv = "\uFEFFMes,Sección,Item,Monto (S/)\n"; const processMonth = (mIdx) => { state.monthly_structures[mIdx].forEach(sec => { sec.items.forEach((item, iIdx) => { const val = state.data[`${mIdx}-${sec.id}-${iIdx}`] || 0; if (val !== 0) csv += `${MONTHS[mIdx]},"${sec.title}","${item}","${val.toFixed(2).replace('.', ',')}"\n`; }); }); }; if (scope === 'current') processMonth(state.currentMonth); else MONTHS.forEach((_, idx) => processMonth(idx)); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = `Reporte_${scope === 'current' ? MONTHS[state.currentMonth] : 'Anual'}.csv`; document.body.appendChild(link); link.click(); document.body.removeChild(link); closeAll(); showToast("Descargado"); }
-        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.remove('hidden'); t.classList.add('show'); setTimeout(()=>{t.classList.remove('show'); t.classList.add('hidden');},3000); }
+        function showToast(m) { const t=document.getElementById('success-overlay'); const c=t.querySelector('h3'); const old=c.innerText; c.innerText=m; t.style.opacity='1'; setTimeout(()=>{t.style.opacity='0'; setTimeout(()=>{c.innerText=old},300);},1500); }
         function resetAll() { if(confirm('¿Reiniciar todo de fábrica?')) { localStorage.removeItem('finanzas_v42_independent'); localStorage.removeItem('v40_forced_distribution_done'); location.reload(); }}
 
         init();

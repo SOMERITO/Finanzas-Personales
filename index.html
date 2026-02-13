@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V78</title>
+    <title>CFO Personal V79</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -22,12 +22,12 @@
                         rose: { 500: '#f43f5e', 600: '#e11d48' }
                     },
                     animation: {
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
                     }
                 }
             }
@@ -37,9 +37,9 @@
     <style>
         body { background: #f8fafc; color: #1e293b; overflow: hidden; }
         
-        /* Layout */
+        /* Sidebar Logic */
         .sidebar { 
-            width: 280px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); 
+            width: 280px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); 
             border-right: 1px solid #e2e8f0; position: fixed; height: 100%; z-index: 50;
             transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -47,15 +47,14 @@
         
         @media (min-width: 768px) {
             .layout-wrapper { display: flex; }
-            .sidebar { position: relative; transform: translateX(0); width: 280px; flex-shrink: 0; }
+            .sidebar { position: relative; transform: translateX(0); flex-shrink: 0; }
             .sidebar.collapsed { margin-left: -280px; }
         }
 
-        /* Inputs Clean (No Spinners) */
+        /* Inputs Clean */
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
-
         .input-clean { background: transparent; border-bottom: 2px solid #e2e8f0; border-radius: 0; padding: 4px 0; font-weight: 700; transition: all 0.2s; color: #334155; width: 100%; }
         .input-clean:focus { border-color: #4f46e5; color: #0f172a; outline: none; }
         
@@ -70,7 +69,7 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
         /* Modals */
-        .modal-overlay { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s; position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; }
+        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s; position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
         .modal-content { transform: scale(0.95); transition: all 0.3s; background: white; width: 95%; max-width: 600px; border-radius: 24px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; overflow-y: auto; }
         .modal-overlay.open .modal-content { transform: scale(1); }
@@ -84,8 +83,8 @@
         <aside id="sidebar" class="sidebar flex flex-col">
             <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
                 <div>
-                    <h1 class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Control Total v78</p>
+                    <h1 class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Suite</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">V79 Executive</p>
                 </div>
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-400 p-2"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
@@ -118,7 +117,7 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleAnnualView()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all text-xs">
+                    <button onclick="toggleAnnualView()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all text-xs" id="btn-annual">
                         <i class="ph-bold ph-calendar"></i> Vista Anual
                     </button>
                     <button onclick="openAI()" class="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition-all text-xs">
@@ -131,9 +130,26 @@
             <!-- SCROLLABLE AREA -->
             <div class="flex-1 overflow-y-auto p-6 md:p-8 pb-32 custom-scroll" id="main-scroll-area">
                 
-                <!-- ANNUAL VIEW (HIDDEN BY DEFAULT) -->
-                <div id="annual-view" class="hidden max-w-6xl mx-auto animate-fade-in">
-                    <h3 class="text-2xl font-extrabold text-slate-900 mb-6">Resumen Anual 2026</h3>
+                <!-- ANNUAL VIEW -->
+                <div id="annual-view" class="hidden max-w-6xl mx-auto animate-fade-in pb-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-extrabold text-slate-900">Reporte Anual Detallado</h3>
+                        <button onclick="toggleAnnualView()" class="text-sm font-bold text-slate-500 hover:text-slate-900">Volver al Mes</button>
+                    </div>
+
+                    <!-- Annual Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="card-personal p-6">
+                            <h4 class="font-bold text-slate-800 mb-4 text-sm">Tendencia de Ingresos vs Gastos</h4>
+                            <div class="h-64"><canvas id="chart-annual-trend"></canvas></div>
+                        </div>
+                        <div class="card-personal p-6">
+                            <h4 class="font-bold text-slate-800 mb-4 text-sm">Composición del Gasto Anual</h4>
+                            <div class="h-64"><canvas id="chart-annual-bar"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- Annual Table -->
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left">
@@ -179,10 +195,11 @@
 
                     <!-- Main Grid -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up" style="animation-delay: 0.1s">
+                        <!-- Left Column: Lists -->
                         <div class="lg:col-span-2 space-y-6" id="ledger-container"></div> 
                         
+                        <!-- Right Column: Charts -->
                         <div class="space-y-6">
-                            <!-- Chart Card -->
                             <div class="card-personal p-6">
                                 <h4 class="font-bold text-slate-900 mb-6 flex items-center gap-2 text-sm uppercase tracking-wide"><i class="ph-fill ph-chart-pie-slice text-indigo-500"></i> Distribución</h4>
                                 <div class="h-64 w-full relative">
@@ -195,7 +212,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -206,24 +222,21 @@
         <div class="modal-content relative overflow-hidden border border-rose-100">
             <div class="absolute top-0 left-0 w-full h-2 bg-rose-500"></div>
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
-            
             <div class="mb-6">
                 <div class="inline-flex items-center gap-2 bg-rose-50 px-3 py-1 rounded-full text-rose-600 font-bold text-xs mb-2 border border-rose-100"><i class="ph-fill ph-handshake"></i> Gestión de Prestamista</div>
-                <h3 class="text-2xl font-extrabold text-slate-900" id="lender-name">Sr. Miguel</h3>
+                <h3 class="text-2xl font-extrabold text-slate-900" id="lender-name">Prestamista</h3>
             </div>
-
             <div class="space-y-5">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 grid grid-cols-2 gap-4">
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 uppercase">Capital Total</label>
-                        <input type="number" id="lm-capital" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-bold text-slate-800 text-sm mt-1" placeholder="Ej: 5000">
+                        <input type="number" id="lm-capital" class="input-clean mt-1" placeholder="Ej: 5000">
                     </div>
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 uppercase">Interés (%)</label>
-                        <input type="number" id="lm-rate" class="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-bold text-slate-800 text-sm mt-1" placeholder="Ej: 20">
+                        <input type="number" id="lm-rate" class="input-clean mt-1" placeholder="Ej: 20">
                     </div>
                 </div>
-                
                 <div class="bg-slate-900 p-5 rounded-2xl text-white shadow-lg">
                     <div class="flex justify-between items-center mb-1">
                         <label class="text-xs font-bold text-slate-300">Tu Abono este Mes</label>
@@ -231,15 +244,12 @@
                     </div>
                     <div class="relative mb-2">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold">S/</span>
-                        <input type="number" id="lm-payment" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl py-3 pl-8 pr-3 font-bold text-white text-xl outline-none focus:border-rose-500 transition-colors placeholder-slate-600" placeholder="0.00">
+                        <input type="number" id="lm-payment" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl py-3 pl-8 pr-3 font-bold text-white text-xl outline-none focus:border-rose-500 placeholder-slate-600" placeholder="0.00">
                     </div>
-                    <div id="lm-feedback" class="text-[11px] font-medium text-center pt-2 border-t border-slate-800 text-slate-400">
-                        Calculando amortización...
-                    </div>
+                    <div id="lm-feedback" class="text-[11px] font-medium text-center pt-2 border-t border-slate-800 text-slate-400">Calculando...</div>
                 </div>
             </div>
-
-            <button onclick="saveLenderData()" class="w-full mt-6 py-4 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition-all shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2">Guardar Registro y Cerrar</button>
+            <button onclick="saveLenderData()" class="w-full mt-6 py-4 bg-rose-600 text-white font-bold rounded-xl hover:bg-rose-700 transition-all shadow-lg shadow-rose-500/30">Guardar Registro y Cerrar</button>
         </div>
     </div>
 
@@ -248,9 +258,8 @@
         <div class="modal-content relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
             <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2"><i class="ph-fill ph-piggy-bank text-indigo-500"></i> Mis Metas de Ahorro</h3>
-            <div id="savings-list" class="space-y-4">
-                <!-- JS Filled -->
-            </div>
+            <div id="savings-list" class="space-y-4 mb-6"></div>
+            <button onclick="addSavingsGoal()" class="w-full py-3 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 border border-indigo-200 transition-all">+ Nueva Meta</button>
         </div>
     </div>
 
@@ -259,12 +268,10 @@
         <div class="modal-content relative max-w-2xl">
             <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
             <div class="mb-6 border-b border-slate-100 pb-4">
-                <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-500"></i> Análisis Financiero Profundo</h3>
-                <p class="text-xs text-slate-500 mt-1">Reporte detallado de tu situación actual.</p>
+                <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-500"></i> Análisis CFO</h3>
+                <p class="text-xs text-slate-500 mt-1">Informe financiero profundo.</p>
             </div>
-            <div id="advisor-text" class="space-y-4 text-sm text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto custom-scroll pr-2">
-                <!-- JS Filled -->
-            </div>
+            <div id="advisor-text" class="space-y-4 text-sm text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto custom-scroll pr-2"></div>
         </div>
     </div>
 
@@ -274,15 +281,10 @@
             <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
             <h3 class="text-xl font-bold text-slate-900 mb-6">Configuración</h3>
             <div class="space-y-3">
-                <button onclick="exportCSV()" class="w-full py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm hover:bg-white hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"><i class="ph-bold ph-download-simple"></i> Exportar Reporte CSV</button>
-                <button onclick="resetApp()" class="w-full py-4 bg-white border border-rose-200 rounded-xl text-rose-600 font-bold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2"><i class="ph-bold ph-trash"></i> Reiniciar de Fábrica</button>
+                <button onclick="exportCSV()" class="w-full py-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-bold text-sm hover:bg-white hover:border-indigo-500 hover:text-indigo-600 transition-all">Exportar CSV</button>
+                <button onclick="resetApp()" class="w-full py-4 bg-white border border-rose-200 rounded-xl text-rose-600 font-bold text-sm hover:bg-rose-50 transition-all">Reiniciar de Fábrica</button>
             </div>
         </div>
-    </div>
-
-    <!-- TOAST -->
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transform -translate-y-24 transition-all duration-300 pointer-events-none font-bold text-sm">
-        <i class="ph-fill ph-check-circle text-emerald-400"></i> <span id="toast-msg">Guardado</span>
     </div>
 
     <script>
@@ -299,11 +301,11 @@
 
         let state = { month: new Date().getMonth(), mode: 'view', view: 'month', struct: [], data: {}, debtMeta: {} };
         let activeItem = null;
-        let chart = null;
+        let chart = null, annualTrendChart = null, annualBarChart = null;
 
-        // --- INIT ---
+        // --- CORE ---
         async function init() {
-            const local = localStorage.getItem('cfo_v78_final');
+            const local = localStorage.getItem('cfo_v79_exec');
             if(local) {
                 const p = JSON.parse(local);
                 state.struct = p.struct || genYear();
@@ -315,14 +317,17 @@
             renderAll();
             await sync(true);
 
-            // Global ESC Listener
+            // Universal ESC
             document.addEventListener('keydown', (e) => { 
-                if(e.key === 'Escape') closeModals(); 
+                if(e.key === 'Escape') {
+                    closeModals();
+                    toggleAnnualView(false); // Force close annual view if open
+                }
             });
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v78_final', JSON.stringify({ struct: state.struct, data: state.data, debtMeta: state.debtMeta })); }
+        function save() { localStorage.setItem('cfo_v79_exec', JSON.stringify({ struct: state.struct, data: state.data, debtMeta: state.debtMeta })); }
         async function sync(pull) {
             try {
                 if(pull) {
@@ -336,7 +341,6 @@
                     }
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: {'Content-Type':'application/json', 'X-Master-Key': CONFIG.apiKey}, body: JSON.stringify({ monthly_structures: state.struct, data: state.data, debtMeta: state.debtMeta }) });
-                    toast('Sincronizado');
                 }
             } catch(e) {}
         }
@@ -347,9 +351,9 @@
         function renderSidebar() {
             const nav = document.getElementById('month-nav'); nav.innerHTML = '';
             MONTHS.forEach((m, i) => {
-                const isActive = i === state.month;
-                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 transition-all flex justify-between items-center ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}">
-                    ${m} ${isActive ? '<i class="ph-bold ph-caret-right"></i>' : ''}
+                const active = i === state.month;
+                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 transition-all flex justify-between items-center ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}">
+                    ${m} ${active ? '<i class="ph-bold ph-caret-right"></i>' : ''}
                 </button>`;
             });
         }
@@ -357,25 +361,26 @@
         function renderDash() {
             document.getElementById('month-title').innerText = MONTHS[state.month];
             
-            // View Switching
             const mUi = document.getElementById('monthly-view');
             const aUi = document.getElementById('annual-view');
-            
+            const btnAnnual = document.getElementById('btn-annual');
+
             if(state.view === 'year') {
                 mUi.classList.add('hidden'); aUi.classList.remove('hidden');
-                renderAnnualTable();
+                btnAnnual.classList.add('bg-slate-800', 'text-white'); btnAnnual.classList.remove('bg-slate-100', 'text-slate-700');
+                renderAnnualView();
                 return;
+            } else {
+                mUi.classList.remove('hidden'); aUi.classList.add('hidden');
+                btnAnnual.classList.remove('bg-slate-800', 'text-white'); btnAnnual.classList.add('bg-slate-100', 'text-slate-700');
             }
-            
-            mUi.classList.remove('hidden'); aUi.classList.add('hidden');
 
-            // Standard Monthly Render
-            const container = document.getElementById('ledger-container'); container.innerHTML = '';
-            const struct = state.struct[state.month];
+            // Monthly Logic
+            const con = document.getElementById('ledger-container'); con.innerHTML = '';
+            const st = state.struct[state.month];
 
-            struct.forEach((sec, sIdx) => {
+            st.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
-                
                 let color = sec.type==='income'?'text-emerald-600':(sec.type==='debt'?'text-rose-600':(sec.type==='savings'?'text-indigo-600':'text-slate-700'));
                 let bgIcon = sec.type==='income'?'bg-emerald-50':(sec.type==='debt'?'bg-rose-50':(sec.type==='savings'?'bg-indigo-50':'bg-slate-50'));
                 let icon = sec.type==='income'?'ph-trend-up':(sec.type==='debt'?'ph-hand-coins':(sec.type==='savings'?'ph-piggy-bank':'ph-wallet'));
@@ -389,7 +394,7 @@
                         <div class="w-10 h-10 rounded-xl ${bgIcon} ${color} flex items-center justify-center text-xl shadow-sm"><i class="ph-fill ${icon}"></i></div>
                         <div>
                             ${state.mode==='edit' ? `<input class="input-clean text-sm w-40" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">` : `<h3 class="font-bold text-slate-800 text-sm md:text-base">${sec.title}</h3>`}
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${sec.items.length} Items</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${sec.items.length} Conceptos</p>
                         </div>
                     </div>
                     <div class="text-right">
@@ -402,8 +407,8 @@
                     <div class="p-4 space-y-3 sortable-list" data-idx="${sIdx}">`;
 
                 sec.items.forEach((item, iIdx) => {
-                    const key = `${state.month}-${sec.id}-${iIdx}`;
-                    const val = state.data[key] || 0;
+                    const k = `${state.month}-${sec.id}-${iIdx}`;
+                    const v = state.data[k] || 0;
                     
                     const debtBtn = sec.type === 'debt' ? 
                         `<button onclick="openLenderModal(${sIdx}, ${iIdx})" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center border border-rose-100 shadow-sm"><i class="ph-fill ph-handshake"></i></button>` : '';
@@ -421,7 +426,7 @@
                             <div class="relative">
                                 <span class="absolute left-0 top-1/2 -translate-y-1/2 text-slate-300 font-bold text-xs pointer-events-none">S/</span>
                                 <input type="number" inputmode="decimal" class="bg-transparent border-b-2 border-slate-100 text-right font-bold text-slate-800 w-24 py-1 pl-4 focus:border-indigo-500 outline-none transition-colors text-sm tabular-nums" 
-                                value="${val===0?'':val}" placeholder="0.00" onblur="saveVal('${key}',this.value)">
+                                value="${v===0?'':v.toLocaleString('es-PE',{minimumFractionDigits:2})}" placeholder="0.00" onblur="saveVal('${k}',this.value)">
                             </div>
                             ${state.mode==='edit' ? `<button onclick="delItem(${sIdx},${iIdx})" class="text-rose-300 hover:text-rose-500"><i class="ph-bold ph-trash"></i></button>` : ''}
                         </div>
@@ -431,7 +436,7 @@
                 if(state.mode==='edit') html += `<button onclick="addItem(${sIdx})" class="w-full py-3 mt-2 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-400 hover:text-indigo-600 hover:border-indigo-300 transition-all">+ Nuevo Concepto</button>`;
                 html += `</div></div>`;
                 card.innerHTML = html;
-                container.appendChild(card);
+                con.appendChild(card);
             });
 
             // Sortable
@@ -446,12 +451,18 @@
             calcStats();
         }
 
-        function renderAnnualTable() {
+        function renderAnnualView() {
+            // Table
             const body = document.getElementById('annual-table-body'); body.innerHTML = '';
-            
+            const trends = { m:[], i:[], e:[], s:[] };
+
             MONTHS.forEach((m, idx) => {
                 const d = getTotalsForMonth(idx);
                 const bal = d.i - d.e - d.s;
+                
+                trends.m.push(m.substring(0,3));
+                trends.i.push(d.i); trends.e.push(d.e); trends.s.push(d.s);
+
                 body.innerHTML += `
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-6 py-4 font-bold text-slate-900">${m}</td>
@@ -460,6 +471,35 @@
                     <td class="px-6 py-4 text-indigo-600">${fmt(d.s)}</td>
                     <td class="px-6 py-4 ${bal >= 0 ? 'text-emerald-600' : 'text-rose-600'} font-bold">${fmt(bal)}</td>
                 </tr>`;
+            });
+
+            // Charts
+            const ctx1 = document.getElementById('chart-annual-trend').getContext('2d');
+            if(annualTrendChart) annualTrendChart.destroy();
+            annualTrendChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: trends.m,
+                    datasets: [
+                        { label: 'Ingresos', data: trends.i, borderColor: '#10b981', tension:0.4, fill:true, backgroundColor:'rgba(16,185,129,0.1)' },
+                        { label: 'Gastos', data: trends.e, borderColor: '#f43f5e', tension:0.4, fill:true, backgroundColor:'rgba(244,63,94,0.1)' }
+                    ]
+                },
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'top'}} }
+            });
+
+            const ctx2 = document.getElementById('chart-annual-bar').getContext('2d');
+            if(annualBarChart) annualBarChart.destroy();
+            annualBarChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: trends.m,
+                    datasets: [
+                        { label: 'Ahorro', data: trends.s, backgroundColor: '#6366f1' },
+                        { label: 'Gasto', data: trends.e, backgroundColor: '#f43f5e' }
+                    ]
+                },
+                options: { responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{stacked:true}} }
             });
         }
 
@@ -483,86 +523,78 @@
             document.getElementById('kpi-income').innerText = fmt(d.i);
             document.getElementById('kpi-expenses').innerText = fmt(d.e);
             document.getElementById('kpi-savings').innerText = fmt(d.s);
-            document.getElementById('bar-bal').style.width = d.i > 0 ? Math.max(0, (bal/d.i)*100)+'%' : '0%';
+            
+            // DISTRIBUTION CHART FIX
+            const ctx = document.getElementById('chart-main');
+            if(ctx) {
+                let cats = {};
+                state.struct[state.month].forEach(sec => {
+                    if(sec.type==='expense' || sec.type==='debt') {
+                        let sum=0; sec.items.forEach((_,i)=>sum+=(state.data[`${state.month}-${sec.id}-${i}`]||0));
+                        if(sum>0) cats[sec.title]=sum;
+                    }
+                });
 
-            // Chart
-            const ctx = document.getElementById('chart-main').getContext('2d');
-            document.getElementById('chart-total').innerText = fmt(d.e);
-            let cats = {};
-            state.struct[state.month].forEach(sec => {
-                if(sec.type==='expense' || sec.type==='debt') {
-                    let sum=0; sec.items.forEach((_,i)=>sum+=(state.data[`${state.month}-${sec.id}-${i}`]||0));
-                    if(sum>0) cats[sec.title]=sum;
-                }
-            });
-
-            if(chart) chart.destroy();
-            chart = new Chart(ctx, {
-                type: 'doughnut',
-                data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b'], borderWidth:0 }] },
-                options: { responsive:true, maintainAspectRatio:false, cutout:'80%', plugins:{legend:{display:false}} }
-            });
+                document.getElementById('chart-total').innerText = fmt(d.e);
+                
+                if(chart) chart.destroy();
+                chart = new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6'], borderWidth:0 }] },
+                    options: { responsive:true, maintainAspectRatio:false, cutout:'80%', plugins:{legend:{display:false}} }
+                });
+            }
         }
 
-        // --- SAVINGS MODAL ---
+        // --- SAVINGS ---
         function openSavingsModal() {
             const list = document.getElementById('savings-list'); list.innerHTML = '';
-            
-            // Iterate all months to calculate history
-            const currentStruct = state.struct[state.month];
-            const savingsSec = currentStruct.find(s => s.type === 'savings');
+            const currStruct = state.struct[state.month];
+            const sec = currStruct.find(s => s.type === 'savings');
 
-            if(!savingsSec || savingsSec.items.length === 0) {
-                list.innerHTML = `<p class="text-center text-slate-400 py-4">No hay metas de ahorro este mes.</p>`;
-            } else {
-                savingsSec.items.forEach((item, iIdx) => {
-                    // Calc history sum
+            if(sec && sec.items.length > 0) {
+                sec.items.forEach((item, iIdx) => {
                     let totalSaved = 0;
                     for(let m = 0; m <= state.month; m++) {
-                        const sec = state.struct[m].find(s => s.type === 'savings');
-                        if(sec && sec.items[iIdx] === item) { // Name match assumed
-                            totalSaved += (state.data[`${m}-${sec.id}-${iIdx}`] || 0);
-                        }
+                         const pastSec = state.struct[m].find(s => s.type === 'savings');
+                         if(pastSec && pastSec.items[iIdx] === item) totalSaved += (state.data[`${m}-${pastSec.id}-${iIdx}`] || 0);
                     }
-                    const currentMonthVal = state.data[`${state.month}-${savingsSec.id}-${iIdx}`] || 0;
-
+                    const curr = state.data[`${state.month}-${sec.id}-${iIdx}`] || 0;
                     list.innerHTML += `
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-slate-800">${item}</span>
-                            <span class="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded">Este mes: ${fmt(currentMonthVal)}</span>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-slate-900">${item}</p>
+                            <p class="text-xs text-indigo-600 font-bold mt-1">Acumulado: ${fmt(totalSaved)}</p>
                         </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase">Acumulado Total</p>
-                                <p class="text-2xl font-extrabold text-slate-900">${fmt(totalSaved)}</p>
-                            </div>
-                            <i class="ph-fill ph-check-circle text-emerald-400 text-2xl"></i>
-                        </div>
+                        <span class="text-lg font-bold text-slate-700">+ ${fmt(curr)}</span>
                     </div>`;
                 });
+            } else {
+                list.innerHTML = `<p class="text-center text-slate-400">Sin metas definidas.</p>`;
             }
             document.getElementById('savings-modal').classList.add('open');
         }
 
-        // --- LENDER MODAL ---
+        function addSavingsGoal() {
+             const sec = state.struct[state.month].find(s => s.type === 'savings');
+             if(sec) { sec.items.push("Nueva Meta"); save(); sync(false); openSavingsModal(); renderDash(); }
+        }
+
+        // --- LENDER ---
         function openLenderModal(sIdx, iIdx) {
             activeItem = { sIdx, iIdx };
             const sec = state.struct[state.month][sIdx];
             const key = `${state.month}-${sec.id}-${iIdx}`;
-            
             const meta = state.debtMeta[key+'-m'] || { capital: 0, rate: 0, date: 1 };
             const pay = state.data[key] || 0;
 
             document.getElementById('lender-name').innerText = sec.items[iIdx];
             document.getElementById('lm-capital').value = meta.capital || '';
             document.getElementById('lm-rate').value = meta.rate || '';
-            document.getElementById('lm-date').value = meta.date || '';
             document.getElementById('lm-payment').value = pay || '';
-
+            
             ['lm-capital','lm-rate','lm-payment'].forEach(id => document.getElementById(id).oninput = calcLenderPreview);
             calcLenderPreview();
-            
             document.getElementById('lender-modal').classList.add('open');
         }
 
@@ -570,16 +602,14 @@
             const cap = parseFloat(document.getElementById('lm-capital').value) || 0;
             const rate = parseFloat(document.getElementById('lm-rate').value) || 0;
             const pay = parseFloat(document.getElementById('lm-payment').value) || 0;
-
             const interest = cap * (rate / 100);
             const amort = Math.max(0, pay - interest);
             
             document.getElementById('lm-calc-int').innerText = `Interés a cubrir: ${fmt(interest)}`;
             const fb = document.getElementById('lm-feedback');
-
-            if(pay > 0 && pay < interest) fb.innerHTML = `<span class="text-rose-400 font-bold"><i class="ph-bold ph-warning"></i> Cuidado: Pago insuficiente. Deuda aumentará.</span>`;
-            else if(pay > interest) fb.innerHTML = `Estás amortizando <span class="text-emerald-400 font-bold">${fmt(amort)}</span> al capital.`;
-            else fb.innerHTML = `Solo cubres intereses. El capital sigue igual.`;
+            if(pay > 0 && pay < interest) fb.innerHTML = `<span class="text-rose-400 font-bold">⚠️ Insuficiente. Deuda crece.</span>`;
+            else if(pay > interest) fb.innerHTML = `Amortizas <span class="text-emerald-400 font-bold">${fmt(amort)}</span> al capital.`;
+            else fb.innerHTML = `Solo cubres intereses.`;
         }
 
         function saveLenderData() {
@@ -590,47 +620,43 @@
 
             const cap = parseFloat(document.getElementById('lm-capital').value) || 0;
             const rate = parseFloat(document.getElementById('lm-rate').value) || 0;
-            const date = parseInt(document.getElementById('lm-date').value) || 1;
             const pay = parseFloat(document.getElementById('lm-payment').value) || 0;
 
-            state.debtMeta[key+'-m'] = { capital: cap, rate: rate, date: date };
+            state.debtMeta[key+'-m'] = { capital: cap, rate: rate };
             state.data[key] = pay;
 
-            save(); sync(false);
-            renderDash(true); 
-            closeModals();
-            toast('Registro Guardado');
+            save(); sync(false); renderDash(); closeModals();
         }
 
-        // --- DETAILED ADVISOR ---
+        // --- ADVISOR DETAILED ---
         function openAI() {
             const d = getTotalsForMonth(state.month);
-            const balance = d.i - d.e - d.s;
+            const bal = d.i - d.e - d.s;
             const debtRatio = d.i > 0 ? (d.d / d.i) * 100 : 0;
-            const saveRatio = d.i > 0 ? (d.s / d.i) * 100 : 0;
+            const savRatio = d.i > 0 ? (d.s / d.i) * 100 : 0;
+            
+            let html = `<div class="space-y-4">`;
+            
+            // 1. Balance
+            html += `<div class="p-4 rounded-xl border ${bal >= 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}">
+                <h4 class="font-bold ${bal >= 0 ? 'text-emerald-800' : 'text-rose-800'} mb-2">Diagnóstico de Flujo</h4>
+                <p>Tu balance mensual es de <strong>${fmt(bal)}</strong>. ${bal >= 0 ? 'Esto indica una gestión saludable. Te recomiendo asignar el excedente a inversiones o amortización de deuda.' : 'Estás operando con déficit. Es imperativo revisar tus gastos hormiga y costos fijos para evitar el sobreendeudamiento.'}</p>
+            </div>`;
 
-            let analysisHTML = '';
+            // 2. Deuda
+            html += `<div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <h4 class="font-bold text-slate-800 mb-2">Salud de Deuda</h4>
+                <p>Destinas el <strong>${debtRatio.toFixed(1)}%</strong> de tus ingresos a pagar deudas. ${debtRatio > 35 ? 'Este nivel es ALTO. Prioriza liquidar préstamos con mayor tasa de interés (como prestamistas informales) para liberar flujo de caja.' : 'Este nivel es manejable, pero siempre es mejor reducirlo.'}</p>
+            </div>`;
 
-            // 1. Balance Analysis
-            if(balance > 0) {
-                analysisHTML += `<div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100"><h4 class="font-bold text-emerald-800 mb-2">Flujo de Caja Positivo</h4><p>Excelente noticia. Tienes un excedente de <strong>${fmt(balance)}</strong>. Esto significa que estás viviendo dentro de tus posibilidades. Te sugiero destinar el 50% de este excedente a adelantar pagos de deuda (si tienes) o sumarlo a tu fondo de emergencia.</p></div>`;
-            } else {
-                analysisHTML += `<div class="p-4 bg-rose-50 rounded-xl border border-rose-100"><h4 class="font-bold text-rose-800 mb-2">Déficit de Atención</h4><p>Estás gastando <strong>${fmt(Math.abs(balance))}</strong> más de lo que ingresas. Esto es peligroso a largo plazo porque te obligará a endeudarte. Revisa tus gastos variables inmediatamente.</p></div>`;
-            }
-
-            // 2. Debt Analysis
-            if(d.d > 0) {
-                analysisHTML += `<div class="p-4 bg-slate-50 rounded-xl border border-slate-200 mt-4"><h4 class="font-bold text-slate-800 mb-2">Análisis de Deuda</h4><p>Estás destinando el <strong>${debtRatio.toFixed(1)}%</strong> de tus ingresos a pagar deudas. ${debtRatio > 35 ? '<span class="text-rose-500 font-bold">¡Cuidado! Esto es muy alto.</span> Deberías aplicar el método "Bola de Nieve" para liquidar deudas pequeñas primero.' : 'Es un nivel manejable, pero intenta reducirlo.'}</p></div>`;
-            }
-
-            // 3. Savings Analysis
-            if(saveRatio < 10) {
-                analysisHTML += `<div class="p-4 bg-orange-50 rounded-xl border border-orange-100 mt-4"><h4 class="font-bold text-orange-800 mb-2">Ahorro Insuficiente</h4><p>Solo estás ahorrando el <strong>${saveRatio.toFixed(1)}%</strong>. Intenta automatizar tu ahorro apenas recibas tu sueldo. El objetivo mínimo debería ser el 20%.</p></div>`;
-            } else {
-                 analysisHTML += `<div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100 mt-4"><h4 class="font-bold text-indigo-800 mb-2">Buen Hábito de Ahorro</h4><p>Estás ahorrando un sólido <strong>${saveRatio.toFixed(1)}%</strong>. Mantén este ritmo y considera invertir ese dinero para que no pierda valor con la inflación.</p></div>`;
-            }
-
-            document.getElementById('advisor-text').innerHTML = analysisHTML;
+            // 3. Ahorro
+            html += `<div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <h4 class="font-bold text-indigo-800 mb-2">Eficiencia de Ahorro</h4>
+                <p>Tu tasa de ahorro es del <strong>${savRatio.toFixed(1)}%</strong>. ${savRatio < 10 ? 'Está por debajo del recomendado (20%). Intenta "pagarte a ti primero" al recibir tu sueldo.' : '¡Excelente trabajo! Estás construyendo patrimonio consistentemente.'}</p>
+            </div>`;
+            
+            html += `</div>`;
+            document.getElementById('advisor-text').innerHTML = html;
             document.getElementById('advisor-modal').classList.add('open');
         }
 
@@ -639,28 +665,28 @@
             const sb = document.getElementById('sidebar');
             if(window.innerWidth >= 768) sb.classList.toggle('collapsed'); else sb.classList.toggle('open');
         }
-        function toggleAnnualView() { state.view = state.view==='month'?'year':'month'; renderDash(); }
+        function toggleAnnualView(forceState) { 
+            if(forceState !== undefined) {
+                state.view = forceState ? 'year' : 'month';
+            } else {
+                state.view = state.view==='month'?'year':'month';
+            }
+            renderDash(); 
+        }
         function changeMonth(d) { let n=state.month+d; if(n>=0 && n<=11) { state.month=n; renderDash(); } }
         function saveVal(k,v) { let val=parseFloat(v)||0; state.data[k]=val; save(); sync(false); renderDash(true); }
         function toggleSec(i) { state.struct[state.month][i].collapsed=!state.struct[state.month][i].collapsed; renderDash(); }
         function setMonth(i) { state.month=i; state.view='month'; renderAll(); if(window.innerWidth < 768) toggleSidebar(); }
         function toggleEdit() { state.mode = state.mode==='view'?'edit':'view'; document.getElementById('edit-btn').className = state.mode==='view' ? "px-5 py-2 text-xs font-bold border-2 border-slate-200 rounded-xl hover:border-slate-800 hover:bg-slate-800 hover:text-white transition-all text-slate-500" : "px-5 py-2 text-xs font-bold bg-slate-900 text-white rounded-xl shadow-lg transition-all"; renderDash(); }
         function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
-        function toast(m) { const t=document.getElementById('toast'); document.getElementById('toast-msg').innerText=m; t.classList.remove('-translate-y-24'); setTimeout(()=>t.classList.add('-translate-y-24'), 2000); }
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.classList.remove('open')); }
-        
-        // Settings
         function openSettings() { document.getElementById('settings-modal').classList.add('open'); }
-        function resetApp() { if(confirm('¿Reiniciar todo?')) { localStorage.removeItem('cfo_v78_final'); location.reload(); } }
+        function resetApp() { if(confirm('¿Reiniciar todo?')) { localStorage.removeItem('cfo_v79_exec'); location.reload(); } }
         function exportCSV() {
             let csv = "Mes,Seccion,Concepto,Monto\n";
-            state.struct.forEach((st, mIdx) => {
-                st.forEach(sec => { sec.items.forEach((it, i) => { const v = state.data[`${mIdx}-${sec.id}-${i}`]; if(v) csv += `${MONTHS[mIdx]},${sec.title},${it},${v}\n`; }); });
-            });
-            const link = document.createElement("a"); link.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); link.download="Reporte_CFO.csv"; link.click();
+            state.struct.forEach((st, mIdx) => { st.forEach(sec => { sec.items.forEach((it, i) => { const v = state.data[`${mIdx}-${sec.id}-${i}`]; if(v) csv += `${MONTHS[mIdx]},${sec.title},${it},${v}\n`; }); }); });
+            const link = document.createElement("a"); link.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); link.download="Reporte.csv"; link.click();
         }
-
-        // CRUD
         function addItem(s) { state.struct[state.month][s].items.push("Nuevo"); save(); renderDash(); }
         function delItem(s,i) { if(confirm('¿Borrar?')) { state.struct[state.month][s].items.splice(i,1); save(); renderDash(); } }
         function renItem(s,i,v) { state.struct[state.month][s].items[i]=v; save(); }

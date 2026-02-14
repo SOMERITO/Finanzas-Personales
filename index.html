@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V82</title>
+    <title>CFO Personal V85</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -23,11 +23,9 @@
                         emerald: { 500: '#10b981', 600: '#059669' }
                     },
                     animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out forwards',
                         'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
                         slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
                     }
                 }
@@ -38,7 +36,7 @@
     <style>
         body { background: #f8fafc; color: #1e293b; overflow: hidden; }
         
-        /* Sidebar Persistence Logic */
+        /* SIDEBAR */
         .sidebar { 
             width: 280px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(12px); 
             border-right: 1px solid #e2e8f0; position: fixed; height: 100%; z-index: 50;
@@ -52,11 +50,10 @@
             .sidebar.collapsed { margin-left: -280px; transform: translateX(0); }
         }
 
-        /* Inputs Clean (Type Text for formatting stability) */
+        /* INPUTS & CARDS */
         .input-clean { background: transparent; border-bottom: 2px solid #e2e8f0; border-radius: 0; padding: 4px 0; font-weight: 700; transition: all 0.2s; color: #334155; width: 100%; }
         .input-clean:focus { border-color: #4f46e5; color: #0f172a; outline: none; }
         
-        /* Cards */
         .card-personal {
             background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -66,13 +63,13 @@
         .custom-scroll::-webkit-scrollbar { width: 5px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         
-        /* Modals */
+        /* MODALS */
         .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity 0.2s; position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; }
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
-        .modal-content { transform: scale(0.95); transition: all 0.3s; background: white; width: 95%; max-width: 600px; border-radius: 24px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; overflow-y: auto; }
+        .modal-content { transform: scale(0.95); transition: all 0.3s; background: white; width: 95%; max-width: 650px; border-radius: 24px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 90vh; overflow-y: auto; }
         .modal-overlay.open .modal-content { transform: scale(1); }
 
-        /* Savings Card */
+        /* SAVINGS BAR */
         .goal-card { border: 1px solid #e2e8f0; border-radius: 16px; padding: 1rem; transition: border-color 0.2s; }
         .goal-card:hover { border-color: #6366f1; }
         .goal-input { background: transparent; border: 1px solid transparent; font-weight: bold; width: 100%; border-radius: 4px; padding: 2px 4px; }
@@ -83,12 +80,11 @@
 
     <div class="layout-wrapper h-screen w-full overflow-hidden flex flex-col md:flex-row">
         
-        <!-- SIDEBAR -->
         <aside id="sidebar" class="sidebar flex flex-col">
             <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
                 <div>
                     <h1 class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">V82 Stable</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">V85 Analytics</p>
                 </div>
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-400 p-2"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
@@ -101,10 +97,8 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <div class="flex-1 flex flex-col h-full relative bg-[#f8fafc] overflow-hidden">
             
-            <!-- HEADER -->
             <header class="h-20 bg-white/80 backdrop-blur-md z-40 px-6 flex items-center justify-between border-b border-slate-200/60 shadow-sm shrink-0">
                 <div class="flex items-center">
                     <button onclick="toggleSidebar()" class="p-2.5 mr-6 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors shadow-sm">
@@ -132,11 +126,9 @@
                 </div>
             </header>
 
-            <!-- SCROLL AREA -->
             <div class="flex-1 overflow-y-auto p-6 md:p-8 pb-32 custom-scroll" id="main-scroll-area">
                 
-                <!-- ANNUAL VIEW -->
-                <div id="annual-view" class="hidden max-w-7xl mx-auto animate-fade-in pb-10">
+                <div id="annual-view" class="hidden max-w-7xl mx-auto pb-10">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-2xl font-extrabold text-slate-900">Reporte Anual</h3>
                         <button onclick="toggleAnnualView()" class="text-sm font-bold text-indigo-600 hover:text-indigo-800">Volver al Mes</button>
@@ -149,10 +141,8 @@
                     </div>
                 </div>
 
-                <!-- MONTHLY VIEW -->
                 <div id="monthly-view" class="max-w-6xl mx-auto">
                     
-                    <!-- KPI Cards -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-slide-up">
                         <div class="card-personal p-6 flex flex-col justify-between h-32 border-l-4 border-slate-800">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Disponible Real</span>
@@ -174,7 +164,6 @@
                         </div>
                     </div>
 
-                    <!-- Main Grid -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up" style="animation-delay: 0.1s">
                         <div class="lg:col-span-2 space-y-6" id="ledger-container"></div>
                         <div class="space-y-6">
@@ -195,9 +184,6 @@
         </div>
     </div>
 
-    <!-- MODALS -->
-    
-    <!-- Prestamista -->
     <div id="lender-modal" class="modal-overlay z-[70]">
         <div class="modal-content relative overflow-hidden border border-rose-100 max-w-md">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
@@ -220,7 +206,6 @@
         </div>
     </div>
 
-    <!-- Ahorros -->
     <div id="savings-modal" class="modal-overlay z-[70]">
         <div class="modal-content relative max-w-xl">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
@@ -232,16 +217,26 @@
         </div>
     </div>
 
-    <!-- Consejero (Grid) -->
     <div id="advisor-modal" class="modal-overlay z-[80]">
         <div class="modal-content relative max-w-3xl">
             <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
-            <div class="mb-6 border-b border-slate-100 pb-4"><h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-500"></i> Análisis CFO</h3></div>
-            <div id="advisor-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            <div class="mb-6 border-b border-slate-100 pb-4 flex justify-between items-center">
+                <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-500"></i> Reporte Financiero</h3>
+                <span id="health-score" class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-500">Analizando...</span>
+            </div>
+            <div class="space-y-6">
+                <div id="advisor-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase mb-3">Detector de Fugas</h4>
+                    <div id="expense-breakdown" class="text-sm text-slate-700"></div>
+                </div>
+
+                <div id="advisor-recommendation" class="bg-indigo-50 p-5 rounded-2xl border border-indigo-100 text-indigo-900 text-sm leading-relaxed shadow-sm"></div>
+            </div>
         </div>
     </div>
 
-    <!-- Clone Modal -->
     <div id="clone-modal" class="modal-overlay z-[90]">
         <div class="modal-content relative max-w-sm">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-lg"></i></button>
@@ -252,7 +247,6 @@
         </div>
     </div>
 
-    <!-- Settings -->
     <div id="settings-modal" class="modal-overlay z-[90]">
         <div class="modal-content relative max-w-sm">
             <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
@@ -264,7 +258,6 @@
         </div>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 z-[100] bg-slate-800 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 transform -translate-y-24 transition-all duration-300 pointer-events-none font-bold text-sm">
         <i class="ph-fill ph-check-circle text-emerald-400"></i> <span id="toast-msg">Guardado</span>
     </div>
@@ -275,10 +268,10 @@
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const BASE = [
             { id: 'ing', title: 'Ingresos', type: 'income', items: ['Sueldo', 'Extras'], collapsed: false },
-            { id: 'deu', title: 'Deudas (Prestamistas)', type: 'debt', items: ['Sr. Miguel', 'Sra. Cristina'], collapsed: false },
-            { id: 'fij', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler', 'Servicios'], collapsed: false },
-            { id: 'var', title: 'Gastos Variables', type: 'expense', items: ['Comida', 'Transporte'], collapsed: false },
-            { id: 'aho', title: 'Ahorro Total', type: 'savings', items: ['Total Ahorro Mes'], collapsed: false }
+            { id: 'deu', title: 'Deudas', type: 'debt', items: ['Fanny (UPC)', 'Paola (UPC)', 'Sra. Cristina', 'Sr. Miguel'], collapsed: false },
+            { id: 'fij', title: 'Gastos Fijos', type: 'expense', items: ['Internet / Cable', 'Celular', 'Comida y limpieza'], collapsed: false },
+            { id: 'sur', title: 'Deudas Surgidas', type: 'expense', items: ['Taxi'], collapsed: false },
+            { id: 'aho', title: 'Ahorros', type: 'savings', items: ['Bolsa de Ahorro'], collapsed: false }
         ];
 
         let state = { month: new Date().getMonth(), mode: 'view', view: 'month', sidebarOpen: false, struct: [], data: {}, debtMeta: {}, savingsGoals: [] };
@@ -287,22 +280,20 @@
 
         // --- INIT ---
         async function init() {
-            const local = localStorage.getItem('cfo_v82_stable');
+            const local = localStorage.getItem('cfo_v85_analytics');
             if(local) {
                 const p = JSON.parse(local);
                 state.struct = p.struct || genYear();
                 state.data = p.data || {};
                 state.debtMeta = p.debtMeta || {};
                 state.savingsGoals = p.savingsGoals || [{id: 'g1', name: 'Fondo Emergencia', target: 5000}];
-                state.sidebarOpen = p.sidebarOpen || false; // Load sidebar state
+                state.sidebarOpen = p.sidebarOpen || false; 
             } else {
                 state.struct = genYear();
                 state.savingsGoals = [{id: 'g1', name: 'Fondo Emergencia', target: 5000}];
             }
             
-            // Apply sidebar state immediately
             applySidebarState();
-            
             renderAll();
             await sync(true);
 
@@ -312,7 +303,8 @@
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v82_stable', JSON.stringify(state)); }
+        function save() { localStorage.setItem('cfo_v85_analytics', JSON.stringify(state)); }
+        
         async function sync(pull) {
             try {
                 if(pull) {
@@ -331,7 +323,6 @@
             } catch(e) {}
         }
 
-        // --- KEYBOARD NAV ---
         function handleInputNav(e) {
             if(e.key === 'Enter') {
                 e.preventDefault();
@@ -363,6 +354,7 @@
 
         function renderDash() {
             document.getElementById('month-title').innerText = MONTHS[state.month];
+            
             const mUi = document.getElementById('monthly-view');
             const aUi = document.getElementById('annual-view');
             const btnAnnual = document.getElementById('btn-annual');
@@ -526,7 +518,6 @@
         function openSavingsModal() {
             const list = document.getElementById('savings-list'); list.innerHTML = '';
             
-            // Calc Split
             const st = state.struct[state.month];
             const savSec = st.find(s=>s.type==='savings');
             let monthTotal = 0;
@@ -548,7 +539,9 @@
                     }
                 }
                 const currentTotal = historical + split;
-                const progress = goal.target > 0 ? (currentTotal / goal.target) * 100 : 0;
+                // CORRECCIÓN: Evitar NaN si no hay target
+                const target = goal.target > 0 ? goal.target : 1; 
+                const progress = (currentTotal / target) * 100;
 
                 list.innerHTML += `
                 <div class="goal-card mb-3 relative group">
@@ -560,8 +553,8 @@
                             </div>
                             <input id="g-name-${idx}" class="goal-input text-lg text-slate-800" value="${goal.name}" readonly>
                             <div class="flex items-center gap-1 mt-1">
-                                <span class="text-xs text-slate-400">Objetivo:</span>
-                                <input id="g-target-${idx}" class="goal-input text-xs text-slate-600 w-24" value="${goal.target}" readonly>
+                                <span class="text-xs text-slate-400">Objetivo (S/):</span>
+                                <input id="g-target-${idx}" class="goal-input text-xs text-slate-600 w-24 bg-slate-50 border border-slate-200" value="${goal.target}" readonly>
                             </div>
                             <div id="g-actions-${idx}" class="hidden mt-2 flex gap-2">
                                 <button onclick="saveGoalEdit(${idx})" class="px-2 py-1 bg-indigo-600 text-white text-xs rounded font-bold">Guardar</button>
@@ -575,7 +568,7 @@
                     <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                         <div class="h-full bg-indigo-500 transition-all duration-1000" style="width: ${Math.min(progress, 100)}%"></div>
                     </div>
-                    <p class="text-[10px] text-right text-slate-400 mt-1">${progress.toFixed(1)}%</p>
+                    <p class="text-[10px] text-right text-slate-400 mt-1">${progress>=100 ? '<span class="text-emerald-500 font-bold">¡Meta Completada!</span>' : progress.toFixed(1) + '%'}</p>
                 </div>`;
             });
             document.getElementById('savings-modal').classList.add('open');
@@ -602,7 +595,7 @@
             save(); sync(false); openSavingsModal();
         }
 
-        function addSavingsGoal() { state.savingsGoals.push({ id: 'g'+Date.now(), name: 'Nueva Meta', target: 1000 }); save(); sync(false); openSavingsModal(); }
+        function addSavingsGoal() { state.savingsGoals.push({ id: 'g'+Date.now(), name: 'Nueva Meta', target: 0 }); save(); sync(false); openSavingsModal(); }
         function deleteGoal(idx) { if(confirm('¿Eliminar meta?')) { state.savingsGoals.splice(idx, 1); save(); sync(false); openSavingsModal(); } }
 
         // --- UTILS ---
@@ -616,14 +609,13 @@
                 state.sidebarOpen = !state.sidebarOpen;
                 if(window.innerWidth >= 768) sb.classList.toggle('collapsed'); else sb.classList.toggle('open');
             }
-            save(); // Persist sidebar state
+            save(); 
         }
         function toggleAnnualView(force) { if(force!==undefined) state.view=force?'year':'month'; else state.view=state.view==='month'?'year':'month'; renderDash(); }
         function changeMonth(d) { let n=state.month+d; if(n>=0 && n<=11) { state.month=n; renderDash(); } }
         
-        // CORE FIX: Use text inputs, strip non-numeric except dot, parsefloat
         function saveVal(k,v) { 
-            let clean = v.replace(/,/g, ''); // Remove commas
+            let clean = v.replace(/,/g, ''); 
             let val = parseFloat(clean) || 0; 
             state.data[k]=val; save(); sync(false); renderDash(true); 
         }
@@ -634,7 +626,7 @@
         function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
         function closeModals() { document.querySelectorAll('.modal-overlay').forEach(e=>e.classList.remove('open')); }
         function openSettings() { document.getElementById('settings-modal').classList.add('open'); }
-        function resetApp() { if(confirm('¿Reiniciar?')) { localStorage.removeItem('cfo_v82_stable'); location.reload(); } }
+        function resetApp() { if(confirm('¿Reiniciar?')) { localStorage.removeItem('cfo_v85_analytics'); location.reload(); } }
         function exportCSV() {
             let csv = "Mes,Seccion,Concepto,Monto\n";
             state.struct.forEach((st, mIdx) => { st.forEach(sec => { sec.items.forEach((it, i) => { const v = state.data[`${mIdx}-${sec.id}-${i}`]; if(v) csv += `${MONTHS[mIdx]},${sec.title},${it},${v}\n`; }); }); });
@@ -645,16 +637,156 @@
         function renItem(s,i,v) { state.struct[state.month][s].items[i]=v; save(); }
         function updSec(s,v) { state.struct[state.month][s].title=v; save(); }
 
-        // LENDER & ADVISOR & CLONE SAME AS V81 (Included implicitly in logic blocks above or standard modal calls)
-        function openLenderModal(s,i){ activeItem={sIdx:s, iIdx:i}; document.getElementById('lender-modal').classList.add('open'); }
-        function saveLenderData(){ /* same logic as before, implied */ closeModals(); } 
+        // --- PRESTAMISTA LOGIC ---
+        function openLenderModal(s, i) { 
+            activeItem = { sIdx: s, iIdx: i };
+            const sec = state.struct[state.month][s];
+            const key = `${state.month}-${sec.id}-${i}`;
+            const meta = state.debtMeta[key + '-meta'] || { capital: 0, rate: 20 };
+            const currentPay = state.data[key] || 0;
+
+            document.getElementById('lender-name').innerText = sec.items[i];
+            document.getElementById('lm-capital').value = meta.capital || '';
+            document.getElementById('lm-rate').value = meta.rate || '';
+            document.getElementById('lm-payment').value = currentPay || '';
+
+            ['lm-capital', 'lm-rate', 'lm-payment'].forEach(id => document.getElementById(id).oninput = calcLenderPreview);
+            calcLenderPreview();
+            document.getElementById('lender-modal').classList.add('open'); 
+        }
+
+        function calcLenderPreview() {
+            const cap = parseFloat(document.getElementById('lm-capital').value) || 0;
+            const rate = parseFloat(document.getElementById('lm-rate').value) || 0;
+            const pay = parseFloat(document.getElementById('lm-payment').value) || 0;
+            const interest = cap * (rate / 100);
+            const amort = pay - interest;
+            
+            document.getElementById('lm-calc-int').innerText = `Mín (Interés): ${fmt(interest)}`;
+            const fb = document.getElementById('lm-feedback');
+            
+            if(pay < interest && cap > 0) fb.innerHTML = `<span class="text-rose-500 font-bold">⚠️ EL PAGO NO CUBRE EL INTERÉS. DEUDA CRECE.</span>`;
+            else if(cap > 0) fb.innerHTML = `Estás reduciendo la deuda en: <span class="text-emerald-500 font-bold">${fmt(amort)}</span>`;
+            else fb.innerText = "Ingresa capital y tasa.";
+        }
+
+        function saveLenderData() { 
+            if(!activeItem) return;
+            const { sIdx, iIdx } = activeItem;
+            const sec = state.struct[state.month][sIdx];
+            const key = `${state.month}-${sec.id}-${iIdx}`;
+            
+            const cap = parseFloat(document.getElementById('lm-capital').value) || 0;
+            const rate = parseFloat(document.getElementById('lm-rate').value) || 0;
+            const pay = parseFloat(document.getElementById('lm-payment').value) || 0;
+
+            state.debtMeta[key + '-meta'] = { capital: cap, rate: rate };
+            state.data[key] = pay;
+            save(); sync(false); renderDash(); closeModals();
+        }
+
+        // --- CLONE LOGIC ---
         function openCloneModal(){ 
             const sel=document.getElementById('clone-target'); sel.innerHTML=''; 
             MONTHS.forEach((m,i)=>{if(i!==state.month) sel.innerHTML+=`<option value="${i}">${m}</option>`});
             document.getElementById('clone-modal').classList.add('open');
         }
-        function executeClone(){ /* logic from v81 */ closeModals(); alert('Copiado'); }
-        function openAI(){ /* logic from v81 */ document.getElementById('advisor-modal').classList.add('open'); }
+        
+        function executeClone(){ 
+            const targetM = parseInt(document.getElementById('clone-target').value);
+            state.struct[targetM] = JSON.parse(JSON.stringify(state.struct[state.month]));
+            Object.keys(state.data).forEach(k => {
+                if(k.startsWith(`${state.month}-`)) {
+                    const suffix = k.substring(`${state.month}-`.length);
+                    state.data[`${targetM}-${suffix}`] = state.data[k];
+                }
+            });
+            save(); sync(false); closeModals(); alert(`Mes copiado a ${MONTHS[targetM]}`);
+        }
+
+        // --- ADVISOR LOGIC (SUPER DETALLADA) ---
+        function openAI(){ 
+            const d = getTotalsForMonth(state.month);
+            const bal = d.i - d.e - d.s;
+            const savingsRate = d.i > 0 ? (d.s / d.i) * 100 : 0;
+            const debtRate = d.i > 0 ? (d.d / d.i) * 100 : 0;
+            
+            // 1. Diagnóstico de Salud
+            let healthStatus = "Estable";
+            let healthColor = "orange";
+            if (bal > 0 && debtRate < 30) { healthStatus = "Excelente"; healthColor = "emerald"; }
+            if (bal < 0 || debtRate > 40) { healthStatus = "Crítico"; healthColor = "rose"; }
+            
+            const scoreLabel = document.getElementById('health-score');
+            scoreLabel.innerText = "Estado: " + healthStatus;
+            scoreLabel.className = `text-xs font-bold px-3 py-1 rounded-full bg-${healthColor}-100 text-${healthColor}-600`;
+
+            const grid = document.getElementById('advisor-grid'); grid.innerHTML = '';
+            
+            // 2. Tarjetas Métricas
+            const cards = [
+                { t: 'Flujo Caja', v: fmt(bal), c: bal>=0?'emerald':'rose', i: bal>=0?'ph-trend-up':'ph-trend-down' },
+                { t: '% Ahorro', v: savingsRate.toFixed(1)+'%', c: savingsRate>=20?'emerald':'indigo', i: 'ph-piggy-bank' },
+                { t: '% Deuda', v: debtRate.toFixed(1)+'%', c: debtRate>35?'rose':(debtRate>15?'orange':'emerald'), i: 'ph-warning-circle' },
+            ];
+
+            cards.forEach(c => {
+                grid.innerHTML += `<div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase">${c.t}</h4>
+                        <p class="text-xl font-extrabold text-${c.c}-600 mt-1">${c.v}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-${c.c}-100 text-${c.c}-600 flex items-center justify-center text-lg"><i class="ph-fill ${c.i}"></i></div>
+                </div>`;
+            });
+
+            // 3. Detector de Fugas (Gasto más alto)
+            let maxExpense = { title: 'Ninguno', val: 0 };
+            state.struct[state.month].forEach(sec => {
+                if(sec.type==='expense' || sec.type==='debt') {
+                    let sum=0; sec.items.forEach((_,i)=>sum+=(state.data[`${state.month}-${sec.id}-${i}`]||0));
+                    if(sum > maxExpense.val) maxExpense = { title: sec.title, val: sum };
+                }
+            });
+            
+            const expenseBreakdown = document.getElementById('expense-breakdown');
+            expenseBreakdown.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <span>Mayor fuga de dinero:</span>
+                    <span class="font-bold text-slate-900">${maxExpense.title}</span>
+                </div>
+                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden mb-2">
+                    <div class="h-full bg-rose-500" style="width: ${d.i > 0 ? (maxExpense.val/d.i)*100 : 0}%"></div>
+                </div>
+                <p class="text-xs text-slate-500">Representa el <strong>${d.i > 0 ? ((maxExpense.val/d.i)*100).toFixed(1) : 0}%</strong> de tus ingresos totales.</p>
+            `;
+
+            // 4. Recomendación Inteligente
+            let advice = "";
+            const annualProjection = bal * 12;
+
+            if (bal > 0) {
+                advice = `<h5 class="font-bold mb-2">🚀 Proyección Anual: +${fmt(annualProjection)}</h5>
+                <p class="mb-2">Estás construyendo riqueza. Con este ritmo, podrías:</p>
+                <ul class="list-disc list-inside space-y-1 ml-1 text-xs">
+                    <li>Amortizar capital de deudas caras (ahorrando intereses).</li>
+                    <li>Crear un fondo de emergencia de 3 meses.</li>
+                </ul>`;
+            } else if (bal < 0) {
+                advice = `<h5 class="font-bold mb-2 text-rose-700">⚠️ Alerta: Proyección -${fmt(Math.abs(annualProjection))}</h5>
+                <p class="mb-2">Si no corriges el rumbo, tu deuda crecerá drásticamente este año.</p>
+                <ul class="list-disc list-inside space-y-1 ml-1 text-xs">
+                    <li>Revisa urgentemente tu categoría "<strong>${maxExpense.title}</strong>".</li>
+                    <li>Congela cualquier gasto no esencial por 30 días.</li>
+                </ul>`;
+            } else {
+                advice = `<h5 class="font-bold mb-2">⚖️ Estás en el límite</h5>
+                <p>Cubres tus gastos pero no generas respaldo. Un imprevisto te obligaría a pedir prestado.</p>`;
+            }
+
+            document.getElementById('advisor-recommendation').innerHTML = advice;
+            document.getElementById('advisor-modal').classList.add('open'); 
+        }
 
         init();
     </script>

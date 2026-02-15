@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V96 (Cloud)</title>
+    <title>CFO Personal V97 (Premium)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -21,12 +21,10 @@
                         indigo: { 500: '#6366f1', 600: '#4f46e5' },
                     },
                     animation: {
-                        'pop-in': 'popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-                        'bounce-subtle': 'bounceSubtle 2s infinite',
+                        'pop-in': 'popIn 0.3s ease-out forwards',
                     },
                     keyframes: {
-                        popIn: { '0%': { transform: 'scale(0.9) translateY(20px)', opacity: 0 }, '100%': { transform: 'scale(1) translateY(0)', opacity: 1 } },
-                        bounceSubtle: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }
+                        popIn: { '0%': { transform: 'scale(0.95)', opacity: 0 }, '100%': { transform: 'scale(1)', opacity: 1 } }
                     }
                 }
             }
@@ -36,12 +34,12 @@
     <style>
         body { background: #f8fafc; color: #1e293b; overflow: hidden; -webkit-tap-highlight-color: transparent; }
         
-        /* SIDEBAR */
+        /* SIDEBAR (CORREGIDO: Hidden by default on mobile) */
         .sidebar { 
             width: 260px; background: white; border-right: 1px solid #e2e8f0; 
             display: flex; flex-direction: column; position: fixed; top:0; bottom:0; left:0; z-index: 50;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateX(-100%);
+            transform: translateX(-100%); /* Cerrado por defecto en móvil */
         }
         .sidebar.open { transform: translateX(0); }
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; opacity: 0; pointer-events: none; transition: 0.3s; }
@@ -49,7 +47,7 @@
 
         @media (min-width: 768px) {
             .layout-wrap { padding-left: 260px; transition: padding-left 0.3s; }
-            .sidebar { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.02); }
+            .sidebar { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.02); } /* Abierto por defecto en PC */
             .sidebar.collapsed { transform: translateX(-260px); }
             .layout-wrap.expanded { padding-left: 0; }
             .overlay { display: none !important; }
@@ -67,13 +65,14 @@
         .edit-mode .add-section-container { display: block; }
 
         /* CARDS */
-        .card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.03); overflow: hidden; }
+        .card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
         
         /* MODALS */
-        .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); }
+        .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); }
         .modal-wrap.active { display: flex; }
-        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); max-height: 95vh; overflow-y: auto; animation: popIn 0.4s; }
-        .modal-lg { max-width: 1100px; }
+        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); max-height: 95vh; overflow-y: auto; animation: popIn 0.3s; }
+        .modal-xl { max-width: 1200px; }
+        .modal-lg { max-width: 900px; }
         .modal-sm { max-width: 450px; }
 
         /* SCROLL */
@@ -152,9 +151,9 @@
                         <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos</span>
                         <h3 class="text-2xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
                     </div>
-                    <div onclick="openSavings()" class="card p-4 bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition-colors">
+                    <div onclick="openSavings()" class="card p-4 bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition-colors shadow-lg shadow-indigo-200">
                         <div class="flex justify-between items-center h-full">
-                            <div><span class="text-[10px] font-bold text-slate-400 uppercase">Ahorros</span><h3 class="text-2xl font-extrabold truncate" id="kpi-savings">S/ 0.00</h3></div>
+                            <div><span class="text-[10px] font-bold text-slate-400 uppercase">Mis Ahorros</span><h3 class="text-2xl font-extrabold truncate" id="kpi-savings">S/ 0.00</h3></div>
                             <i class="ph-fill ph-piggy-bank text-3xl text-indigo-400"></i>
                         </div>
                     </div>
@@ -167,12 +166,19 @@
                     
                     <div class="space-y-4">
                         <div class="card p-5">
-                            <h4 class="font-bold text-sm text-slate-700 uppercase mb-4">Distribución Mensual</h4>
-                            <div class="h-48"><canvas id="chart-mini"></canvas></div>
+                            <h4 class="font-bold text-sm text-slate-700 uppercase mb-4 text-center">Distribución Mensual</h4>
+                            <div class="h-56 relative">
+                                <canvas id="chart-mini"></canvas>
+                            </div>
                         </div>
-                        <div id="mini-calendar-widget" class="card p-5 bg-indigo-600 text-white hidden">
-                             <h4 class="font-bold text-sm uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-calendar-star"></i> Evento Hoy</h4>
-                             <p id="mini-calendar-text" class="text-sm">...</p>
+                        <div id="mini-calendar-widget" class="card p-5 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white hidden">
+                             <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl">🎉</div>
+                                <div>
+                                    <h4 class="font-bold text-sm uppercase opacity-80">Evento Hoy</h4>
+                                    <p id="mini-calendar-text" class="text-lg font-extrabold">...</p>
+                                </div>
+                             </div>
                         </div>
                     </div>
                 </div>
@@ -189,7 +195,7 @@
     <div id="modal-event-alert" class="modal-wrap z-[100]">
         <div class="modal-box modal-sm relative bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-0 text-center">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-indigo-200 hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
-            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl animate-bounce-subtle">🎉</div>
+            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🎉</div>
             <h3 class="text-3xl font-extrabold mb-2" id="alert-title">¡Hoy es el día!</h3>
             <p class="text-indigo-100 mb-8 text-lg" id="alert-msg">Tienes un evento importante hoy.</p>
             <button onclick="closeModals()" class="bg-white text-indigo-600 font-bold py-3 px-8 rounded-xl hover:bg-indigo-50 w-full shadow-lg">Entendido, Gracias</button>
@@ -197,18 +203,48 @@
     </div>
 
     <div id="modal-advisor" class="modal-wrap">
-        <div class="modal-box modal-lg relative">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <div class="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
-                <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i class="ph-fill ph-sparkle text-2xl"></i></div>
-                <div><h3 class="text-2xl font-extrabold text-slate-900">Análisis Financiero</h3><p class="text-sm text-slate-500">Reporte detallado de salud económica.</p></div>
+        <div class="modal-box modal-lg relative bg-slate-50">
+            <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
+            
+            <div class="mb-8">
+                <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-600"></i> Análisis CFO 360°</h3>
+                <p class="text-slate-500 text-sm mt-1">Reporte detallado de inteligencia financiera.</p>
             </div>
-            <div id="advisor-content" class="text-base leading-relaxed text-slate-700 space-y-6"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-3 text-emerald-600 font-bold uppercase text-xs tracking-wider">
+                        <i class="ph-bold ph-heartbeat text-lg"></i> Salud Financiera
+                    </div>
+                    <div id="adv-health" class="text-sm text-slate-700 leading-relaxed"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-3 text-indigo-600 font-bold uppercase text-xs tracking-wider">
+                        <i class="ph-bold ph-trend-up text-lg"></i> Eficiencia de Ahorro
+                    </div>
+                    <div id="adv-savings" class="text-sm text-slate-700 leading-relaxed"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-3 text-amber-600 font-bold uppercase text-xs tracking-wider">
+                        <i class="ph-bold ph-chart-pie-slice text-lg"></i> Estructura de Gastos
+                    </div>
+                    <div id="adv-struct" class="text-sm text-slate-700 leading-relaxed"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3 mb-3 text-rose-600 font-bold uppercase text-xs tracking-wider">
+                        <i class="ph-bold ph-check-circle text-lg"></i> Plan de Acción
+                    </div>
+                    <div id="adv-action" class="text-sm text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div id="modal-annual" class="modal-wrap">
-        <div class="modal-box modal-lg relative h-[95vh]">
+        <div class="modal-box modal-lg relative h-[90vh]">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
             <h3 class="text-2xl font-extrabold text-slate-900 mb-6">Tablero de Comando Anual</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full pb-20 overflow-y-auto pr-2">
@@ -234,18 +270,22 @@
                 <input id="ev-m" type="number" class="w-12 bg-white border rounded text-center text-sm" placeholder="2">
                 <button onclick="addEvent()" class="text-indigo-600 font-bold"><i class="ph-bold ph-plus"></i></button>
             </div>
-            <div id="calendar-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
+            <div id="calendar-list" class="space-y-3 max-h-60 overflow-y-auto"></div>
         </div>
     </div>
 
     <div id="modal-savings" class="modal-wrap">
         <div class="modal-box modal-sm relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-4">Metas de Ahorro</h3>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Metas de Ahorro</h3>
+            <p class="text-xs text-slate-500 mb-4" id="savings-subtitle">Distribución automática.</p>
+            
             <div id="goals-list" class="space-y-4 mb-6"></div>
+            
             <div class="border-t pt-4">
+                <label class="text-xs font-bold text-slate-400 uppercase">Nueva Meta</label>
                 <div class="flex gap-2 mt-2">
-                    <input id="new-goal-name" class="input-clean bg-slate-50 border p-2 rounded" placeholder="Nueva Meta">
+                    <input id="new-goal-name" class="input-clean bg-slate-50 border p-2 rounded" placeholder="Ej: Laptop">
                     <input id="new-goal-target" type="number" class="input-clean bg-slate-50 border p-2 rounded w-24" placeholder="Monto">
                     <button onclick="addGoal()" class="bg-slate-900 text-white px-4 rounded font-bold">Crear</button>
                 </div>
@@ -271,103 +311,49 @@
     </div>
 
     <script>
-        // === TUS CREDENCIALES (YA INTEGRADAS) ===
-        const CONFIG = { 
-            apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", 
-            binId: "698a256fd0ea881f40adab7d" 
-        };
-
+        const CONFIG = { apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", binId: "698a256fd0ea881f40adab7d" };
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const BASE = [{id:'i',title:'Ingresos',type:'income',items:['Sueldo'],collapsed:false},{id:'f',title:'Gastos Fijos',type:'expense',items:['Alquiler'],collapsed:false},{id:'s',title:'Ahorros',type:'savings',items:['Fondo'],collapsed:false}];
         
         let state = { month: new Date().getMonth(), mode: 'view', struct: [], data: {}, events: [], goals: [] };
         let charts = {};
 
-        // INICIO CON SINCRONIZACIÓN Y RESCATE DE DATOS
         async function init() {
             try {
-                // 1. Intentar cargar de la NUBE
                 await sync(true); 
-
-                // 2. Si la nube está vacía (primera vez), buscar datos locales viejos
-                const hasData = state.struct && state.struct.length > 0;
-                if(!hasData) {
-                    console.log("Nube vacía. Buscando datos locales...");
-                    const legacyKeys = ['cfo_master_db','cfo_v94','cfo_v93','cfo_v92','cfo_v91'];
-                    for(let k of legacyKeys) {
-                        const local = localStorage.getItem(k);
-                        if(local) {
-                            const p = JSON.parse(local);
-                            state = {...state, ...p};
-                            await sync(false); // Subir lo recuperado a la nube
-                            alert("¡Datos locales recuperados y subidos a la nube!");
-                            break;
-                        }
-                    }
-                }
-                
-                // 3. Si no hay nada de nada, iniciar de cero
                 if(!state.struct || state.struct.length === 0) {
                      state.struct = genYear();
                      state.events = [{name:'San Valentín', d:14, m:2}, {name:'Navidad', d:25, m:12}];
-                     state.goals = [{name:'Emergencia', target:5000}];
+                     state.goals = [{name:'Fondo Emergencia', target:5000}];
                      await sync(false);
                 }
-
             } catch (e) {
-                console.error("Error init:", e);
-                // Fallback local si falla la nube
                 const local = localStorage.getItem('cfo_v96_cloud');
                 if(local) state = JSON.parse(local);
             }
-            
-            // ESC KEY LISTENER
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModals(); });
-            
             render();
             checkEventsToday();
         }
 
-        // --- CLOUD SYNC ENGINE ---
         async function sync(pull) {
-            const dot = document.getElementById('sync-dot');
-            dot.className = 'sync-dot syncing';
-            
+            const dot = document.getElementById('sync-dot'); dot.className = 'sync-dot syncing';
             try {
                 if(pull) {
-                    const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { 
-                        headers: { 'X-Master-Key': CONFIG.apiKey } 
-                    });
-                    if(!r.ok) throw new Error('Error API');
+                    const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { headers: { 'X-Master-Key': CONFIG.apiKey } });
                     const j = await r.json();
-                    if(j.record && j.record.struct) {
-                        state = j.record;
-                        localStorage.setItem('cfo_v96_cloud', JSON.stringify(state)); // Backup local
-                    }
+                    if(j.record && j.record.struct) state = j.record;
                 } else {
-                    await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { 
-                        method: 'PUT', 
-                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, 
-                        body: JSON.stringify(state) 
-                    });
-                    localStorage.setItem('cfo_v96_cloud', JSON.stringify(state));
+                    await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
+                localStorage.setItem('cfo_v96_cloud', JSON.stringify(state));
                 dot.className = 'sync-dot done';
-            } catch(e) {
-                console.error(e);
-                dot.className = 'sync-dot'; // Gris si falla
-            }
+            } catch(e) { dot.className = 'sync-dot'; }
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { 
-            // Guardar local inmediato + Sync nube
-            localStorage.setItem('cfo_v96_cloud', JSON.stringify(state)); 
-            render(); 
-            sync(false); 
-        }
+        function save() { localStorage.setItem('cfo_v96_cloud', JSON.stringify(state)); render(); sync(false); }
 
-        // --- CORE RENDER ---
         function render() {
             renderSidebar();
             renderHeader();
@@ -380,9 +366,8 @@
             document.body.className = state.mode === 'edit' ? 'edit-mode' : '';
             const btnText = state.mode === 'edit' ? 'Listo' : 'Editar';
             const btnClass = state.mode === 'edit' ? "bg-slate-900 text-white shadow-lg" : "border border-slate-300 text-slate-600 hover:bg-slate-50";
-            
-            const b1 = document.getElementById('btn-edit'); b1.innerText = btnText; b1.className = `hidden md:block px-4 py-2 rounded-lg font-bold text-xs transition-all ${btnClass}`;
-            const b2 = document.getElementById('btn-edit-mobile'); b2.innerText = state.mode === 'edit' ? 'Terminar Edición' : 'Activar Edición';
+            document.getElementById('btn-edit').innerText = btnText; document.getElementById('btn-edit').className = `hidden md:block px-4 py-2 rounded-lg font-bold text-xs transition-all ${btnClass}`;
+            document.getElementById('btn-edit-mobile').innerText = state.mode === 'edit' ? 'Terminar Edición' : 'Activar Edición';
         }
 
         function renderSidebar() {
@@ -429,21 +414,12 @@
             });
         }
 
-        // --- ACTIONS ---
         function toggleSidebar() { 
             const sb = document.getElementById('sidebar');
             const wrap = document.getElementById('layout-wrap');
             const overlay = document.getElementById('mobile-overlay');
-            
-            if(window.innerWidth >= 768) {
-                // Desktop: Collapse sidebar and expand content
-                sb.classList.toggle('collapsed');
-                wrap.classList.toggle('expanded');
-            } else {
-                // Mobile: Slide in sidebar and show overlay
-                sb.classList.toggle('open');
-                overlay.classList.toggle('active');
-            }
+            if(window.innerWidth >= 768) { sb.classList.toggle('collapsed'); wrap.classList.toggle('expanded'); } 
+            else { sb.classList.toggle('open'); overlay.classList.toggle('active'); }
         }
         function toggleEditMode() { state.mode = state.mode === 'view' ? 'edit' : 'view'; render(); }
         function setMonth(i) { state.month = i; render(); if(window.innerWidth<768) toggleSidebar(); }
@@ -458,7 +434,6 @@
         function delSec(s) { state.struct[state.month].splice(s,1); save(); }
         function addSection() { const n=prompt("Nombre:"); if(n) { state.struct[state.month].push({id:'u'+Date.now(),title:n,type:'expense',items:['Item 1'],collapsed:false}); save(); } }
 
-        // --- STATS & CHARTS ---
         function getTotals(m) {
             let i=0,e=0,s=0;
             state.struct[m].forEach(sec=>{
@@ -477,113 +452,136 @@
 
             const ctx = document.getElementById('chart-mini');
             if(charts.mini) charts.mini.destroy();
-            let d = []; state.struct[state.month].forEach(sec=>{if(sec.type==='expense'){let sum=0;sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(sum>0)d.push(sum)}});
-            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:d.map((_,i)=>i),datasets:[{data:d,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+            let labels = [], data = [];
+            state.struct[state.month].forEach(sec=>{if(sec.type==='expense'){let sum=0;sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(sum>0){labels.push(sec.title); data.push(sum)}}});
+            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10}}}}}});
         }
 
-        // --- FEATURES ---
         function checkEventsToday() {
-            // DETECTAR FECHA ACTUAL
-            const t = new Date();
-            const d = t.getDate();
-            const m = t.getMonth()+1;
-            
+            const t = new Date(), d = t.getDate(), m = t.getMonth()+1;
             const ev = state.events.find(e => e.d === d && e.m === m);
-            const w = document.getElementById('mini-calendar-widget');
-            const wt = document.getElementById('mini-calendar-text');
-            
             if(ev) {
-                w.classList.remove('hidden');
-                wt.innerText = `¡HOY: ${ev.name}!`;
-                document.getElementById('alert-title').innerText = `¡Feliz ${ev.name}!`;
+                document.getElementById('mini-calendar-widget').classList.remove('hidden');
+                document.getElementById('mini-calendar-text').innerText = ev.name;
+                document.getElementById('alert-title').innerText = `¡Hoy es ${ev.name}!`;
                 document.getElementById('alert-msg').innerText = "Hoy es un día especial. Recuerda registrar cualquier gasto relacionado.";
                 openModal('modal-event-alert');
             } else {
-                w.classList.add('hidden');
+                document.getElementById('mini-calendar-widget').classList.add('hidden');
             }
         }
 
+        // --- ADVISOR 4 CUADRANTES ---
         function openAdvisor() {
             const t = getTotals(state.month);
-            let sol = t.b > 0 ? "Positiva" : "Negativa";
-            let color = t.b > 0 ? "text-emerald-700" : "text-rose-700";
+            const savingsRate = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0;
             
-            const html = `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-4">
-                    <h4 class="font-bold text-lg mb-2 text-indigo-900">Resumen Ejecutivo</h4>
-                    <p class="mb-2">Su posición financiera actual es <strong class="${color}">${sol}</strong>. El flujo de caja neto es de <strong>${fmt(t.b)}</strong>.</p>
-                </div>
-                
-                <h4 class="font-bold text-lg mb-2 text-indigo-700">1. Análisis de Liquidez</h4>
-                <p class="mb-4">Ingresos Totales: ${fmt(t.i)}. Gastos Operativos: ${fmt(t.e)}. Ahorro: ${fmt(t.s)}. 
-                ${t.i > 0 ? `Su ratio de ahorro es del ${((t.s/t.i)*100).toFixed(1)}%.` : ''} 
-                ${t.b < 0 ? 'ADVERTENCIA: Está consumiendo capital de reserva o generando deuda.' : 'Tiene capacidad para nuevas inversiones.'}</p>
-                
-                <h4 class="font-bold text-lg mb-2 text-indigo-700">2. Proyección y Táctica</h4>
-                <p class="mb-4">${t.b < 0 ? 'PLAN DE CHOQUE: 1) Detener gastos hormiga. 2) Renegociar servicios fijos. 3) Evaluar fuentes de ingreso extra.' : 'ESTRATEGIA DE CRECIMIENTO: 1) Incrementar fondo de emergencia. 2) Evaluar instrumentos de renta fija. 3) Planificar vacaciones sin crédito.'}</p>
-
-                <h4 class="font-bold text-lg mb-2 text-indigo-700">3. Eventos Próximos</h4>
-                <p>Verifique el calendario. Un evento no planificado puede desestabilizar un mes positivo.</p>
+            // 1. Salud
+            let hColor = t.b >= 0 ? 'text-emerald-700' : 'text-rose-700';
+            document.getElementById('adv-health').innerHTML = `
+                <p class="mb-2"><strong>Flujo Neto:</strong> <span class="${hColor} font-bold">${fmt(t.b)}</span></p>
+                <p>Tu solvencia operativa es ${t.b >= 0 ? 'sólida. Cubres tus gastos.' : 'crítica. Estás en déficit.'}</p>
             `;
-            document.getElementById('advisor-content').innerHTML = html;
+
+            // 2. Ahorro
+            document.getElementById('adv-savings').innerHTML = `
+                <p class="mb-2"><strong>Tasa de Ahorro:</strong> <span class="text-indigo-700 font-bold">${savingsRate}%</span></p>
+                <p>Has acumulado <strong>${fmt(t.s)}</strong> este mes. ${savingsRate < 10 ? 'Intenta llegar al 10% mínimo.' : '¡Excelente ritmo!'}</p>
+            `;
+
+            // 3. Estructura
+            document.getElementById('adv-struct').innerHTML = `
+                <p class="mb-2"><strong>Gastos Totales:</strong> ${fmt(t.e)}</p>
+                <p>Revisa las categorías más pesadas en el gráfico circular del tablero principal para optimizar.</p>
+            `;
+
+            // 4. Acción
+            const actions = t.b < 0 
+                ? ["1. Detener gastos no esenciales ya.", "2. Auditar suscripciones.", "3. Buscar ingreso extra rápido."] 
+                : ["1. Mover superávit a inversión.", "2. Aumentar meta de ahorro.", "3. Planear compra futura."];
+            
+            document.getElementById('adv-action').innerHTML = `<ul class="list-disc pl-4 space-y-1">${actions.map(a=>`<li>${a}</li>`).join('')}</ul>`;
+            
             openModal('modal-advisor');
+        }
+
+        // --- SAVINGS VISUAL ---
+        function openSavings() {
+            const l = document.getElementById('goals-list'); l.innerHTML = '';
+            const t = getTotals(state.month);
+            const perGoal = state.goals.length > 0 ? t.s / state.goals.length : 0;
+            
+            document.getElementById('savings-subtitle').innerText = `Total Mensual: ${fmt(t.s)} (${fmt(perGoal)}/meta)`;
+
+            state.goals.forEach((g,i) => {
+                // Mock accumulated savings (Current Month * Month Index roughly, or just current month for simple demo)
+                // For this demo, we visualize current month's contribution vs target
+                let pct = g.target > 0 ? (perGoal / g.target) * 100 : 0;
+                let color = pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500';
+                
+                l.innerHTML += `
+                <div class="border border-slate-100 rounded-xl p-3 shadow-sm">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold text-slate-700">${g.name}</span>
+                        <span class="font-bold text-indigo-600 text-sm">${fmt(perGoal)} <span class="text-slate-400 font-normal">/ ${fmt(g.target)}</span></span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
+                        <div class="h-full ${color}" style="width:${Math.min(pct,100)}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                         <span class="text-xs font-bold text-slate-400">${pct.toFixed(1)}% del objetivo cubierto este mes</span>
+                         <button onclick="state.goals.splice(${i},1);save();openSavings()" class="text-xs text-rose-500 hover:text-rose-700">Eliminar</button>
+                    </div>
+                </div>`;
+            });
+            openModal('modal-savings');
+        }
+
+        // --- CALENDAR CARDS ---
+        function openCalendar() {
+            const l = document.getElementById('calendar-list'); l.innerHTML='';
+            state.events.forEach((e,i)=> {
+                l.innerHTML += `
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 mb-2">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white border border-slate-200 rounded-lg p-2 text-center min-w-[50px]">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">${MONTHS[e.m-1].substring(0,3)}</div>
+                            <div class="text-lg font-extrabold text-slate-800 leading-none">${e.d}</div>
+                        </div>
+                        <span class="font-bold text-slate-700">${e.name}</span>
+                    </div>
+                    <button onclick="state.events.splice(${i},1);save();openCalendar()" class="text-rose-400 hover:text-rose-600"><i class="ph-bold ph-trash"></i></button>
+                </div>`;
+            });
+            openModal('modal-calendar');
         }
 
         function openAnnual() {
             openModal('modal-annual');
             const ids = ['ch1','ch2','ch3','ch4','ch5','ch6','ch7','ch8'];
             const types = ['line','doughnut','bar','pie','line','radar','line','doughnut'];
-            // Generate distinct charts for visualization
             ids.forEach((id, i) => {
                 if(charts[id]) charts[id].destroy();
                 charts[id] = new Chart(document.getElementById(id), {
                     type: types[i],
                     data: {
                         labels: ['Ene','Feb','Mar','Abr','May'],
-                        datasets: [{ 
-                            label: 'Proyección', 
-                            data: Array.from({length:5},()=>Math.floor(Math.random()*5000)+1000), 
-                            backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6'], 
-                            borderColor: '#6366f1',
-                            borderWidth: 1
-                        }]
+                        datasets: [{ label: 'Data', data: [10, 25, 20, 35, 30], backgroundColor: ['#6366f1','#f43f5e','#10b981'], borderColor: '#6366f1' }]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
             });
         }
 
-        // --- MODAL UTILS ---
         function openModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModals() { document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active')); }
-        
-        function openCalendar() {
-            const l = document.getElementById('calendar-list'); l.innerHTML='';
-            state.events.forEach((e,i)=>l.innerHTML+=`<div class="flex justify-between p-2 bg-slate-50 rounded"><span>${e.name} (${e.d}/${e.m})</span><button onclick="state.events.splice(${i},1);save();openCalendar()" class="text-rose-500">x</button></div>`);
-            openModal('modal-calendar');
-        }
         function addEvent() { const n=document.getElementById('ev-name').value,d=document.getElementById('ev-d').value,m=document.getElementById('ev-m').value; if(n){state.events.push({name:n,d:parseInt(d),m:parseInt(m)});save();openCalendar();}}
-        
-        function openSavings() {
-            const l=document.getElementById('goals-list'); l.innerHTML='';
-            state.goals.forEach((g,i)=>l.innerHTML+=`<div class="p-3 border rounded"><div class="flex justify-between font-bold"><span>${g.name}</span><span>${fmt(g.target)}</span></div><button onclick="state.goals.splice(${i},1);save();openSavings()" class="text-xs text-rose-500 mt-1">Eliminar</button></div>`);
-            openModal('modal-savings');
-        }
         function addGoal() { const n=document.getElementById('new-goal-name').value,t=document.getElementById('new-goal-target').value; if(n){state.goals.push({name:n,target:t});save();openSavings();}}
-        
         function openSettings(){openModal('modal-settings')}
-        function openCloneModal(){ 
-            const s=document.getElementById('clone-target'); s.innerHTML='';
-            MONTHS.forEach((m,i)=>{if(i!==state.month)s.innerHTML+=`<option value="${i}">${m}</option>`});
-            openModal('modal-clone');
-        }
-        function executeClone() {
-            const t = parseInt(document.getElementById('clone-target').value);
-            state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month]));
-            save(); closeModals(); alert('Clonado');
-        }
-        
+        function openCloneModal(){ const s=document.getElementById('clone-target'); s.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.month)s.innerHTML+=`<option value="${i}">${m}</option>`}); openModal('modal-clone'); }
+        function executeClone() { const t = parseInt(document.getElementById('clone-target').value); state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month])); save(); closeModals(); alert('Clonado'); }
         function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
+        
         init();
     </script>
 </body>

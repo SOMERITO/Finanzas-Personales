@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V92</title>
+    <title>CFO Personal V93</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -61,7 +61,7 @@
         .modal-wrap { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
         .modal-wrap.active { display: flex; }
         .modal-box { background: white; width: 95%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; animation: popUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .modal-full { max-width: 900px; } /* Para reporte anual */
+        .modal-full { max-width: 900px; }
         
         @keyframes popUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
@@ -77,98 +77,100 @@
 </head>
 <body>
 
-    <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <div class="flex h-screen w-full bg-[#f8fafc] overflow-hidden">
 
-    <aside id="sidebar" class="sidebar">
-        <div class="h-16 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between">
-            <span class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</span>
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-        </div>
-        <nav class="flex-1 overflow-y-auto p-4 space-y-1" id="month-nav"></nav>
-        <div class="p-4 border-t border-slate-100 bg-slate-50">
-            <button onclick="openCalendar()" class="w-full py-3 mb-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:border-indigo-500 hover:text-indigo-600 flex items-center justify-center gap-2"><i class="ph-bold ph-calendar-check"></i> Calendario</button>
-            <button onclick="openCloneModal()" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-black"><i class="ph-bold ph-copy"></i> Duplicar Mes</button>
-        </div>
-    </aside>
+        <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
 
-    <div class="flex-1 flex flex-col h-screen relative w-full">
-        
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-40">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100"><i class="ph-bold ph-list text-2xl"></i></button>
-                <div class="flex items-center gap-2">
-                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-left"></i></button>
-                    <div class="text-center w-32">
-                        <h2 class="text-lg font-extrabold text-slate-900 leading-none" id="month-title">Enero</h2>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">2026</span>
-                    </div>
-                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-right"></i></button>
-                </div>
+        <aside id="sidebar" class="sidebar flex-shrink-0">
+            <div class="h-16 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between">
+                <span class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</span>
+                <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
-                    <span id="sync-status" class="sync-dot"></span>
-                    <span class="text-[10px] font-bold text-slate-500 uppercase hidden md:inline">Nube</span>
-                </div>
-                <button onclick="openAnnual()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Reporte Anual"><i class="ph-bold ph-chart-bar text-xl"></i></button>
-                <button onclick="openAdvisor()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Consejero"><i class="ph-fill ph-sparkle text-xl"></i></button>
-                <button onclick="openSettings()" class="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-gear text-xl"></i></button>
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1" id="month-nav"></nav>
+            <div class="p-4 border-t border-slate-100 bg-slate-50 mt-auto">
+                <button onclick="openCalendar()" class="w-full py-3 mb-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:border-indigo-500 hover:text-indigo-600 flex items-center justify-center gap-2"><i class="ph-bold ph-calendar-check"></i> Calendario</button>
+                <button onclick="openCloneModal()" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-black"><i class="ph-bold ph-copy"></i> Duplicar Mes</button>
             </div>
-        </header>
+        </aside>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 bg-[#f8fafc]" id="workspace">
+        <div class="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
             
-            <div class="max-w-5xl mx-auto">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="card p-4 border-l-4 border-slate-800">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Disponible</span>
-                        <h3 class="text-2xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-30">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100"><i class="ph-bold ph-list text-2xl"></i></button>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-left"></i></button>
+                        <div class="text-center w-32">
+                            <h2 class="text-lg font-extrabold text-slate-900 leading-none" id="month-title">Enero</h2>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">2026</span>
+                        </div>
+                        <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-right"></i></button>
                     </div>
-                    <div class="card p-4 border-l-4 border-emerald-500">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</span>
-                        <h3 class="text-2xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
+                        <span id="sync-status" class="sync-dot"></span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase hidden md:inline">Nube</span>
                     </div>
-                    <div class="card p-4 border-l-4 border-rose-500">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos</span>
-                        <h3 class="text-2xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
-                    </div>
-                    <div onclick="openSavings()" class="card p-4 bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition-colors">
-                        <div class="flex justify-between items-center h-full">
-                            <div>
-                                <span class="text-[10px] font-bold text-slate-400 uppercase">Ahorros</span>
-                                <h3 class="text-2xl font-extrabold truncate" id="kpi-savings">S/ 0.00</h3>
+                    <button onclick="openAnnual()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Reporte Anual"><i class="ph-bold ph-chart-bar text-xl"></i></button>
+                    <button onclick="openAdvisor()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Consejero"><i class="ph-fill ph-sparkle text-xl"></i></button>
+                    <button onclick="openSettings()" class="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-gear text-xl"></i></button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32" id="workspace">
+                
+                <div class="max-w-6xl mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="card p-4 border-l-4 border-slate-800">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Disponible</span>
+                            <h3 class="text-2xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
+                        </div>
+                        <div class="card p-4 border-l-4 border-emerald-500">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</span>
+                            <h3 class="text-2xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
+                        </div>
+                        <div class="card p-4 border-l-4 border-rose-500">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos</span>
+                            <h3 class="text-2xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
+                        </div>
+                        <div onclick="openSavings()" class="card p-4 bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition-colors">
+                            <div class="flex justify-between items-center h-full">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Ahorros</span>
+                                    <h3 class="text-2xl font-extrabold truncate" id="kpi-savings">S/ 0.00</h3>
+                                </div>
+                                <i class="ph-fill ph-piggy-bank text-3xl text-indigo-400"></i>
                             </div>
-                            <i class="ph-fill ph-piggy-bank text-3xl text-indigo-400"></i>
                         </div>
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 space-y-4" id="ledger"></div>
-                    
-                    <div class="space-y-4">
-                        <div class="card p-5">
-                            <h4 class="font-bold text-sm text-slate-700 uppercase mb-4">Distribución</h4>
-                            <div class="h-48"><canvas id="chart-mini"></canvas></div>
-                        </div>
-                        <div id="mini-calendar" class="card p-5 bg-indigo-600 text-white">
-                            <h4 class="font-bold text-sm uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-calendar"></i> Eventos Próximos</h4>
-                            <div id="mini-calendar-content" class="text-sm text-indigo-100 space-y-2"></div>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-4" id="ledger"></div>
+                        
+                        <div class="space-y-4">
+                            <div class="card p-5">
+                                <h4 class="font-bold text-sm text-slate-700 uppercase mb-4">Distribución</h4>
+                                <div class="h-48"><canvas id="chart-mini"></canvas></div>
+                            </div>
+                            <div id="mini-calendar" class="card p-5 bg-indigo-600 text-white">
+                                <h4 class="font-bold text-sm uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-calendar"></i> Eventos Próximos</h4>
+                                <div id="mini-calendar-content" class="text-sm text-indigo-100 space-y-2"></div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-8">
-                    <button onclick="addSection()" class="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
-                        <i class="ph-bold ph-plus-circle"></i> Nueva Sección
-                    </button>
+                    <div class="mt-8">
+                        <button onclick="addSection()" class="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-plus-circle"></i> Nueva Sección
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="modal-advisor" class="modal-wrap">
+    </div> <div id="modal-advisor" class="modal-wrap">
         <div class="modal-box modal-full relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
             <div class="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
@@ -244,7 +246,7 @@
             <h3 class="text-xl font-bold text-slate-900 mb-6">Configuración</h3>
             <div class="space-y-3">
                 <button onclick="exportCSV()" class="w-full py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-white">Exportar CSV</button>
-                <button onclick="if(confirm('¿Borrar todo?')) { localStorage.removeItem('cfo_v92'); location.reload(); }" class="w-full py-3 bg-rose-50 border border-rose-100 rounded-xl font-bold text-rose-600 hover:bg-rose-100">Resetear Todo</button>
+                <button onclick="if(confirm('¿Borrar todo?')) { localStorage.removeItem('cfo_v93'); location.reload(); }" class="w-full py-3 bg-rose-50 border border-rose-100 rounded-xl font-bold text-rose-600 hover:bg-rose-100">Resetear Todo</button>
             </div>
         </div>
     </div>
@@ -272,7 +274,7 @@
 
         // INIT
         async function init() {
-            const local = localStorage.getItem('cfo_v92');
+            const local = localStorage.getItem('cfo_v93');
             if(local) {
                 const p = JSON.parse(local);
                 state.struct = p.struct || genYear();
@@ -306,7 +308,7 @@
                     }
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: {'Content-Type':'application/json', 'X-Master-Key': CONFIG.apiKey}, body: JSON.stringify(state) });
-                    localStorage.setItem('cfo_v92', JSON.stringify(state));
+                    localStorage.setItem('cfo_v93', JSON.stringify(state));
                 }
                 ind.className = 'sync-dot done';
             } catch(e) { console.error(e); ind.className = 'sync-dot'; }
@@ -505,8 +507,6 @@
             document.getElementById('savings-summary').innerText = `Total Ahorrado: ${fmt(t.s)} → ${fmt(perGoal)} para cada meta.`;
 
             state.goals.forEach((g, idx) => {
-                // Mock history calculation: assume saving rate is constant for demo
-                // In real app, calculate sum of prev months
                 let saved = perGoal; 
                 let pct = g.target > 0 ? (saved / g.target) * 100 : 0;
                 
@@ -536,9 +536,15 @@
         // ANNUAL VIEW
         function openAnnual() {
             openModal('modal-annual');
-            // Init Charts (Mock Data for visualization)
-            // Real logic needs loop through all months
-            // Simplified for layout fix
+            // Mock Chart Logic - Simplified for this fix
+            // In production, this would loop over all months in state.struct
+            const ctx1 = document.getElementById('chart-annual-trend');
+            const ctx2 = document.getElementById('chart-annual-pie');
+            if(charts.an1) charts.an1.destroy();
+            if(charts.an2) charts.an2.destroy();
+            
+            charts.an1 = new Chart(ctx1, {type:'line', data:{labels:['Ene','Feb','Mar'], datasets:[{label:'Ingresos',data:[3000,3200,3500],borderColor:'#10b981'},{label:'Gastos',data:[2500,2800,2100],borderColor:'#f43f5e'}]}});
+            charts.an2 = new Chart(ctx2, {type:'doughnut', data:{labels:['Fijos','Variables'], datasets:[{data:[70,30],backgroundColor:['#6366f1','#f59e0b']}]}});
         }
 
         // SETTINGS & CLONE

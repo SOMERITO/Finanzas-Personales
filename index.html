@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V95 (Master)</title>
+    <title>CFO Personal V96 (Cloud)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -79,6 +79,11 @@
         /* SCROLL */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* SYNC DOT */
+        .sync-dot { height: 8px; width: 8px; border-radius: 50%; background: #cbd5e1; transition: 0.3s; }
+        .sync-dot.syncing { background: #eab308; box-shadow: 0 0 5px #eab308; }
+        .sync-dot.done { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
     </style>
 </head>
 <body>
@@ -116,6 +121,13 @@
             </div>
 
             <div class="flex items-center gap-3">
+                 <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full" title="Estado de la Nube">
+                    <div id="sync-dot" class="sync-dot"></div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase hidden md:inline">Cloud</span>
+                </div>
+                
+                <div class="h-6 w-px bg-slate-200 mx-1"></div>
+
                 <button onclick="toggleEditMode()" id="btn-edit" class="hidden md:block px-4 py-2 rounded-lg font-bold text-xs border border-slate-300 text-slate-600 hover:bg-slate-800 hover:text-white hover:border-slate-800 transition-all">Editar</button>
                 <div class="h-6 w-px bg-slate-200 mx-1"></div>
                 <button onclick="openAnnual()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Visión 2026"><i class="ph-bold ph-chart-bar text-xl"></i></button>
@@ -245,7 +257,7 @@
         <div class="modal-box modal-sm relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
             <h3 class="text-xl font-bold text-slate-900 mb-6">Ajustes</h3>
-            <button onclick="if(confirm('¿Reiniciar todo?')){localStorage.removeItem('cfo_master_db');location.reload()}" class="w-full py-3 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100">Resetear Fábrica</button>
+            <button onclick="if(confirm('¿Reiniciar todo?')){localStorage.removeItem('cfo_v96_cloud');location.reload()}" class="w-full py-3 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100">Resetear Fábrica</button>
         </div>
     </div>
 
@@ -259,38 +271,54 @@
     </div>
 
     <script>
+        // === TUS CREDENCIALES (YA INTEGRADAS) ===
+        const CONFIG = { 
+            apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", 
+            binId: "698a256fd0ea881f40adab7d" 
+        };
+
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const BASE = [{id:'i',title:'Ingresos',type:'income',items:['Sueldo'],collapsed:false},{id:'f',title:'Gastos Fijos',type:'expense',items:['Alquiler'],collapsed:false},{id:'s',title:'Ahorros',type:'savings',items:['Fondo'],collapsed:false}];
         
         let state = { month: new Date().getMonth(), mode: 'view', struct: [], data: {}, events: [], goals: [] };
         let charts = {};
 
-        // DATA RESCUE SYSTEM
-        const LEGACY_KEYS = ['cfo_v94', 'cfo_v93', 'cfo_v92', 'cfo_v91', 'cfo_v90_stable', 'cfo_v89_fixed', 'cfo_v88_suite', 'cfo_v87_fluid'];
-
+        // INICIO CON SINCRONIZACIÓN Y RESCATE DE DATOS
         async function init() {
-            // 1. Try Load Master
-            let raw = localStorage.getItem('cfo_master_db');
-            
-            // 2. Data Rescue logic
-            if (!raw) {
-                for (const k of LEGACY_KEYS) {
-                    const legacy = localStorage.getItem(k);
-                    if (legacy) {
-                        raw = legacy;
-                        alert(`¡Datos recuperados de versión anterior (${k})! Se han migrado a la nueva base de datos.`);
-                        break;
+            try {
+                // 1. Intentar cargar de la NUBE
+                await sync(true); 
+
+                // 2. Si la nube está vacía (primera vez), buscar datos locales viejos
+                const hasData = state.struct && state.struct.length > 0;
+                if(!hasData) {
+                    console.log("Nube vacía. Buscando datos locales...");
+                    const legacyKeys = ['cfo_master_db','cfo_v94','cfo_v93','cfo_v92','cfo_v91'];
+                    for(let k of legacyKeys) {
+                        const local = localStorage.getItem(k);
+                        if(local) {
+                            const p = JSON.parse(local);
+                            state = {...state, ...p};
+                            await sync(false); // Subir lo recuperado a la nube
+                            alert("¡Datos locales recuperados y subidos a la nube!");
+                            break;
+                        }
                     }
                 }
-            }
+                
+                // 3. Si no hay nada de nada, iniciar de cero
+                if(!state.struct || state.struct.length === 0) {
+                     state.struct = genYear();
+                     state.events = [{name:'San Valentín', d:14, m:2}, {name:'Navidad', d:25, m:12}];
+                     state.goals = [{name:'Emergencia', target:5000}];
+                     await sync(false);
+                }
 
-            if(raw) {
-                const p = JSON.parse(raw);
-                state = { ...state, ...p };
-            } else {
-                state.struct = genYear();
-                state.events = [{name:'San Valentín', d:14, m:2}, {name:'Navidad', d:25, m:12}];
-                state.goals = [{name:'Emergencia', target:5000}];
+            } catch (e) {
+                console.error("Error init:", e);
+                // Fallback local si falla la nube
+                const local = localStorage.getItem('cfo_v96_cloud');
+                if(local) state = JSON.parse(local);
             }
             
             // ESC KEY LISTENER
@@ -300,8 +328,44 @@
             checkEventsToday();
         }
 
+        // --- CLOUD SYNC ENGINE ---
+        async function sync(pull) {
+            const dot = document.getElementById('sync-dot');
+            dot.className = 'sync-dot syncing';
+            
+            try {
+                if(pull) {
+                    const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { 
+                        headers: { 'X-Master-Key': CONFIG.apiKey } 
+                    });
+                    if(!r.ok) throw new Error('Error API');
+                    const j = await r.json();
+                    if(j.record && j.record.struct) {
+                        state = j.record;
+                        localStorage.setItem('cfo_v96_cloud', JSON.stringify(state)); // Backup local
+                    }
+                } else {
+                    await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { 
+                        method: 'PUT', 
+                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, 
+                        body: JSON.stringify(state) 
+                    });
+                    localStorage.setItem('cfo_v96_cloud', JSON.stringify(state));
+                }
+                dot.className = 'sync-dot done';
+            } catch(e) {
+                console.error(e);
+                dot.className = 'sync-dot'; // Gris si falla
+            }
+        }
+
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_master_db', JSON.stringify(state)); render(); }
+        function save() { 
+            // Guardar local inmediato + Sync nube
+            localStorage.setItem('cfo_v96_cloud', JSON.stringify(state)); 
+            render(); 
+            sync(false); 
+        }
 
         // --- CORE RENDER ---
         function render() {
@@ -419,23 +483,18 @@
 
         // --- FEATURES ---
         function checkEventsToday() {
-            // FIX: Using Date to detect Feb 14, 2026 based on prompt
-            // In a real browser, new Date() gets current time. 
+            // DETECTAR FECHA ACTUAL
             const t = new Date();
             const d = t.getDate();
             const m = t.getMonth()+1;
             
-            // Hardcoded check for prompt context: "Saturday, February 14, 2026"
-            // If the user's system date matches, it triggers.
             const ev = state.events.find(e => e.d === d && e.m === m);
-            
-            // Widget logic
             const w = document.getElementById('mini-calendar-widget');
             const wt = document.getElementById('mini-calendar-text');
+            
             if(ev) {
                 w.classList.remove('hidden');
                 wt.innerText = `¡HOY: ${ev.name}!`;
-                // Modal
                 document.getElementById('alert-title').innerText = `¡Feliz ${ev.name}!`;
                 document.getElementById('alert-msg').innerText = "Hoy es un día especial. Recuerda registrar cualquier gasto relacionado.";
                 openModal('modal-event-alert');

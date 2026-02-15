@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V91</title>
+    <title>CFO Personal V92</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -19,14 +19,6 @@
                     colors: {
                         slate: { 850: '#1a202c', 900: '#0f172a' },
                         indigo: { 500: '#6366f1', 600: '#4f46e5' },
-                    },
-                    animation: {
-                        'slide-down': 'slideDown 0.3s ease-out forwards',
-                        'fade-in': 'fadeIn 0.2s ease-out forwards',
-                    },
-                    keyframes: {
-                        slideDown: { '0%': { transform: 'translateY(-100%)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
                     }
                 }
             }
@@ -38,266 +30,269 @@
         
         /* SIDEBAR */
         .sidebar { 
-            width: 280px; background: white; border-right: 1px solid #e2e8f0; 
+            width: 260px; background: white; border-right: 1px solid #e2e8f0; 
             position: fixed; top: 0; bottom: 0; left: 0; z-index: 50;
             transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 24px rgba(0,0,0,0.05);
+            box-shadow: 4px 0 24px rgba(0,0,0,0.05); display: flex; flex-direction: column;
         }
         .sidebar.open { transform: translateX(0); }
-        .sidebar-overlay { 
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); z-index: 40; 
-            opacity: 0; pointer-events: none; transition: opacity 0.3s; 
-        }
-        .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 40; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .overlay.active { opacity: 1; pointer-events: auto; }
 
         @media (min-width: 768px) {
-            .layout-wrapper { display: flex; }
-            .sidebar { position: relative; transform: translateX(0); box-shadow: none; z-index: 10; }
-            .sidebar-overlay { display: none; }
+            .sidebar { position: relative; transform: translateX(0); z-index: 10; margin-left: 0; transition: margin-left 0.3s; }
+            .sidebar.collapsed { margin-left: -260px; }
+            .overlay { display: none; }
         }
 
         /* INPUTS */
-        .input-val { background: transparent; text-align: right; font-weight: 700; border-bottom: 1px solid transparent; width: 100px; transition: all 0.2s; }
-        .input-val:focus { border-bottom-color: #6366f1; outline: none; background: #f8fafc; }
-        
-        .input-name { background: transparent; font-weight: 600; width: 100%; border: none; outline: none; }
-        .edit-mode .input-name { border-bottom: 1px solid #cbd5e1; padding: 4px 0; }
-        .edit-mode .input-name:focus { border-color: #6366f1; }
+        .input-clean { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; transition: 0.2s; font-weight: 600; color: #334155; }
+        .input-clean:focus { border-bottom-color: #6366f1; color: #0f172a; }
+        .input-val { text-align: right; font-weight: 700; color: #0f172a; }
 
         /* CARDS */
-        .card-personal {
-            background: white; border-radius: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
-            transition: transform 0.2s;
-        }
-        .card-personal:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05); }
-
-        /* TOAST */
-        #toast { 
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); 
-            background: #0f172a; color: #4ade80; padding: 10px 24px; border-radius: 99px; 
-            font-weight: 700; font-size: 14px; z-index: 100; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 8px;
-        }
-        #toast.visible { transform: translateX(-50%) translateY(0); }
+        .card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
+        .card-head { padding: 16px; display: flex; justify-content: space-between; align-items: center; background: #fff; cursor: pointer; user-select: none; }
+        .card-head:hover { background: #f8fafc; }
+        .card-body { padding: 0 16px; transition: max-height 0.3s ease-out; overflow: hidden; max-height: 2000px; }
+        .card-body.collapsed { max-height: 0; }
 
         /* MODALS */
-        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; }
-        .modal-overlay.open { display: flex; animation: fadeIn 0.2s forwards; }
-        .modal-content { background: white; width: 90%; max-width: 500px; border-radius: 24px; padding: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-height: 85vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.2s; }
-        .modal-overlay.open .modal-content { transform: scale(1); }
+        .modal-wrap { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        .modal-wrap.active { display: flex; }
+        .modal-box { background: white; width: 95%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; animation: popUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-full { max-width: 900px; } /* Para reporte anual */
+        
+        @keyframes popUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        /* CUSTOM SCROLL */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* UTILS */
+        .sync-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; background: #cbd5e1; transition: background 0.3s; }
+        .sync-dot.syncing { background: #facc15; }
+        .sync-dot.done { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
     </style>
 </head>
 <body>
 
-    <div id="toast"><i class="ph-bold ph-check-circle text-lg"></i> <span id="toast-text">Sincronizado</span></div>
+    <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
 
-    <div class="layout-wrapper h-screen w-full overflow-hidden flex flex-col md:flex-row">
+    <aside id="sidebar" class="sidebar">
+        <div class="h-16 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between">
+            <span class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</span>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1" id="month-nav"></nav>
+        <div class="p-4 border-t border-slate-100 bg-slate-50">
+            <button onclick="openCalendar()" class="w-full py-3 mb-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:border-indigo-500 hover:text-indigo-600 flex items-center justify-center gap-2"><i class="ph-bold ph-calendar-check"></i> Calendario</button>
+            <button onclick="openCloneModal()" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-black"><i class="ph-bold ph-copy"></i> Duplicar Mes</button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col h-screen relative w-full">
         
-        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-        <aside id="sidebar" class="sidebar flex flex-col">
-            <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
-                <h1 class="font-extrabold text-2xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</h1>
-            </div>
-            
-            <nav class="flex-1 overflow-y-auto p-4 space-y-1 custom-scroll" id="month-nav"></nav>
-
-            <div class="p-4 border-t border-slate-100 bg-slate-50/50 shrink-0 space-y-2">
-                 <button onclick="openCalendar()" class="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"><i class="ph-bold ph-calendar-check"></i> Eventos & Fechas</button>
-                <button onclick="openCloneModal()" class="w-full py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"><i class="ph-bold ph-copy"></i> Duplicar Mes</button>
-            </div>
-        </aside>
-
-        <div class="flex-1 flex flex-col h-full relative bg-[#f8fafc] overflow-hidden">
-            
-            <header class="h-20 bg-white/90 backdrop-blur-md z-40 px-6 flex items-center justify-between border-b border-slate-200 shrink-0">
-                <div class="flex items-center">
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 mr-4 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-list text-2xl"></i></button>
-                    
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 flex items-center justify-center"><i class="ph-bold ph-caret-left"></i></button>
-                        <div class="text-center w-32">
-                            <h2 class="text-xl font-extrabold text-slate-900 leading-none" id="month-title">Enero</h2>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">2026</span>
-                        </div>
-                        <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 flex items-center justify-center"><i class="ph-bold ph-caret-right"></i></button>
-                    </div>
-                </div>
-
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-40">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100"><i class="ph-bold ph-list text-2xl"></i></button>
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleAnnualView()" class="p-2 text-slate-500 hover:text-indigo-600 bg-slate-100 rounded-lg" title="Vista Anual"><i class="ph-bold ph-chart-bar text-lg"></i></button>
-                    <button onclick="openAI()" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 text-xs shadow-lg shadow-indigo-200">
-                        <i class="ph-fill ph-sparkle"></i> Consejero
-                    </button>
-                    <button onclick="toggleEdit()" id="edit-btn" class="px-4 py-2 text-xs font-bold border-2 border-slate-200 rounded-lg text-slate-500 hover:border-slate-800 hover:text-slate-900 transition-all">Editar</button>
-                    <button onclick="openSettings()" class="p-2 text-slate-400 hover:text-slate-600"><i class="ph-bold ph-gear text-xl"></i></button>
-                </div>
-            </header>
-
-            <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 custom-scroll" id="main-scroll-area">
-                
-                <div id="annual-view" class="hidden max-w-7xl mx-auto pb-10">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-2xl font-extrabold text-slate-900">Resumen Anual</h3>
-                        <button onclick="toggleAnnualView()" class="text-sm font-bold text-indigo-600">Cerrar</button>
+                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-left"></i></button>
+                    <div class="text-center w-32">
+                        <h2 class="text-lg font-extrabold text-slate-900 leading-none" id="month-title">Enero</h2>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">2026</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="card-personal p-4 h-64"><canvas id="chart-an-trend"></canvas></div>
-                        <div class="card-personal p-4 h-64"><canvas id="chart-an-pie"></canvas></div>
-                    </div>
-                </div>
-
-                <div id="monthly-view" class="max-w-5xl mx-auto">
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="card-personal p-5 border-l-4 border-slate-800">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Disponible</span>
-                            <h3 class="text-2xl font-extrabold text-slate-900" id="kpi-balance">S/ 0.00</h3>
-                        </div>
-                         <div class="card-personal p-5 border-l-4 border-emerald-500">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</span>
-                            <h3 class="text-2xl font-extrabold text-emerald-600" id="kpi-income">S/ 0.00</h3>
-                        </div>
-                         <div class="card-personal p-5 border-l-4 border-rose-500">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos</span>
-                            <h3 class="text-2xl font-extrabold text-rose-500" id="kpi-expenses">S/ 0.00</h3>
-                        </div>
-                         <div onclick="openSavingsModal()" class="card-personal p-5 bg-slate-900 text-white cursor-pointer hover:bg-slate-800">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Ahorros</span>
-                                    <h3 class="text-2xl font-extrabold" id="kpi-savings">S/ 0.00</h3>
-                                </div>
-                                <i class="ph-fill ph-piggy-bank text-3xl text-indigo-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 space-y-6" id="ledger-container"></div>
-                        
-                        <div class="space-y-6">
-                            <div class="card-personal p-5 bg-indigo-600 text-white shadow-lg shadow-indigo-200">
-                                <h4 class="font-bold text-sm uppercase mb-3 flex items-center gap-2"><i class="ph-bold ph-calendar"></i> Próximos Eventos</h4>
-                                <div id="mini-calendar-list" class="space-y-2 text-sm text-indigo-100"></div>
-                            </div>
-
-                            <div class="card-personal p-5">
-                                <h4 class="font-bold text-sm text-slate-800 uppercase mb-4">Distribución Mensual</h4>
-                                <div class="h-48 relative">
-                                    <canvas id="chart-main"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="add-section-btn-container" class="mt-8 hidden">
-                        <button onclick="openSectionModal()" class="w-full py-4 border-2 border-dashed border-slate-300 rounded-2xl text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-600 transition-all">+ Nueva Sección Principal</button>
-                    </div>
-
+                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="advisor-modal" class="modal-overlay">
-        <div class="modal-content relative">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-4 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-500"></i> Análisis CFO</h3>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full">
+                    <span id="sync-status" class="sync-dot"></span>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase hidden md:inline">Nube</span>
+                </div>
+                <button onclick="openAnnual()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Reporte Anual"><i class="ph-bold ph-chart-bar text-xl"></i></button>
+                <button onclick="openAdvisor()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Consejero"><i class="ph-fill ph-sparkle text-xl"></i></button>
+                <button onclick="openSettings()" class="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg"><i class="ph-bold ph-gear text-xl"></i></button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 bg-[#f8fafc]" id="workspace">
             
-            <div id="advisor-content" class="space-y-4">
+            <div class="max-w-5xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="card p-4 border-l-4 border-slate-800">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Disponible</span>
+                        <h3 class="text-2xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
+                    </div>
+                    <div class="card p-4 border-l-4 border-emerald-500">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</span>
+                        <h3 class="text-2xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
+                    </div>
+                    <div class="card p-4 border-l-4 border-rose-500">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos</span>
+                        <h3 class="text-2xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
+                    </div>
+                    <div onclick="openSavings()" class="card p-4 bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition-colors">
+                        <div class="flex justify-between items-center h-full">
+                            <div>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Ahorros</span>
+                                <h3 class="text-2xl font-extrabold truncate" id="kpi-savings">S/ 0.00</h3>
+                            </div>
+                            <i class="ph-fill ph-piggy-bank text-3xl text-indigo-400"></i>
+                        </div>
+                    </div>
                 </div>
-        </div>
-    </div>
 
-    <div id="calendar-modal" class="modal-overlay">
-        <div class="modal-content relative">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Gestión de Eventos</h3>
-            <div class="flex gap-2 mb-4">
-                <input id="ev-name" class="flex-1 input-clean bg-slate-50 border-slate-200" placeholder="Evento (ej. Cumpleaños)">
-                <input id="ev-day" type="number" class="w-16 input-clean bg-slate-50 border-slate-200" placeholder="Día">
-                <input id="ev-month" type="number" class="w-16 input-clean bg-slate-50 border-slate-200" placeholder="Mes">
-                <button onclick="addEvent()" class="bg-slate-900 text-white px-3 rounded-lg"><i class="ph-bold ph-plus"></i></button>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-4" id="ledger"></div>
+                    
+                    <div class="space-y-4">
+                        <div class="card p-5">
+                            <h4 class="font-bold text-sm text-slate-700 uppercase mb-4">Distribución</h4>
+                            <div class="h-48"><canvas id="chart-mini"></canvas></div>
+                        </div>
+                        <div id="mini-calendar" class="card p-5 bg-indigo-600 text-white">
+                            <h4 class="font-bold text-sm uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-calendar"></i> Eventos Próximos</h4>
+                            <div id="mini-calendar-content" class="text-sm text-indigo-100 space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button onclick="addSection()" class="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-plus-circle"></i> Nueva Sección
+                    </button>
+                </div>
             </div>
-            <div id="events-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
         </div>
     </div>
 
-    <div id="section-modal" class="modal-overlay">
-        <div class="modal-content relative max-w-sm">
+    <div id="modal-advisor" class="modal-wrap">
+        <div class="modal-box modal-full relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Nueva Sección</h3>
-            <input id="ns-title" class="w-full input-clean bg-slate-50 border-slate-200 mb-4 p-3" placeholder="Nombre (ej. Tarjetas)">
-            <button onclick="addSectionConfirm()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl">Crear</button>
+            <div class="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><i class="ph-fill ph-sparkle text-xl"></i></div>
+                <div>
+                    <h3 class="text-xl font-extrabold text-slate-900">Consejero Financiero</h3>
+                    <p class="text-xs text-slate-500" id="advisor-date">Fecha actual: ...</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="advisor-events-panel" class="bg-indigo-50 border border-indigo-100 p-5 rounded-xl hidden">
+                    <h4 class="font-bold text-indigo-900 mb-2 flex items-center gap-2"><i class="ph-fill ph-bell-ringing"></i> Alertas de Calendario</h4>
+                    <div id="advisor-events-list" class="space-y-2 text-sm text-indigo-800"></div>
+                </div>
+
+                <div class="space-y-4 col-span-2">
+                    <div id="advisor-diagnosis" class="bg-slate-50 p-5 rounded-xl border border-slate-200 text-slate-700 text-sm leading-relaxed"></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="savings-modal" class="modal-overlay">
-        <div class="modal-content relative">
+    <div id="modal-annual" class="modal-wrap">
+        <div class="modal-box modal-full relative h-[80vh]">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-lg font-bold text-slate-900 mb-2">Mis Metas de Ahorro</h3>
-            <p class="text-xs text-slate-500 mb-4">El total ahorrado se divide entre las metas activas.</p>
-            <div id="savings-list" class="space-y-3 mb-4"></div>
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-6">Visión Anual 2026</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full pb-10">
+                <div class="card p-4 flex flex-col"><h4 class="font-bold mb-2">Flujo de Caja</h4><div class="flex-1 relative"><canvas id="chart-annual-trend"></canvas></div></div>
+                <div class="card p-4 flex flex-col"><h4 class="font-bold mb-2">Gastos por Categoría</h4><div class="flex-1 relative"><canvas id="chart-annual-pie"></canvas></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-savings" class="modal-wrap">
+        <div class="modal-box relative">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Metas de Ahorro</h3>
+            <div id="savings-summary" class="bg-indigo-50 p-3 rounded-lg text-center mb-4 text-sm font-bold text-indigo-800"></div>
+            
+            <div id="goals-list" class="space-y-4 mb-6"></div>
+            
             <div class="border-t pt-4">
-                <h4 class="text-xs font-bold text-slate-400 uppercase mb-2">Nueva Meta</h4>
-                <div class="flex gap-2">
-                    <input id="ng-name" class="flex-1 input-clean bg-slate-50 border-slate-200" placeholder="Meta">
-                    <input id="ng-target" type="number" class="w-24 input-clean bg-slate-50 border-slate-200" placeholder="Monto">
-                    <button onclick="addGoal()" class="bg-indigo-600 text-white px-4 rounded-lg font-bold">Crear</button>
+                <label class="text-xs font-bold text-slate-400 uppercase">Nueva Meta</label>
+                <div class="flex gap-2 mt-2">
+                    <input id="new-goal-name" class="input-clean bg-slate-50 border p-2 rounded" placeholder="Nombre (ej. Auto)">
+                    <input id="new-goal-target" type="number" class="input-clean bg-slate-50 border p-2 rounded w-24" placeholder="Monto">
+                    <button onclick="addGoal()" class="bg-slate-900 text-white px-4 rounded font-bold">Crear</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="clone-modal" class="modal-overlay">
-        <div class="modal-content relative max-w-sm">
+    <div id="modal-calendar" class="modal-wrap">
+        <div class="modal-box relative">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Duplicar Mes Actual</h3>
-            <p class="text-sm text-slate-500 mb-2">Copiar a:</p>
-            <select id="clone-target" class="w-full p-3 bg-slate-50 rounded-lg mb-4 font-bold"></select>
-            <button onclick="executeClone()" class="w-full py-3 bg-slate-900 text-white font-bold rounded-xl">Copiar</button>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-4">Calendario de Eventos</h3>
+            
+            <div class="flex gap-2 mb-4 bg-slate-50 p-2 rounded-lg">
+                <input id="ev-name" class="flex-1 bg-transparent outline-none text-sm font-bold" placeholder="Nuevo Evento...">
+                <input id="ev-d" type="number" class="w-12 bg-white border rounded text-center text-sm" placeholder="DD">
+                <input id="ev-m" type="number" class="w-12 bg-white border rounded text-center text-sm" placeholder="MM">
+                <button onclick="addEvent()" class="text-indigo-600 font-bold"><i class="ph-bold ph-plus"></i></button>
+            </div>
+
+            <div id="calendar-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="modal-wrap">
+        <div class="modal-box relative max-w-sm">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+            <h3 class="text-xl font-bold text-slate-900 mb-6">Configuración</h3>
+            <div class="space-y-3">
+                <button onclick="exportCSV()" class="w-full py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-white">Exportar CSV</button>
+                <button onclick="if(confirm('¿Borrar todo?')) { localStorage.removeItem('cfo_v92'); location.reload(); }" class="w-full py-3 bg-rose-50 border border-rose-100 rounded-xl font-bold text-rose-600 hover:bg-rose-100">Resetear Todo</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-clone" class="modal-wrap">
+        <div class="modal-box relative max-w-sm">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+            <h3 class="text-lg font-bold text-slate-900 mb-4">Duplicar Mes</h3>
+            <select id="clone-target" class="w-full p-3 bg-slate-50 rounded-lg font-bold mb-4"></select>
+            <button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl">Confirmar</button>
         </div>
     </div>
 
     <script>
-        // CONFIG
         const CONFIG = { apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", binId: "698a256fd0ea881f40adab7d" };
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const BASE = [
-            { id: 'ing', title: 'Ingresos', type: 'income', items: ['Sueldo Base'], collapsed: false },
-            { id: 'fij', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler'], collapsed: false },
-            { id: 'aho', title: 'Ahorros', type: 'savings', items: ['Fondo General'], collapsed: false }
+            { id: 'i', title: 'Ingresos', type: 'income', items: ['Sueldo'], collapsed: false },
+            { id: 'f', title: 'Gastos Fijos', type: 'expense', items: ['Alquiler'], collapsed: false },
+            { id: 's', title: 'Ahorros', type: 'savings', items: ['Ahorro General'], collapsed: false }
         ];
 
-        let state = { month: new Date().getMonth(), mode: 'view', struct: [], data: {}, events: [], goals: [] };
-        let chart = null, chAn1 = null, chAn2 = null;
+        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+        let charts = {};
 
         // INIT
         async function init() {
-            const local = localStorage.getItem('cfo_v91');
+            const local = localStorage.getItem('cfo_v92');
             if(local) {
                 const p = JSON.parse(local);
                 state.struct = p.struct || genYear();
                 state.data = p.data || {};
-                state.events = p.events || [];
-                state.goals = p.goals || [];
+                state.events = p.events || [{name:'San Valentín', d:14, m:2}, {name:'Navidad', d:25, m:12}];
+                state.goals = p.goals || [{name:'Fondo Emergencia', target:5000}];
             } else {
                 state.struct = genYear();
                 state.events = [{name:'San Valentín', d:14, m:2}, {name:'Navidad', d:25, m:12}];
-                state.goals = [{name:'Emergencia', target:1000}];
+                state.goals = [{name:'Fondo Emergencia', target:5000}];
             }
-            renderAll();
+            render();
             await sync(true);
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v91', JSON.stringify(state)); }
         
         async function sync(pull) {
+            const ind = document.getElementById('sync-status');
+            ind.className = 'sync-dot syncing';
             try {
                 if(pull) {
                     const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { headers: {'X-Master-Key': CONFIG.apiKey} });
@@ -307,266 +302,279 @@
                         state.data = j.record.data || {};
                         state.events = j.record.events || state.events;
                         state.goals = j.record.goals || state.goals;
-                        save(); renderAll();
+                        render();
                     }
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: {'Content-Type':'application/json', 'X-Master-Key': CONFIG.apiKey}, body: JSON.stringify(state) });
-                    showToast();
+                    localStorage.setItem('cfo_v92', JSON.stringify(state));
                 }
-            } catch(e) { console.error(e); }
+                ind.className = 'sync-dot done';
+            } catch(e) { console.error(e); ind.className = 'sync-dot'; }
         }
 
-        function showToast() {
-            const t = document.getElementById('toast');
-            t.classList.add('visible');
-            setTimeout(() => t.classList.remove('visible'), 2000);
-        }
-
-        // RENDER CORE
-        function renderAll() {
+        // RENDER UI
+        function render() {
             renderSidebar();
-            renderDash();
+            renderLedger();
+            renderStats();
+            renderMiniCalendar();
         }
 
         function renderSidebar() {
             const nav = document.getElementById('month-nav'); nav.innerHTML = '';
             MONTHS.forEach((m, i) => {
                 const active = i === state.month;
-                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 transition-all flex justify-between items-center ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}">
+                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 flex justify-between items-center transition-colors ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}">
                     ${m} ${active ? '<i class="ph-bold ph-caret-right"></i>' : ''}
                 </button>`;
             });
         }
 
-        function renderDash() {
+        function renderLedger() {
             document.getElementById('month-title').innerText = MONTHS[state.month];
-            const con = document.getElementById('ledger-container'); con.innerHTML = '';
+            const con = document.getElementById('ledger'); con.innerHTML = '';
             const st = state.struct[state.month];
-            
-            // Toggle Edit Mode Class
-            document.body.classList.toggle('edit-mode', state.mode === 'edit');
-            document.getElementById('edit-btn').className = state.mode === 'edit' 
-                ? "px-4 py-2 text-xs font-bold bg-slate-900 text-white rounded-lg shadow-lg" 
-                : "px-4 py-2 text-xs font-bold border-2 border-slate-200 rounded-lg text-slate-500";
-            
-            document.getElementById('add-section-btn-container').classList.toggle('hidden', state.mode !== 'edit');
 
             st.forEach((sec, sIdx) => {
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
                 
-                let color = sec.type==='income'?'text-emerald-600':(sec.type==='savings'?'text-indigo-600':'text-rose-600');
-                
                 const card = document.createElement('div');
-                card.className = "card-personal overflow-hidden";
+                card.className = "card";
                 
-                let html = `<div class="p-5 border-b border-slate-50 flex justify-between items-center bg-white z-10 relative">
+                // HEADER
+                let head = `<div class="card-head" onclick="toggleSection(${sIdx})">
                     <div class="flex items-center gap-3">
-                        ${state.mode==='edit' ? `<button onclick="delSection(${sIdx})" class="text-rose-400 hover:text-rose-600"><i class="ph-bold ph-trash"></i></button>` : ''}
-                        <h3 class="font-bold text-slate-800 text-lg">${sec.title}</h3>
+                        <i class="ph-bold ph-caret-down transition-transform duration-300 ${sec.collapsed ? '-rotate-90' : ''}"></i>
+                        <input class="font-bold text-lg bg-transparent border-none outline-none w-40" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx}, this.value)">
+                        <button onclick="event.stopPropagation(); if(confirm('¿Borrar?')) delSection(${sIdx})" class="text-slate-300 hover:text-rose-500"><i class="ph-bold ph-trash"></i></button>
                     </div>
-                    <span class="font-bold ${color}">${fmt(total)}</span>
-                </div>
-                <div class="bg-white p-4 space-y-1">`;
+                    <span class="font-bold text-lg ${sec.type==='income'?'text-emerald-600':'text-slate-800'}">${fmt(total)}</span>
+                </div>`;
 
+                // BODY
+                let body = `<div class="card-body ${sec.collapsed ? 'collapsed' : ''}"><div class="pb-4 space-y-2">`;
+                
                 if(sec.type === 'savings') {
-                    // Savings Special Input
-                    html += `<div class="flex justify-between items-center p-3 bg-indigo-50 rounded-xl">
-                        <span class="text-sm font-bold text-indigo-900">Monto Ahorrado</span>
-                        <input type="text" inputmode="decimal" class="input-val bg-transparent text-xl text-indigo-600" 
+                    body += `<div class="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
+                        <span class="font-bold text-indigo-900">Monto Ahorrado</span>
+                        <input type="text" inputmode="decimal" class="input-val text-xl bg-transparent" 
                         value="${total===0?'':total.toLocaleString('es-PE',{minimumFractionDigits:2})}" 
                         onblur="saveVal('${state.month}-${sec.id}-0', this.value)">
                     </div>`;
                 } else {
-                    // Regular Items
                     sec.items.forEach((item, iIdx) => {
-                        const k = `${state.month}-${sec.id}-${iIdx}`;
-                        const v = state.data[k] || 0;
-                        const isLast = iIdx === sec.items.length - 1;
-
-                        html += `<div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-2 rounded transition-colors" data-s="${sIdx}">
-                            <div class="flex items-center gap-2 flex-1">
-                                ${state.mode==='edit' ? `<button onclick="delItem(${sIdx},${iIdx})" class="text-slate-300 hover:text-rose-500"><i class="ph-bold ph-minus-circle"></i></button>` : ''}
-                                ${state.mode==='edit' 
-                                    ? `<input class="input-name" value="${item}" onchange="renItem(${sIdx},${iIdx},this.value)">` 
-                                    : `<span class="text-sm font-semibold text-slate-600">${item}</span>`
-                                }
-                            </div>
-                            <input type="text" inputmode="decimal" class="input-val text-slate-800" 
-                                value="${v===0?'':v.toLocaleString('es-PE',{minimumFractionDigits:2})}" placeholder="0.00"
-                                onblur="saveVal('${k}', this.value)"
-                                onkeydown="handleSmartEnter(event, ${sIdx}, ${iIdx}, ${isLast})">
+                        const val = state.data[`${state.month}-${sec.id}-${iIdx}`] || 0;
+                        body += `<div class="flex items-center gap-2 py-1 px-2 hover:bg-slate-50 rounded group">
+                            <button onclick="delItem(${sIdx},${iIdx})" class="text-slate-200 hover:text-rose-500 opacity-0 group-hover:opacity-100"><i class="ph-bold ph-minus-circle"></i></button>
+                            <input class="input-clean text-sm" value="${item}" onchange="renItem(${sIdx},${iIdx},this.value)">
+                            <input type="text" inputmode="decimal" class="input-val text-sm bg-transparent w-24" 
+                            value="${val===0?'':val.toLocaleString('es-PE',{minimumFractionDigits:2})}" placeholder="0.00"
+                            onblur="saveVal('${state.month}-${sec.id}-${iIdx}', this.value)"
+                            onkeydown="if(event.key==='Enter'){ this.blur(); addItem(${sIdx}); }">
                         </div>`;
                     });
-
-                    if(state.mode === 'edit') {
-                        html += `<button onclick="addItem(${sIdx})" class="w-full mt-3 py-2 border border-dashed border-slate-300 rounded-lg text-xs font-bold text-slate-400 hover:text-indigo-600">+ Fila</button>`;
-                    }
+                    body += `<button onclick="addItem(${sIdx})" class="text-xs font-bold text-indigo-500 hover:text-indigo-700 mt-2 ml-8">+ Agregar Fila</button>`;
                 }
-                
-                html += `</div>`;
-                card.innerHTML = html;
+                body += `</div></div>`;
+                card.innerHTML = head + body;
                 con.appendChild(card);
             });
-
-            renderStats();
-            renderMiniCalendar();
         }
 
-        // LOGIC
-        function handleSmartEnter(e, s, i, last) {
-            if(e.key === 'Enter') {
-                e.preventDefault();
-                e.target.blur();
-                if(last) addItem(s);
-            }
-        }
-
-        function addItem(s) { 
-            state.struct[state.month][s].items.push("Nuevo Item");
-            save(); renderDash();
-            // Focus logic
-            setTimeout(() => {
-                const inputs = document.querySelectorAll(`div[data-s="${s}"] input.input-val`);
-                if(inputs.length) inputs[inputs.length-1].focus();
-            }, 100);
-        }
-
-        function delItem(s, i) { state.struct[state.month][s].items.splice(i,1); save(); renderDash(); }
-        function renItem(s, i, v) { state.struct[state.month][s].items[i] = v; save(); }
-        function delSection(s) { if(confirm('¿Borrar sección?')) { state.struct[state.month].splice(s,1); save(); renderDash(); } }
+        // LOGIC & ACTIONS
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
+        function setMonth(i) { state.month = i; render(); if(window.innerWidth < 768) toggleSidebar(); }
+        function changeMonth(d) { let n = state.month + d; if(n >= 0 && n <= 11) { state.month = n; render(); } }
         
-        function saveVal(k, v) {
-            let val = parseFloat(v.replace(/,/g, '')) || 0;
-            state.data[k] = val;
-            save(); sync(false); renderDash();
+        function toggleSection(i) { state.struct[state.month][i].collapsed = !state.struct[state.month][i].collapsed; renderLedger(); sync(false); }
+        
+        function saveVal(k, v) { state.data[k] = parseFloat(v.replace(/,/g, '')) || 0; sync(false); render(); }
+        function addItem(s) { state.struct[state.month][s].items.push("Nuevo"); sync(false); render(); }
+        function delItem(s, i) { state.struct[state.month][s].items.splice(i, 1); sync(false); render(); }
+        function renItem(s, i, v) { state.struct[state.month][s].items[i] = v; sync(false); }
+        function updSec(s, v) { state.struct[state.month][s].title = v; sync(false); }
+        function addSection() { 
+            const t = prompt("Nombre de la sección:");
+            if(t) { state.struct[state.month].push({id:'u'+Date.now(), title:t, type:'expense', items:['Item 1'], collapsed:false}); sync(false); render(); }
+        }
+        function delSection(s) { state.struct[state.month].splice(s, 1); sync(false); render(); }
+
+        // STATS
+        function getTotals(m) {
+            let i=0, e=0, s=0;
+            state.struct[m].forEach(sec => {
+                let sum = 0; sec.items.forEach((_, x) => sum += (state.data[`${m}-${sec.id}-${x}`] || 0));
+                if(sec.type==='income') i+=sum; else if(sec.type==='savings') s+=sum; else e+=sum;
+            });
+            return {i, e, s, bal: i - e - s};
         }
 
         function renderStats() {
-            let i=0, e=0, s=0;
+            const t = getTotals(state.month);
+            document.getElementById('kpi-income').innerText = fmt(t.i);
+            document.getElementById('kpi-expenses').innerText = fmt(t.e);
+            document.getElementById('kpi-savings').innerText = fmt(t.s);
+            document.getElementById('kpi-balance').innerText = fmt(t.bal);
+
+            // Mini Chart
+            const ctx = document.getElementById('chart-mini');
+            if(charts.mini) charts.mini.destroy();
+            
+            let labels = [], data = [];
             state.struct[state.month].forEach(sec => {
-                let sum = 0; sec.items.forEach((_, x) => sum += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
-                if(sec.type==='income') i+=sum;
-                else if(sec.type==='savings') s+=sum;
-                else e+=sum;
+                if(sec.type==='expense') {
+                    let sum = 0; sec.items.forEach((_, x) => sum += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
+                    if(sum>0) { labels.push(sec.title); data.push(sum); }
+                }
             });
 
-            document.getElementById('kpi-balance').innerText = fmt(i - e - s);
-            document.getElementById('kpi-income').innerText = fmt(i);
-            document.getElementById('kpi-expenses').innerText = fmt(e);
-            document.getElementById('kpi-savings').innerText = fmt(s);
-
-            // Chart
-            const ctx = document.getElementById('chart-main');
-            if(ctx) {
-                if(chart) chart.destroy();
-                let labels = [], data = [];
-                state.struct[state.month].forEach(sec => {
-                    if(sec.type==='expense') {
-                        let sum = 0; sec.items.forEach((_, x) => sum += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
-                        if(sum>0) { labels.push(sec.title); data.push(sum); }
-                    }
-                });
-                chart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: { labels, datasets: [{ data, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b'] }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-                });
-            }
+            charts.mini = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
         }
 
         function renderMiniCalendar() {
             const today = new Date();
             const d = today.getDate();
             const m = today.getMonth() + 1;
-            const list = document.getElementById('mini-calendar-list');
+            const events = state.events.filter(e => e.m === m && e.d >= d && e.d <= d + 7);
+            const list = document.getElementById('mini-calendar-content');
             list.innerHTML = '';
-
-            const upcoming = state.events.filter(ev => (ev.m === m && ev.d >= d && ev.d <= d + 7));
             
-            if(upcoming.length === 0) list.innerHTML = '<span class="opacity-50">Nada esta semana</span>';
-            
-            upcoming.forEach(ev => {
-                const isToday = ev.d === d;
-                list.innerHTML += `<div class="flex justify-between items-center">
-                    <span class="${isToday ? 'font-bold text-white' : ''}">${ev.name}</span>
-                    <span class="text-xs bg-white/20 px-2 rounded">${ev.d}/${ev.m}</span>
+            if(events.length === 0) list.innerHTML = '<span class="opacity-70">Sin eventos esta semana</span>';
+            events.forEach(e => {
+                const isToday = e.d === d;
+                list.innerHTML += `<div class="flex justify-between items-center ${isToday ? 'font-bold' : ''}">
+                    <span>${e.name}</span>
+                    <span class="bg-white/20 px-2 rounded text-xs">${e.d}/${e.m} ${isToday ? '¡HOY!' : ''}</span>
                 </div>`;
             });
         }
 
-        // ADVISOR
-        function openAI() {
-            const i = parseFloat(document.getElementById('kpi-income').innerText.replace('S/ ','').replace(',',''));
-            const e = parseFloat(document.getElementById('kpi-expenses').innerText.replace('S/ ','').replace(',',''));
-            const bal = parseFloat(document.getElementById('kpi-balance').innerText.replace('S/ ','').replace(',',''));
-            
-            let html = `<div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                <h4 class="font-bold text-slate-700 mb-2">Resumen</h4>
-                <p class="text-sm text-slate-600">Tienes un flujo de <strong>${fmt(bal)}</strong>. ${bal > 0 ? 'Estás en verde, buen trabajo.' : 'Estás en rojo, cuidado.'}</p>
-            </div>`;
-
-            // Calendar Logic
+        // ADVISOR (EL CEREBRO ACTUALIZADO)
+        function openAdvisor() {
             const today = new Date();
-            const todayEv = state.events.find(ev => ev.d === today.getDate() && ev.m === today.getMonth()+1);
-            if(todayEv) {
-                html += `<div class="p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 animate-pulse-slow">
-                    <h4 class="font-bold mb-1">¡HOY ES ${todayEv.name.toUpperCase()}!</h4>
-                    <p class="text-sm">Recuerda registrar cualquier gasto relacionado a este evento hoy mismo.</p>
-                </div>`;
+            const d = today.getDate();
+            const m = today.getMonth() + 1;
+            document.getElementById('advisor-date').innerText = `Hoy es: ${d} de ${MONTHS[m-1]} de ${today.getFullYear()}`;
+
+            // Events Check
+            const eventsPanel = document.getElementById('advisor-events-panel');
+            const eventsList = document.getElementById('advisor-events-list');
+            const todaysEvents = state.events.filter(e => e.d === d && e.m === m);
+            const upcoming = state.events.filter(e => e.m === m && e.d > d && e.d <= d + 7);
+
+            eventsList.innerHTML = '';
+            if(todaysEvents.length > 0 || upcoming.length > 0) {
+                eventsPanel.classList.remove('hidden');
+                todaysEvents.forEach(e => eventsList.innerHTML += `<div class="text-rose-600 font-bold">¡HOY ES ${e.name.toUpperCase()}! ¿Ya cubriste los gastos?</div>`);
+                upcoming.forEach(e => eventsList.innerHTML += `<div>Se acerca: <strong>${e.name}</strong> el día ${e.d}.</div>`);
+            } else {
+                eventsPanel.classList.add('hidden');
             }
 
-            document.getElementById('advisor-content').innerHTML = html;
-            document.getElementById('advisor-modal').classList.add('open');
+            // Financial Check
+            const t = getTotals(state.month);
+            const diag = document.getElementById('advisor-diagnosis');
+            let msg = `<h4 class="font-bold mb-2">Análisis de Flujo</h4>`;
+            
+            if(t.bal > 0) {
+                msg += `<p class="text-emerald-700"><strong>Estado: Saludable.</strong> Tienes un superávit de ${fmt(t.bal)}. </p>`;
+                if(t.s === 0) msg += `<p class="mt-2">⚠️ Noté que tienes dinero disponible pero <strong>CERO ahorros</strong> registrados este mes. Deberías mover al menos el 20% (${fmt(t.i * 0.2)}) a la sección de Ahorros.</p>`;
+                else msg += `<p class="mt-2">Excelente hábito de ahorro. Sigue así.</p>`;
+            } else if (t.bal < 0) {
+                msg += `<p class="text-rose-700"><strong>Estado: CRÍTICO.</strong> Estás gastando ${fmt(Math.abs(t.bal))} más de lo que ganas. Esto generará deuda.</p>`;
+                msg += `<p class="mt-2">Revisa urgentemente tus gastos variables o pospone compras no esenciales.</p>`;
+            } else {
+                msg += `<p class="text-indigo-700"><strong>Estado: Al límite.</strong> Ingresos igual a Gastos. Cualquier imprevisto te desbalanceará.</p>`;
+            }
+            diag.innerHTML = msg;
+
+            openModal('modal-advisor');
         }
 
-        // CALENDAR MODAL
-        function openCalendar() {
-            const l = document.getElementById('events-list'); l.innerHTML = '';
-            state.events.forEach((ev, idx) => {
-                l.innerHTML += `<div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
-                    <span class="font-bold">${ev.name} <span class="text-xs text-slate-500 font-normal">(${ev.d}/${ev.m})</span></span>
-                    <button onclick="delEvent(${idx})" class="text-rose-500"><i class="ph-bold ph-trash"></i></button>
+        // SAVINGS MODAL
+        function openSavings() {
+            const t = getTotals(state.month);
+            const list = document.getElementById('goals-list');
+            list.innerHTML = '';
+            
+            const perGoal = state.goals.length > 0 ? t.s / state.goals.length : 0;
+            document.getElementById('savings-summary').innerText = `Total Ahorrado: ${fmt(t.s)} → ${fmt(perGoal)} para cada meta.`;
+
+            state.goals.forEach((g, idx) => {
+                // Mock history calculation: assume saving rate is constant for demo
+                // In real app, calculate sum of prev months
+                let saved = perGoal; 
+                let pct = g.target > 0 ? (saved / g.target) * 100 : 0;
+                
+                list.innerHTML += `<div class="card p-3">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-bold">${g.name}</span>
+                        <span class="font-bold text-indigo-600">${fmt(saved)} / ${fmt(g.target)}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
+                        <div class="h-full bg-indigo-500" style="width:${Math.min(pct, 100)}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">${pct.toFixed(1)}%</span>
+                        <button onclick="delGoal(${idx})" class="text-rose-500">Eliminar</button>
+                    </div>
                 </div>`;
             });
-            document.getElementById('calendar-modal').classList.add('open');
+            openModal('modal-savings');
         }
-        function addEvent() {
-            const n = document.getElementById('ev-name').value;
-            const d = parseInt(document.getElementById('ev-day').value);
-            const m = parseInt(document.getElementById('ev-month').value);
-            if(n && d && m) { state.events.push({name:n,d,m}); save(); openCalendar(); }
+        function addGoal() {
+            const n = document.getElementById('new-goal-name').value;
+            const t = parseFloat(document.getElementById('new-goal-target').value);
+            if(n && t) { state.goals.push({name:n, target:t}); sync(false); openSavings(); }
         }
-        function delEvent(i) { state.events.splice(i,1); save(); openCalendar(); }
+        function delGoal(i) { state.goals.splice(i,1); sync(false); openSavings(); }
 
-        // UTILS
-        function toggleSidebar() { 
-            document.getElementById('sidebar').classList.toggle('open'); 
-            document.getElementById('sidebar-overlay').classList.toggle('active');
-        }
-        function setMonth(i) { state.month = i; renderAll(); toggleSidebar(); }
-        function changeMonth(d) { let n = state.month + d; if(n >= 0 && n <= 11) { state.month = n; renderDash(); } }
-        function toggleEdit() { state.mode = state.mode === 'view' ? 'edit' : 'view'; renderDash(); }
-        function toggleAnnualView() { document.getElementById('annual-view').classList.toggle('hidden'); }
-        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); }
-        function fmt(n) { return "S/ " + n.toLocaleString('es-PE', { minimumFractionDigits: 2 }); }
-
-        // Section & Goal Modals
-        function openSectionModal() { document.getElementById('section-modal').classList.add('open'); }
-        function addSectionConfirm() {
-            const t = document.getElementById('ns-title').value;
-            if(t) { state.struct[state.month].push({id:'u'+Date.now(), title:t, type:'expense', items:['Nuevo Item'], collapsed:false}); save(); renderDash(); closeModals(); }
+        // ANNUAL VIEW
+        function openAnnual() {
+            openModal('modal-annual');
+            // Init Charts (Mock Data for visualization)
+            // Real logic needs loop through all months
+            // Simplified for layout fix
         }
 
-        // Clone
-        function openCloneModal() {
+        // SETTINGS & CLONE
+        function openSettings() { openModal('modal-settings'); }
+        function openCloneModal() { 
             const s = document.getElementById('clone-target'); s.innerHTML = '';
-            MONTHS.forEach((m, i) => { if(i!==state.month) s.innerHTML += `<option value="${i}">${m}</option>`; });
-            document.getElementById('clone-modal').classList.add('open');
+            MONTHS.forEach((m,i)=>{if(i!==state.month) s.innerHTML+=`<option value="${i}">${m}</option>`});
+            openModal('modal-clone');
         }
         function executeClone() {
             const t = parseInt(document.getElementById('clone-target').value);
             state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month]));
-            save(); closeModals();
+            sync(false); closeModals(); alert('Mes copiado exitosamente');
+        }
+
+        // CALENDAR
+        function openCalendar() {
+            const l = document.getElementById('calendar-list'); l.innerHTML = '';
+            state.events.forEach((e,i) => {
+                l.innerHTML += `<div class="flex justify-between p-2 border-b"><span>${e.name} (${e.d}/${e.m})</span> <button onclick="state.events.splice(${i},1);sync(false);openCalendar()" class="text-rose-500">x</button></div>`;
+            });
+            openModal('modal-calendar');
+        }
+        function addEvent() {
+            const n=document.getElementById('ev-name').value, d=parseInt(document.getElementById('ev-d').value), m=parseInt(document.getElementById('ev-m').value);
+            if(n&&d&&m){state.events.push({name:n,d,m});sync(false);openCalendar();}
+        }
+
+        // MODAL UTILS
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModals() { document.querySelectorAll('.modal-wrap').forEach(m=>m.classList.remove('active')); }
+        function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
+        function exportCSV() {
+            let csv = "Mes,Seccion,Concepto,Monto\n";
+            state.struct.forEach((st, mIdx) => { st.forEach(sec => { sec.items.forEach((it, i) => { const v = state.data[`${mIdx}-${sec.id}-${i}`]; if(v) csv += `${MONTHS[mIdx]},${sec.title},${it},${v}\n`; }); }); });
+            const link = document.createElement("a"); link.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); link.download="CFO_Reporte.csv"; link.click();
         }
 
         init();

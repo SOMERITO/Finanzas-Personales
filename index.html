@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V97 (Premium)</title>
+    <title>CFO Personal V98 (Rediseño)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -17,14 +17,15 @@
                 extend: {
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: {
-                        slate: { 850: '#1a202c', 900: '#0f172a' },
-                        indigo: { 500: '#6366f1', 600: '#4f46e5' },
+                        brand: { dark: '#1e1b4b', main: '#4f46e5', light: '#818cf8' }
                     },
                     animation: {
-                        'pop-in': 'popIn 0.3s ease-out forwards',
+                        'slide-in': 'slideIn 0.3s ease-out forwards',
+                        'fade-in': 'fadeIn 0.2s ease-out forwards'
                     },
                     keyframes: {
-                        popIn: { '0%': { transform: 'scale(0.95)', opacity: 0 }, '100%': { transform: 'scale(1)', opacity: 1 } }
+                        slideIn: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } }
                     }
                 }
             }
@@ -32,160 +33,150 @@
     </script>
 
     <style>
-        body { background: #f8fafc; color: #1e293b; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+        body { background: #f1f5f9; color: #1e293b; overflow: hidden; -webkit-tap-highlight-color: transparent; }
         
-        /* SIDEBAR (CORREGIDO: Hidden by default on mobile) */
+        /* SIDEBAR STRICT */
         .sidebar { 
-            width: 260px; background: white; border-right: 1px solid #e2e8f0; 
+            width: 280px; background: white; border-right: 1px solid #e2e8f0; 
             display: flex; flex-direction: column; position: fixed; top:0; bottom:0; left:0; z-index: 50;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform: translateX(-100%); /* Cerrado por defecto en móvil */
+            transform: translateX(-100%); /* SIEMPRE CERRADO INICIALMENTE EN MOBILE */
         }
         .sidebar.open { transform: translateX(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; opacity: 0; pointer-events: none; transition: 0.3s; }
-        .overlay.active { opacity: 1; pointer-events: auto; }
-
+        
         @media (min-width: 768px) {
-            .layout-wrap { padding-left: 260px; transition: padding-left 0.3s; }
-            .sidebar { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.02); } /* Abierto por defecto en PC */
-            .sidebar.collapsed { transform: translateX(-260px); }
-            .layout-wrap.expanded { padding-left: 0; }
-            .overlay { display: none !important; }
+            .sidebar { transform: translateX(0); } /* SIEMPRE ABIERTO EN PC */
+            .sidebar.collapsed { transform: translateX(-280px); }
+            .layout-wrap { margin-left: 280px; transition: margin-left 0.3s; }
+            .layout-wrap.expanded { margin-left: 0; }
         }
 
-        /* INPUTS & EDIT MODE */
-        .input-clean { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 4px 0; font-weight: 600; color: #334155; pointer-events: none; transition: 0.2s; }
+        /* INPUTS */
+        .input-clean { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 4px 0; font-weight: 600; color: #334155; pointer-events: none; }
         .edit-mode .input-clean { border-bottom-color: #cbd5e1; pointer-events: auto; }
-        .edit-mode .input-clean:focus { border-bottom-color: #6366f1; color: #0f172a; }
+        .edit-mode .input-clean:focus { border-bottom-color: #4f46e5; color: #0f172a; }
         
-        .action-btn { opacity: 0; pointer-events: none; transition: 0.2s; }
-        .edit-mode .action-btn { opacity: 1; pointer-events: auto; }
-        
-        .add-section-container { display: none; }
-        .edit-mode .add-section-container { display: block; }
+        .btn-action { display: none; }
+        .edit-mode .btn-action { display: inline-flex; }
 
-        /* CARDS */
-        .card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
+        /* CARDS & MODALS */
+        .card { background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #f8fafc; overflow: hidden; }
         
-        /* MODALS */
-        .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); }
-        .modal-wrap.active { display: flex; }
-        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4); max-height: 95vh; overflow-y: auto; animation: popIn 0.3s; }
-        .modal-xl { max-width: 1200px; }
-        .modal-lg { max-width: 900px; }
+        .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); }
+        .modal-wrap.active { display: flex; animation: fadeIn 0.2s forwards; }
+        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 95vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.2s; }
+        .modal-wrap.active .modal-box { transform: scale(1); }
+        .modal-lg { max-width: 1000px; }
         .modal-sm { max-width: 450px; }
 
         /* SCROLL */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
-        /* SYNC DOT */
-        .sync-dot { height: 8px; width: 8px; border-radius: 50%; background: #cbd5e1; transition: 0.3s; }
-        .sync-dot.syncing { background: #eab308; box-shadow: 0 0 5px #eab308; }
-        .sync-dot.done { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
+
+        /* SYNC INDICATOR */
+        .sync-badge { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; transition: 0.3s; box-shadow: 0 0 0 2px rgba(255,255,255,0.1); }
+        .sync-badge.ok { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        .sync-badge.working { background: #eab308; }
     </style>
 </head>
 <body>
 
-    <div id="mobile-overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar" class="sidebar">
-        <div class="h-16 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between">
-            <span class="font-extrabold text-xl text-slate-900">CFO<span class="text-indigo-600">.</span>Pro</span>
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+        <div class="h-20 flex items-center px-8 border-b border-slate-100 shrink-0 justify-between">
+            <span class="font-extrabold text-2xl text-slate-900 tracking-tight">CFO<span class="text-indigo-600">.</span>Pro</span>
         </div>
         <nav class="flex-1 overflow-y-auto p-4 space-y-1" id="month-nav"></nav>
-        <div class="p-4 border-t border-slate-100 bg-slate-50 mt-auto">
-            <button onclick="openCalendar()" class="w-full py-3 mb-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-xs hover:border-indigo-500 hover:text-indigo-600 flex items-center justify-center gap-2"><i class="ph-bold ph-calendar-check"></i> Calendario</button>
-            <button onclick="openCloneModal()" class="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-black"><i class="ph-bold ph-copy"></i> Duplicar Mes</button>
+        <div class="p-6 border-t border-slate-100 bg-slate-50/50 mt-auto">
+            <button onclick="openCalendar()" class="w-full py-4 mb-3 rounded-2xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 shadow-sm flex items-center justify-center gap-2"><i class="ph-bold ph-calendar-check"></i> Calendario</button>
+            <button onclick="openCloneModal()" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-black shadow-lg shadow-slate-900/20"><i class="ph-bold ph-copy"></i> Duplicar Mes</button>
         </div>
     </aside>
 
-    <div id="layout-wrap" class="layout-wrap h-screen flex flex-col bg-[#f8fafc] transition-all duration-300">
+    <div id="layout-wrap" class="layout-wrap h-screen flex flex-col transition-all duration-300">
         
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-30">
+        <header class="h-20 bg-[#1e1b4b] text-white flex items-center justify-between px-6 shadow-md z-30 shrink-0">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-2 rounded-lg hover:bg-slate-100 transition-colors">
-                    <i class="ph-bold ph-list text-2xl"></i>
-                </button>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="changeMonth(-1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-left"></i></button>
-                    <div class="text-center w-36">
-                        <h2 class="text-lg font-extrabold text-slate-900 leading-none" id="month-title">Enero</h2>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">2026</span>
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i class="ph-bold ph-list text-2xl"></i></button>
+                <div class="flex items-center gap-3 bg-white/10 px-4 py-1.5 rounded-full border border-white/10">
+                    <button onclick="changeMonth(-1)" class="hover:text-indigo-300"><i class="ph-bold ph-caret-left"></i></button>
+                    <div class="text-center w-32">
+                        <span class="block text-xs font-bold text-indigo-200 uppercase tracking-wider">Año 2026</span>
+                        <span class="block text-lg font-bold leading-none" id="month-title">Enero</span>
                     </div>
-                    <button onclick="changeMonth(1)" class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 text-slate-500"><i class="ph-bold ph-caret-right"></i></button>
+                    <button onclick="changeMonth(1)" class="hover:text-indigo-300"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                 <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full" title="Estado de la Nube">
-                    <div id="sync-dot" class="sync-dot"></div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase hidden md:inline">Cloud</span>
-                </div>
-                
-                <div class="h-6 w-px bg-slate-200 mx-1"></div>
-
-                <button onclick="toggleEditMode()" id="btn-edit" class="hidden md:block px-4 py-2 rounded-lg font-bold text-xs border border-slate-300 text-slate-600 hover:bg-slate-800 hover:text-white hover:border-slate-800 transition-all">Editar</button>
-                <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                <button onclick="openAnnual()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Visión 2026"><i class="ph-bold ph-chart-bar text-xl"></i></button>
-                <button onclick="openAdvisor()" class="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg" title="Consejero"><i class="ph-fill ph-sparkle text-xl"></i></button>
-                <button onclick="openSettings()" class="p-2 text-slate-500 hover:text-slate-900 rounded-lg"><i class="ph-bold ph-gear text-xl"></i></button>
+            <div class="flex items-center gap-4">
+                <div id="sync-badge" class="sync-badge" title="Estado Nube"></div>
+                <button onclick="toggleEditMode()" id="btn-edit" class="hidden md:block px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-lg transition-colors">Editar</button>
+                <div class="h-8 w-px bg-white/10"></div>
+                <button onclick="openAnnual()" class="hover:text-indigo-300"><i class="ph-bold ph-chart-bar text-2xl"></i></button>
+                <button onclick="openAdvisor()" class="hover:text-indigo-300"><i class="ph-fill ph-sparkle text-2xl"></i></button>
+                <button onclick="openSettings()" class="hover:text-indigo-300"><i class="ph-bold ph-gear text-2xl"></i></button>
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32" id="workspace">
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 bg-[#f1f5f9]" id="workspace">
             <div class="max-w-7xl mx-auto">
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="card p-4 border-l-4 border-slate-800">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Disponible</span>
-                        <h3 class="text-2xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                    <div class="card p-5 border-b-4 border-slate-800 flex flex-col justify-between h-32">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Disponible</span>
+                        <h3 class="text-3xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
                     </div>
-                    <div class="card p-4 border-l-4 border-emerald-500">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Ingresos</span>
-                        <h3 class="text-2xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
+                    <div class="card p-5 border-b-4 border-emerald-500 flex flex-col justify-between h-32">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ingresos</span>
+                        <h3 class="text-3xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
                     </div>
-                    <div class="card p-4 border-l-4 border-rose-500">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase">Gastos</span>
-                        <h3 class="text-2xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
+                    <div class="card p-5 border-b-4 border-rose-500 flex flex-col justify-between h-32">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gastos</span>
+                        <h3 class="text-3xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
                     </div>
-                    <div onclick="openSavings()" class="card p-4 bg-slate-900 text-white cursor-pointer hover:bg-slate-800 transition-colors shadow-lg shadow-indigo-200">
-                        <div class="flex justify-between items-center h-full">
-                            <div><span class="text-[10px] font-bold text-slate-400 uppercase">Mis Ahorros</span><h3 class="text-2xl font-extrabold truncate" id="kpi-savings">S/ 0.00</h3></div>
-                            <i class="ph-fill ph-piggy-bank text-3xl text-indigo-400"></i>
+                    <div onclick="openSavings()" class="card p-5 bg-[#1e1b4b] text-white cursor-pointer hover:scale-[1.02] transition-transform h-32 relative overflow-hidden group shadow-xl">
+                        <div class="absolute -right-4 -top-4 text-white/5 text-8xl group-hover:text-white/10 transition-colors"><i class="ph-fill ph-piggy-bank"></i></div>
+                        <div class="relative z-10 flex flex-col justify-between h-full">
+                            <span class="text-xs font-bold text-indigo-200 uppercase tracking-widest">Ahorros</span>
+                            <h3 class="text-3xl font-extrabold" id="kpi-savings">S/ 0.00</h3>
+                            <div class="text-[10px] flex items-center gap-1 font-bold text-indigo-300">Ver Metas <i class="ph-bold ph-arrow-right"></i></div>
                         </div>
                     </div>
                 </div>
 
-                <button onclick="toggleEditMode()" id="btn-edit-mobile" class="md:hidden w-full mb-4 py-3 rounded-lg font-bold text-sm bg-white border border-slate-300 text-slate-600 shadow-sm">Activar Edición</button>
+                <button onclick="toggleEditMode()" id="btn-edit-mobile" class="md:hidden w-full mb-6 py-4 rounded-xl font-bold text-sm bg-white border border-slate-200 text-slate-600 shadow-sm flex items-center justify-center gap-2"><i class="ph-bold ph-pencil-simple"></i> Activar Edición</button>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 space-y-4" id="ledger"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-5" id="ledger"></div>
                     
-                    <div class="space-y-4">
-                        <div class="card p-5">
-                            <h4 class="font-bold text-sm text-slate-700 uppercase mb-4 text-center">Distribución Mensual</h4>
-                            <div class="h-56 relative">
+                    <div class="space-y-6">
+                        <div class="card p-6">
+                            <h4 class="font-bold text-xs text-slate-400 uppercase mb-6 text-center tracking-widest">Distribución Mensual</h4>
+                            <div class="h-64 relative">
                                 <canvas id="chart-mini"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                                    <span class="text-[10px] uppercase font-bold text-slate-400">Total</span>
+                                    <span id="chart-total-center" class="font-bold text-slate-800 text-lg">S/ 0</span>
+                                </div>
                             </div>
                         </div>
-                        <div id="mini-calendar-widget" class="card p-5 bg-gradient-to-br from-indigo-600 to-indigo-700 text-white hidden">
-                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-xl">🎉</div>
+                        
+                        <div id="mini-calendar-widget" class="hidden card p-6 bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
+                             <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl shadow-inner">📅</div>
                                 <div>
-                                    <h4 class="font-bold text-sm uppercase opacity-80">Evento Hoy</h4>
-                                    <p id="mini-calendar-text" class="text-lg font-extrabold">...</p>
+                                    <h4 class="font-bold text-xs uppercase opacity-80 tracking-wide">Evento Hoy</h4>
+                                    <p id="mini-calendar-text" class="text-xl font-extrabold leading-tight">...</p>
                                 </div>
                              </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="add-section-container mt-6">
-                     <button onclick="addSection()" class="w-full py-4 border-2 border-dashed border-slate-300 rounded-xl text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-600 justify-center gap-2 items-center transition-all flex">
-                        <i class="ph-bold ph-plus-circle"></i> Nueva Sección
+
+                <div class="add-section-container mt-8 hidden">
+                     <button onclick="addSection()" class="w-full py-5 border-2 border-dashed border-slate-300 rounded-2xl text-slate-400 font-bold hover:border-indigo-500 hover:text-indigo-600 transition-all flex justify-center items-center gap-2">
+                        <i class="ph-bold ph-plus-circle text-xl"></i> Crear Nueva Sección
                     </button>
                 </div>
             </div>
@@ -193,118 +184,106 @@
     </div>
 
     <div id="modal-event-alert" class="modal-wrap z-[100]">
-        <div class="modal-box modal-sm relative bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-0 text-center">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-indigo-200 hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
-            <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">🎉</div>
-            <h3 class="text-3xl font-extrabold mb-2" id="alert-title">¡Hoy es el día!</h3>
-            <p class="text-indigo-100 mb-8 text-lg" id="alert-msg">Tienes un evento importante hoy.</p>
-            <button onclick="closeModals()" class="bg-white text-indigo-600 font-bold py-3 px-8 rounded-xl hover:bg-indigo-50 w-full shadow-lg">Entendido, Gracias</button>
+        <div class="modal-box modal-sm bg-[#1e1b4b] text-white text-center border-0">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-white/50 hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
+            <div class="text-6xl mb-4 animate-bounce">🎉</div>
+            <h3 class="text-2xl font-extrabold mb-2" id="alert-title">¡Evento Hoy!</h3>
+            <p class="text-indigo-200 mb-8" id="alert-msg">Recuerda registrarlo.</p>
+            <button onclick="closeModals()" class="w-full py-3 bg-white text-[#1e1b4b] font-bold rounded-xl hover:bg-indigo-50">Entendido</button>
         </div>
     </div>
 
     <div id="modal-advisor" class="modal-wrap">
-        <div class="modal-box modal-lg relative bg-slate-50">
+        <div class="modal-box modal-lg bg-slate-50">
             <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800"><i class="ph-bold ph-x text-xl"></i></button>
             
-            <div class="mb-8">
-                <h3 class="text-2xl font-extrabold text-slate-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-600"></i> Análisis CFO 360°</h3>
-                <p class="text-slate-500 text-sm mt-1">Reporte detallado de inteligencia financiera.</p>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center"><i class="ph-fill ph-brain text-2xl"></i></div>
+                <div>
+                    <h3 class="text-2xl font-extrabold text-slate-900">Análisis 360°</h3>
+                    <p class="text-sm text-slate-500">Inteligencia financiera en tiempo real.</p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3 mb-3 text-emerald-600 font-bold uppercase text-xs tracking-wider">
-                        <i class="ph-bold ph-heartbeat text-lg"></i> Salud Financiera
-                    </div>
-                    <div id="adv-health" class="text-sm text-slate-700 leading-relaxed"></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+                    <h4 class="font-bold text-emerald-700 text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-pulse"></i> Salud & Flujo</h4>
+                    <div id="adv-health" class="text-sm text-slate-700"></div>
                 </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3 mb-3 text-indigo-600 font-bold uppercase text-xs tracking-wider">
-                        <i class="ph-bold ph-trend-up text-lg"></i> Eficiencia de Ahorro
-                    </div>
-                    <div id="adv-savings" class="text-sm text-slate-700 leading-relaxed"></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
+                    <h4 class="font-bold text-indigo-700 text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-piggy-bank"></i> Ahorro</h4>
+                    <div id="adv-savings" class="text-sm text-slate-700"></div>
                 </div>
-
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3 mb-3 text-amber-600 font-bold uppercase text-xs tracking-wider">
-                        <i class="ph-bold ph-chart-pie-slice text-lg"></i> Estructura de Gastos
-                    </div>
-                    <div id="adv-struct" class="text-sm text-slate-700 leading-relaxed"></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500">
+                    <h4 class="font-bold text-amber-700 text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-chart-pie"></i> Estructura</h4>
+                    <div id="adv-struct" class="text-sm text-slate-700"></div>
                 </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500">
+                    <h4 class="font-bold text-rose-700 text-xs uppercase mb-2 flex items-center gap-2"><i class="ph-bold ph-list-checks"></i> Tácticas del Mes</h4>
+                    <div id="adv-action" class="text-sm text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3 mb-3 text-rose-600 font-bold uppercase text-xs tracking-wider">
-                        <i class="ph-bold ph-check-circle text-lg"></i> Plan de Acción
-                    </div>
-                    <div id="adv-action" class="text-sm text-slate-700 leading-relaxed"></div>
+    <div id="modal-savings" class="modal-wrap">
+        <div class="modal-box modal-sm">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Mis Metas</h3>
+            <p class="text-xs text-slate-500 mb-6" id="savings-subtitle">...</p>
+            <div id="goals-list" class="space-y-4 mb-6"></div>
+            <div class="pt-4 border-t border-slate-100">
+                <div class="flex gap-2">
+                    <input id="new-goal-name" class="input-clean bg-slate-50 border p-3 rounded-xl text-sm" placeholder="Nueva Meta...">
+                    <input id="new-goal-target" type="number" class="input-clean bg-slate-50 border p-3 rounded-xl w-24 text-sm" placeholder="Monto">
+                    <button onclick="addGoal()" class="bg-indigo-600 text-white px-4 rounded-xl font-bold"><i class="ph-bold ph-plus"></i></button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="modal-annual" class="modal-wrap">
-        <div class="modal-box modal-lg relative h-[90vh]">
+        <div class="modal-box modal-lg h-[90vh]">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-2xl font-extrabold text-slate-900 mb-6">Tablero de Comando Anual</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full pb-20 overflow-y-auto pr-2">
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">1. Tendencia de Flujo</h4><div class="flex-1 relative"><canvas id="ch1"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">2. Estructura de Gastos</h4><div class="flex-1 relative"><canvas id="ch2"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">3. Crecimiento Ahorro</h4><div class="flex-1 relative"><canvas id="ch3"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">4. Fijo vs Variable</h4><div class="flex-1 relative"><canvas id="ch4"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">5. Gasto Diario Promedio</h4><div class="flex-1 relative"><canvas id="ch5"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">6. Radar de Categorías</h4><div class="flex-1 relative"><canvas id="ch6"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">7. Patrimonio Neto</h4><div class="flex-1 relative"><canvas id="ch7"></canvas></div></div>
-                <div class="card p-3 h-56 flex flex-col"><h4 class="text-xs font-bold mb-2 uppercase text-slate-400">8. Capacidad de Deuda</h4><div class="flex-1 relative"><canvas id="ch8"></canvas></div></div>
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-6">Tablero de Comando 2026</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 h-full pb-20 overflow-y-auto">
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">1. Tendencia Flujo</h4><div class="flex-1 relative"><canvas id="ch1"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">2. Gastos Estructura</h4><div class="flex-1 relative"><canvas id="ch2"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">3. Ahorro Acumulado</h4><div class="flex-1 relative"><canvas id="ch3"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">4. Fijo vs Variable</h4><div class="flex-1 relative"><canvas id="ch4"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">5. Gasto Diario</h4><div class="flex-1 relative"><canvas id="ch5"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">6. Radar Categorías</h4><div class="flex-1 relative"><canvas id="ch6"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">7. Patrimonio</h4><div class="flex-1 relative"><canvas id="ch7"></canvas></div></div>
+                <div class="card p-4 h-56 flex flex-col"><h4 class="text-[10px] font-bold uppercase text-slate-400 mb-2">8. Deuda</h4><div class="flex-1 relative"><canvas id="ch8"></canvas></div></div>
             </div>
         </div>
     </div>
 
     <div id="modal-calendar" class="modal-wrap">
-        <div class="modal-box modal-sm relative">
+        <div class="modal-box modal-sm">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
             <h3 class="text-xl font-extrabold text-slate-900 mb-4">Eventos</h3>
-            <div class="flex gap-2 mb-4 bg-slate-50 p-2 rounded-lg">
-                <input id="ev-name" class="flex-1 bg-transparent outline-none text-sm font-bold" placeholder="Ej. San Valentín">
-                <input id="ev-d" type="number" class="w-12 bg-white border rounded text-center text-sm" placeholder="14">
-                <input id="ev-m" type="number" class="w-12 bg-white border rounded text-center text-sm" placeholder="2">
-                <button onclick="addEvent()" class="text-indigo-600 font-bold"><i class="ph-bold ph-plus"></i></button>
+            <div class="flex gap-2 mb-4">
+                <input id="ev-name" class="flex-1 bg-slate-50 rounded-lg px-3 py-2 text-sm font-bold outline-none" placeholder="Nombre...">
+                <input id="ev-d" type="number" class="w-16 bg-slate-50 rounded-lg px-3 py-2 text-sm font-bold outline-none" placeholder="DD">
+                <input id="ev-m" type="number" class="w-16 bg-slate-50 rounded-lg px-3 py-2 text-sm font-bold outline-none" placeholder="MM">
+                <button onclick="addEvent()" class="bg-indigo-600 text-white px-3 rounded-lg"><i class="ph-bold ph-plus"></i></button>
             </div>
-            <div id="calendar-list" class="space-y-3 max-h-60 overflow-y-auto"></div>
-        </div>
-    </div>
-
-    <div id="modal-savings" class="modal-wrap">
-        <div class="modal-box modal-sm relative">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Metas de Ahorro</h3>
-            <p class="text-xs text-slate-500 mb-4" id="savings-subtitle">Distribución automática.</p>
-            
-            <div id="goals-list" class="space-y-4 mb-6"></div>
-            
-            <div class="border-t pt-4">
-                <label class="text-xs font-bold text-slate-400 uppercase">Nueva Meta</label>
-                <div class="flex gap-2 mt-2">
-                    <input id="new-goal-name" class="input-clean bg-slate-50 border p-2 rounded" placeholder="Ej: Laptop">
-                    <input id="new-goal-target" type="number" class="input-clean bg-slate-50 border p-2 rounded w-24" placeholder="Monto">
-                    <button onclick="addGoal()" class="bg-slate-900 text-white px-4 rounded font-bold">Crear</button>
-                </div>
-            </div>
+            <div id="calendar-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
         </div>
     </div>
 
     <div id="modal-settings" class="modal-wrap">
-        <div class="modal-box modal-sm relative">
+        <div class="modal-box modal-sm">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-xl font-bold text-slate-900 mb-6">Ajustes</h3>
-            <button onclick="if(confirm('¿Reiniciar todo?')){localStorage.removeItem('cfo_v96_cloud');location.reload()}" class="w-full py-3 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100">Resetear Fábrica</button>
+            <h3 class="text-xl font-bold mb-4">Ajustes</h3>
+            <button onclick="if(confirm('¿Borrar?')){localStorage.removeItem('cfo_v96_cloud');location.reload()}" class="w-full py-3 bg-rose-50 text-rose-600 font-bold rounded-xl">Resetear</button>
         </div>
     </div>
-
     <div id="modal-clone" class="modal-wrap">
-        <div class="modal-box modal-sm relative">
+        <div class="modal-box modal-sm">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400"><i class="ph-bold ph-x text-xl"></i></button>
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Duplicar Mes</h3>
+            <h3 class="text-lg font-bold mb-4">Duplicar Mes</h3>
             <select id="clone-target" class="w-full p-3 bg-slate-50 rounded-lg font-bold mb-4"></select>
             <button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl">Confirmar</button>
         </div>
@@ -337,7 +316,7 @@
         }
 
         async function sync(pull) {
-            const dot = document.getElementById('sync-dot'); dot.className = 'sync-dot syncing';
+            const b = document.getElementById('sync-badge'); b.className = 'sync-badge working';
             try {
                 if(pull) {
                     const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { headers: { 'X-Master-Key': CONFIG.apiKey } });
@@ -347,8 +326,8 @@
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
                 localStorage.setItem('cfo_v96_cloud', JSON.stringify(state));
-                dot.className = 'sync-dot done';
-            } catch(e) { dot.className = 'sync-dot'; }
+                b.className = 'sync-badge ok';
+            } catch(e) { b.className = 'sync-badge'; }
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
@@ -364,9 +343,9 @@
         function renderHeader() {
             document.getElementById('month-title').innerText = MONTHS[state.month];
             document.body.className = state.mode === 'edit' ? 'edit-mode' : '';
-            const btnText = state.mode === 'edit' ? 'Listo' : 'Editar';
-            const btnClass = state.mode === 'edit' ? "bg-slate-900 text-white shadow-lg" : "border border-slate-300 text-slate-600 hover:bg-slate-50";
-            document.getElementById('btn-edit').innerText = btnText; document.getElementById('btn-edit').className = `hidden md:block px-4 py-2 rounded-lg font-bold text-xs transition-all ${btnClass}`;
+            const btn = document.getElementById('btn-edit');
+            btn.innerText = state.mode === 'edit' ? 'Listo' : 'Editar';
+            btn.className = state.mode === 'edit' ? "hidden md:block px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold rounded-lg transition-colors" : "hidden md:block px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-lg transition-colors";
             document.getElementById('btn-edit-mobile').innerText = state.mode === 'edit' ? 'Terminar Edición' : 'Activar Edición';
         }
 
@@ -390,25 +369,25 @@
                 const card = document.createElement('div');
                 card.className = "card";
                 card.innerHTML = `
-                <div class="p-4 flex justify-between items-center bg-white cursor-pointer select-none" onclick="toggleSec(${sIdx})">
-                    <div class="flex items-center gap-3">
-                        <i class="ph-bold ph-caret-down ${sec.collapsed?'-rotate-90':''}"></i>
+                <div class="p-5 flex justify-between items-center bg-white cursor-pointer select-none group" onclick="toggleSec(${sIdx})">
+                    <div class="flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><i class="ph-bold ph-caret-down ${sec.collapsed?'-rotate-90':''}"></i></div>
                         <input class="font-bold text-lg bg-transparent border-none outline-none w-48 pointer-events-${state.mode==='edit'?'auto':'none'}" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
-                        <button onclick="event.stopPropagation();if(confirm('Borrar?'))delSec(${sIdx})" class="action-btn text-rose-500 hover:bg-rose-50 p-1 rounded"><i class="ph-bold ph-trash"></i></button>
+                        <button onclick="event.stopPropagation();if(confirm('Borrar?'))delSec(${sIdx})" class="btn-action text-rose-500 hover:bg-rose-50 p-2 rounded-lg"><i class="ph-bold ph-trash"></i></button>
                     </div>
                     <span class="font-bold text-lg ${sec.type==='income'?'text-emerald-600':'text-slate-800'}">${fmt(total)}</span>
                 </div>
-                <div class="${sec.collapsed ? 'hidden' : 'block'} px-4 pb-4 space-y-1">
+                <div class="${sec.collapsed ? 'hidden' : 'block'} px-5 pb-5 space-y-2">
                     ${sec.type==='savings' 
-                    ? `<div class="p-3 bg-indigo-50 rounded-lg flex justify-between"><span class="font-bold text-indigo-900">Total</span><input type="text" inputmode="decimal" class="text-right bg-transparent font-bold text-xl text-indigo-700 outline-none" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)"></div>`
+                    ? `<div class="p-4 bg-indigo-50 rounded-xl flex justify-between items-center"><span class="font-bold text-indigo-900">Monto Ahorrado</span><input type="text" inputmode="decimal" class="text-right bg-transparent font-bold text-2xl text-indigo-700 outline-none w-40" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)"></div>`
                     : sec.items.map((it,i) => `
-                        <div class="flex items-center gap-2 py-1 border-b border-slate-50 last:border-0 hover:bg-slate-50">
-                            <button onclick="delItem(${sIdx},${i})" class="action-btn text-rose-400 hover:text-rose-600"><i class="ph-bold ph-minus-circle"></i></button>
+                        <div class="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-2 rounded-lg transition-colors">
+                            <button onclick="delItem(${sIdx},${i})" class="btn-action text-rose-400 hover:text-rose-600"><i class="ph-bold ph-minus-circle"></i></button>
                             <input class="input-clean" value="${it}" onchange="renItem(${sIdx},${i},this.value)">
                             <input type="text" inputmode="decimal" class="text-right font-bold text-slate-800 outline-none bg-transparent w-24" value="${(state.data[`${state.month}-${sec.id}-${i}`]||0)===0?'':state.data[`${state.month}-${sec.id}-${i}`]}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)" onkeydown="if(event.key==='Enter')addItem(${sIdx})">
                         </div>
                     `).join('')}
-                    <button onclick="addItem(${sIdx})" class="action-btn w-full mt-2 py-2 border border-dashed border-slate-300 text-slate-400 font-bold text-xs justify-center hover:border-indigo-500 hover:text-indigo-500 flex items-center gap-1">+ Agregar Fila</button>
+                    <button onclick="addItem(${sIdx})" class="btn-action w-full mt-3 py-3 border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs justify-center hover:border-indigo-500 hover:text-indigo-500 rounded-xl flex items-center gap-2 transition-all"><i class="ph-bold ph-plus"></i> Agregar Fila</button>
                 </div>`;
                 con.appendChild(card);
             });
@@ -419,7 +398,7 @@
             const wrap = document.getElementById('layout-wrap');
             const overlay = document.getElementById('mobile-overlay');
             if(window.innerWidth >= 768) { sb.classList.toggle('collapsed'); wrap.classList.toggle('expanded'); } 
-            else { sb.classList.toggle('open'); overlay.classList.toggle('active'); }
+            else { sb.classList.toggle('open'); overlay.classList.toggle('hidden'); }
         }
         function toggleEditMode() { state.mode = state.mode === 'view' ? 'edit' : 'view'; render(); }
         function setMonth(i) { state.month = i; render(); if(window.innerWidth<768) toggleSidebar(); }
@@ -449,12 +428,13 @@
             document.getElementById('kpi-expenses').innerText = fmt(t.e);
             document.getElementById('kpi-savings').innerText = fmt(t.s);
             document.getElementById('kpi-balance').innerText = fmt(t.b);
+            document.getElementById('chart-total-center').innerText = fmt(t.e);
 
             const ctx = document.getElementById('chart-mini');
             if(charts.mini) charts.mini.destroy();
             let labels = [], data = [];
             state.struct[state.month].forEach(sec=>{if(sec.type==='expense'){let sum=0;sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(sum>0){labels.push(sec.title); data.push(sum)}}});
-            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:10}}}}}});
+            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
         }
 
         function checkEventsToday() {
@@ -471,86 +451,64 @@
             }
         }
 
-        // --- ADVISOR 4 CUADRANTES ---
+        // ADVISOR 4 CUADRANTES
         function openAdvisor() {
             const t = getTotals(state.month);
-            const savingsRate = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0;
+            const sr = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0;
             
-            // 1. Salud
-            let hColor = t.b >= 0 ? 'text-emerald-700' : 'text-rose-700';
-            document.getElementById('adv-health').innerHTML = `
-                <p class="mb-2"><strong>Flujo Neto:</strong> <span class="${hColor} font-bold">${fmt(t.b)}</span></p>
-                <p>Tu solvencia operativa es ${t.b >= 0 ? 'sólida. Cubres tus gastos.' : 'crítica. Estás en déficit.'}</p>
-            `;
-
-            // 2. Ahorro
-            document.getElementById('adv-savings').innerHTML = `
-                <p class="mb-2"><strong>Tasa de Ahorro:</strong> <span class="text-indigo-700 font-bold">${savingsRate}%</span></p>
-                <p>Has acumulado <strong>${fmt(t.s)}</strong> este mes. ${savingsRate < 10 ? 'Intenta llegar al 10% mínimo.' : '¡Excelente ritmo!'}</p>
-            `;
-
-            // 3. Estructura
-            document.getElementById('adv-struct').innerHTML = `
-                <p class="mb-2"><strong>Gastos Totales:</strong> ${fmt(t.e)}</p>
-                <p>Revisa las categorías más pesadas en el gráfico circular del tablero principal para optimizar.</p>
-            `;
-
-            // 4. Acción
-            const actions = t.b < 0 
-                ? ["1. Detener gastos no esenciales ya.", "2. Auditar suscripciones.", "3. Buscar ingreso extra rápido."] 
-                : ["1. Mover superávit a inversión.", "2. Aumentar meta de ahorro.", "3. Planear compra futura."];
+            document.getElementById('adv-health').innerHTML = `<p class="text-3xl font-bold ${t.b>=0?'text-emerald-600':'text-rose-600'} mb-1">${fmt(t.b)}</p><p class="text-xs opacity-70">Flujo Neto Disponible</p>`;
+            document.getElementById('adv-savings').innerHTML = `<p class="text-3xl font-bold text-indigo-600 mb-1">${sr}%</p><p class="text-xs opacity-70">Tasa de Ahorro del Mes</p>`;
+            document.getElementById('adv-struct').innerHTML = `<p class="text-3xl font-bold text-amber-600 mb-1">${fmt(t.e)}</p><p class="text-xs opacity-70">Gasto Operativo Total</p>`;
             
-            document.getElementById('adv-action').innerHTML = `<ul class="list-disc pl-4 space-y-1">${actions.map(a=>`<li>${a}</li>`).join('')}</ul>`;
+            const acts = t.b < 0 
+                ? ["🛑 Congelar gastos variables.", "📉 Revisar suscripciones.", "💸 Evitar tarjetas de crédito."] 
+                : ["💰 Mover excedente a inversión.", "🎯 Aumentar fondo emergencia.", "🏝️ Planificar ocio."];
+            document.getElementById('adv-action').innerHTML = `<ul class="space-y-2 mt-2 font-bold">${acts.map(a=>`<li class="flex items-center gap-2"><i class="ph-bold ph-check text-indigo-500"></i> ${a}</li>`).join('')}</ul>`;
             
             openModal('modal-advisor');
         }
 
-        // --- SAVINGS VISUAL ---
+        // SAVINGS BARS
         function openSavings() {
             const l = document.getElementById('goals-list'); l.innerHTML = '';
             const t = getTotals(state.month);
-            const perGoal = state.goals.length > 0 ? t.s / state.goals.length : 0;
-            
-            document.getElementById('savings-subtitle').innerText = `Total Mensual: ${fmt(t.s)} (${fmt(perGoal)}/meta)`;
+            const pg = state.goals.length > 0 ? t.s / state.goals.length : 0;
+            document.getElementById('savings-subtitle').innerText = `Total Ahorrado: ${fmt(t.s)} (${fmt(pg)} por meta)`;
 
             state.goals.forEach((g,i) => {
-                // Mock accumulated savings (Current Month * Month Index roughly, or just current month for simple demo)
-                // For this demo, we visualize current month's contribution vs target
-                let pct = g.target > 0 ? (perGoal / g.target) * 100 : 0;
-                let color = pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500';
-                
+                let pct = g.target > 0 ? (pg / g.target) * 100 : 0;
+                let col = pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-600';
                 l.innerHTML += `
-                <div class="border border-slate-100 rounded-xl p-3 shadow-sm">
+                <div class="border border-slate-100 rounded-xl p-4 shadow-sm bg-slate-50">
                     <div class="flex justify-between mb-2">
                         <span class="font-bold text-slate-700">${g.name}</span>
-                        <span class="font-bold text-indigo-600 text-sm">${fmt(perGoal)} <span class="text-slate-400 font-normal">/ ${fmt(g.target)}</span></span>
+                        <span class="font-bold text-indigo-600 text-sm">${fmt(pg)} <span class="text-slate-400 font-normal">/ ${fmt(g.target)}</span></span>
                     </div>
-                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-2">
-                        <div class="h-full ${color}" style="width:${Math.min(pct,100)}%"></div>
+                    <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden mb-3">
+                        <div class="h-full ${col} transition-all duration-500" style="width:${Math.min(pct,100)}%"></div>
                     </div>
                     <div class="flex justify-between items-center">
-                         <span class="text-xs font-bold text-slate-400">${pct.toFixed(1)}% del objetivo cubierto este mes</span>
-                         <button onclick="state.goals.splice(${i},1);save();openSavings()" class="text-xs text-rose-500 hover:text-rose-700">Eliminar</button>
+                         <span class="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">${pct.toFixed(1)}% Completado</span>
+                         <button onclick="state.goals.splice(${i},1);save();openSavings()" class="text-xs text-rose-500 font-bold hover:text-rose-700">ELIMINAR</button>
                     </div>
                 </div>`;
             });
             openModal('modal-savings');
         }
 
-        // --- CALENDAR CARDS ---
         function openCalendar() {
             const l = document.getElementById('calendar-list'); l.innerHTML='';
             state.events.forEach((e,i)=> {
                 l.innerHTML += `
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100 mb-2">
+                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-100 mb-2 shadow-sm">
                     <div class="flex items-center gap-4">
-                        <div class="bg-white border border-slate-200 rounded-lg p-2 text-center min-w-[50px]">
-                            <div class="text-[10px] font-bold text-slate-400 uppercase">${MONTHS[e.m-1].substring(0,3)}</div>
-                            <div class="text-lg font-extrabold text-slate-800 leading-none">${e.d}</div>
+                        <div class="bg-indigo-50 text-indigo-700 rounded-lg p-2 text-center min-w-[55px]">
+                            <div class="text-[10px] font-bold uppercase">${MONTHS[e.m-1].substring(0,3)}</div>
+                            <div class="text-xl font-black leading-none">${e.d}</div>
                         </div>
-                        <span class="font-bold text-slate-700">${e.name}</span>
+                        <span class="font-bold text-slate-800 text-lg">${e.name}</span>
                     </div>
-                    <button onclick="state.events.splice(${i},1);save();openCalendar()" class="text-rose-400 hover:text-rose-600"><i class="ph-bold ph-trash"></i></button>
+                    <button onclick="state.events.splice(${i},1);save();openCalendar()" class="text-rose-400 hover:text-rose-600 p-2"><i class="ph-bold ph-trash text-xl"></i></button>
                 </div>`;
             });
             openModal('modal-calendar');
@@ -566,9 +524,9 @@
                     type: types[i],
                     data: {
                         labels: ['Ene','Feb','Mar','Abr','May'],
-                        datasets: [{ label: 'Data', data: [10, 25, 20, 35, 30], backgroundColor: ['#6366f1','#f43f5e','#10b981'], borderColor: '#6366f1' }]
+                        datasets: [{ label: 'Proyección', data: [10, 25, 20, 35, 30], backgroundColor: ['#6366f1','#f43f5e','#10b981'], borderColor: '#6366f1', tension: 0.4 }]
                     },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
                 });
             });
         }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V106 (Fluent)</title>
+    <title>CFO Personal V107 (Integrity)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -68,18 +68,17 @@
         .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 8px 0; font-weight: 600; color: #334155; transition: 0.2s; font-size: 15px; }
         .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 6px; }
         
-        /* QUICK ADD ROW */
         .quick-add-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #f8fafc; border-radius: 12px; margin-top: 10px; border: 1px dashed #cbd5e1; transition: 0.2s; }
         .quick-add-row:focus-within { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
         .quick-input { background: transparent; border: none; outline: none; font-weight: 500; color: #334155; font-size: 14px; width: 100%; }
         
         /* TOOLTIP CORNER (NO TAPA) */
         .glass-tooltip { 
-            position: absolute; top: 10px; right: 10px; width: 200px;
-            background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-radius: 12px; 
+            position: absolute; top: 0; right: 0; width: 200px;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border-radius: 0 0 0 16px; 
             display: flex; flex-direction: column; align-items: start; text-align: left;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 12px; z-index: 20;
-            border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 16px; z-index: 20;
+            border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.1);
         }
         .chart-container:hover .glass-tooltip { opacity: 1; pointer-events: auto; }
 
@@ -106,6 +105,7 @@
 <body class="sb-closed">
 
     <script>
+        // SIDEBAR STATE MEMORY
         (function() {
             const savedState = localStorage.getItem('cfo_sidebar_state');
             const isMobile = window.innerWidth < 768;
@@ -190,10 +190,35 @@
                 </div>
                 
                 <div class="mt-10 flex justify-center">
-                     <button onclick="addSection()" class="py-4 px-8 rounded-full bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 hover:shadow-lg transition-all flex items-center gap-3 btn-pro">
+                     <button onclick="openNewSectionModal()" class="py-4 px-8 rounded-full bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 hover:shadow-lg transition-all flex items-center gap-3 btn-pro">
                         <i class="ph-bold ph-plus-circle text-xl"></i> Crear Nueva Sección
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-new-section" class="modal-wrap">
+        <div class="modal-box modal-sm bg-white">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="ph-bold ph-rows-plus text-xl"></i></div>
+                <h3 class="text-xl font-bold text-slate-900">Nueva Sección</h3>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre de la Categoría</label>
+                    <input id="sec-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-800 outline-none focus:border-indigo-500" placeholder="Ej. Transporte, Mascotas...">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de Flujo</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="selectSecType('expense')" id="btn-type-expense" class="py-3 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm transition-all">Gasto (Salida)</button>
+                        <button onclick="selectSecType('income')" id="btn-type-income" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all">Ingreso (Entrada)</button>
+                    </div>
+                </div>
+                <button onclick="createSection()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg btn-pro mt-4">Crear Sección</button>
             </div>
         </div>
     </div>
@@ -203,9 +228,7 @@
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">Fecha</h3>
             <p class="text-sm text-slate-500 mb-6">Gestionar eventos</p>
-            
             <div id="day-events-list" class="space-y-3 mb-6"></div>
-            
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-inner">
                 <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3">Nuevo Evento</label>
                 <div class="flex flex-col gap-3">
@@ -259,7 +282,6 @@
                         <input id="new-goal-priority" type="number" class="w-12 bg-transparent text-center font-bold text-slate-800 outline-none" value="1" readonly>
                         <button onclick="changeNewGoalPrio(1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-plus"></i></button>
                     </div>
-
                     <input id="new-goal-name" class="flex-1 w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Auto)">
                     <input id="new-goal-target" type="number" class="w-full md:w-32 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto">
                     <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i></button>
@@ -277,25 +299,13 @@
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-100px)]">
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Flujo</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch1"></canvas></div>
-                    <div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución del Flujo</h4><p class="text-xs">Saldo neto mensual.</p></div>
-                </div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Flujo</h4></div><div class="flex-1 relative"><canvas id="ch1"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución</h4><p class="text-xs">Saldo neto mensual.</p></div></div>
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Patrimonio</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch2"></canvas></div>
-                    <div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza</h4><p class="text-xs">Crecimiento.</p></div>
-                </div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Patrimonio</h4></div><div class="flex-1 relative"><canvas id="ch2"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza</h4><p class="text-xs">Crecimiento.</p></div></div>
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Gap</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch3"></canvas></div>
-                    <div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha</h4><p class="text-xs">In vs Out.</p></div>
-                </div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Gap</h4></div><div class="flex-1 relative"><canvas id="ch3"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha</h4><p class="text-xs">In vs Out.</p></div></div>
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-[400px] flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch4"></canvas></div>
-                    <div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura</h4><p class="text-xs">Categorías.</p></div>
-                </div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar</h4></div><div class="flex-1 relative"><canvas id="ch4"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura</h4><p class="text-xs">Categorías.</p></div></div>
             </div>
         </div>
     </div>
@@ -306,7 +316,7 @@
             <h3 class="text-xl font-bold mb-6">Configuración</h3>
             <div class="space-y-3">
                 <button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-eraser"></i> Limpiar Valores del Mes</button>
-                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v106_fluent');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
+                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v107_master');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
             </div>
         </div>
     </div>
@@ -347,21 +357,32 @@
         let calYear = 2026;
         let selectedDay = null;
         let editingGoalIndex = null;
+        let newSecType = 'expense';
 
         async function init() {
             try {
-                await sync(true); 
-                if(!state.struct || state.struct.length === 0) {
-                     state.struct = genYear();
-                     state.events = [{name:'San Valentín', d:14, m:2, type:'other'}, {name:'Navidad', d:25, m:12, type:'bday'}];
-                     state.goals = [{name:'Fondo Emergencia', target:5000, priority:1}];
-                     await sync(false);
+                // TRY LOCAL RESTORE OR MIGRATE V105/V106
+                let local = localStorage.getItem('cfo_v107_master');
+                if(!local) {
+                    const v106 = localStorage.getItem('cfo_v106_fluent');
+                    const v105 = localStorage.getItem('cfo_v105_strat');
+                    if(v106) { local = v106; alert("Datos de V106 migrados con éxito."); }
+                    else if(v105) { local = v105; alert("Datos de V105 migrados con éxito. ¡Febrero recuperado!"); }
                 }
-            } catch (e) {
-                const local = localStorage.getItem('cfo_v106_fluent');
+
                 if(local) state = JSON.parse(local);
-            }
-            // ESCAPE HANDLER
+                else {
+                    // Try cloud
+                    await sync(true); 
+                    if(!state.struct || state.struct.length === 0) {
+                         state.struct = genYear();
+                         state.events = [{name:'San Valentín', d:14, m:2, type:'other'}, {name:'Navidad', d:25, m:12, type:'bday'}];
+                         state.goals = [{name:'Fondo Emergencia', target:5000, priority:1}];
+                         await sync(false);
+                    }
+                }
+            } catch (e) { console.error(e); }
+
             document.addEventListener('keydown', (e) => { 
                 if(e.key === 'Escape') {
                     closeModals();
@@ -380,12 +401,12 @@
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
-                localStorage.setItem('cfo_v106_fluent', JSON.stringify(state));
+                localStorage.setItem('cfo_v107_master', JSON.stringify(state));
             } catch(e) {}
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v106_fluent', JSON.stringify(state)); render(); sync(false); }
+        function save() { localStorage.setItem('cfo_v107_master', JSON.stringify(state)); render(); sync(false); }
 
         function render() {
             renderSidebar();
@@ -440,8 +461,8 @@
             });
         }
 
-        // QUICK ADD LOGIC
-        function quickAdd(sIdx, nameInput) {
+        // QUICK ADD
+        window.quickAdd = function(sIdx, nameInput) {
             const name = nameInput.value;
             const amtInput = nameInput.nextElementSibling;
             const amt = amtInput.value;
@@ -450,8 +471,30 @@
                 const newIdx = state.struct[state.month][sIdx].items.length - 1;
                 if(amt) state.data[`${state.month}-${state.struct[state.month][sIdx].id}-${newIdx}`] = parseFloat(amt);
                 save();
-                // No re-render whole thing to keep focus? Actually easiest is re-render
-                // For fluidity, let's just re-render.
+            }
+        }
+
+        // NEW SECTION MODAL
+        window.openNewSectionModal = function() {
+            openModal('modal-new-section');
+            document.getElementById('sec-name-input').value = '';
+            selectSecType('expense');
+        }
+        window.selectSecType = function(t) {
+            newSecType = t;
+            if(t==='expense'){
+                document.getElementById('btn-type-expense').className = "py-3 rounded-xl border-2 border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-sm transition-all";
+                document.getElementById('btn-type-income').className = "py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all";
+            } else {
+                document.getElementById('btn-type-income').className = "py-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-sm transition-all";
+                document.getElementById('btn-type-expense').className = "py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-all";
+            }
+        }
+        window.createSection = function() {
+            const n = document.getElementById('sec-name-input').value;
+            if(n) {
+                state.struct[state.month].push({id:'u'+Date.now(), title:n, type:newSecType, items:['Item 1'], collapsed:false});
+                save(); closeModals();
             }
         }
 
@@ -468,7 +511,6 @@
         function toggleSec(s) { state.struct[state.month][s].collapsed=!state.struct[state.month][s].collapsed; save(); }
         function updSec(s,v) { state.struct[state.month][s].title=v; save(); }
         function delSec(s) { state.struct[state.month].splice(s,1); save(); }
-        function addSection() { const n=prompt("Nombre:"); if(n) { state.struct[state.month].push({id:'u'+Date.now(),title:n,type:'expense',items:['Item 1'],collapsed:false}); save(); } }
         function clearMonth() { if(confirm('¿Limpiar montos?')) { const m = state.month; Object.keys(state.data).forEach(k => { if(k.startsWith(`${m}-`)) state.data[k] = 0; }); save(); closeModals(); } }
         function getTotals(m) { let i=0,e=0,s=0; state.struct[m].forEach(sec=>{ let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${m}-${sec.id}-${x}`]||0)); if(sec.type==='income')i+=sum; else if(sec.type==='savings')s+=sum; else e+=sum; }); return {i,e,s,b:i-e-s}; }
 
@@ -488,7 +530,7 @@
             charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
         }
 
-        // --- GLOBAL FUNCTIONS FIXED ---
+        // GLOBAL FUNCTIONS (LINKS FIXED)
         window.openAdvisor = function() {
             const t = getTotals(state.month); const sr = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0; const ratio = t.i > 0 ? (t.e / t.i * 100).toFixed(1) : 0;
             document.getElementById('adv-health').innerHTML = `<p class="mb-2 font-bold text-lg ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</p><p class="text-justify text-slate-600 text-sm">Flujo Neto Disponible.</p>`;
@@ -501,7 +543,7 @@
 
         window.openSettings = function() { openModal('modal-settings'); }
 
-        // --- SAVINGS BUTTONS ---
+        // SAVINGS BUTTONS
         window.changeNewGoalPrio = function(d) {
             const inp = document.getElementById('new-goal-priority');
             let v = parseInt(inp.value) + d;
@@ -509,7 +551,7 @@
             inp.value = v;
         }
 
-        function openSavings() {
+        window.openSavings = function() {
             const l = document.getElementById('goals-list'); l.innerHTML = '';
             const t = getTotals(state.month);
             let remainingSavings = t.s; 
@@ -558,7 +600,6 @@
             } 
         }
 
-        // --- REST OF FUNCTIONS ---
         function openCalendar() { calMonth = new Date().getMonth(); calYear = 2026; renderCal(); openModal('modal-calendar'); }
         function calChangeMonth(d) { calMonth += d; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--} renderCal(); }
         function renderCal() {
@@ -586,7 +627,7 @@
         window.addEventFromModal = function() { const n = document.getElementById('new-event-input').value; const t = document.getElementById('new-event-type').value; if(n) { state.events.push({name:n, d:selectedDay, m:calMonth+1, type:t}); save(); document.getElementById('new-event-input').value=''; openDayDetails(selectedDay); renderCal(); } }
         window.deleteEvent = function(idx) { state.events.splice(idx,1); save(); openDayDetails(selectedDay); renderCal(); }
         
-        function openAnnual() {
+        window.openAnnual = function() {
             openModal('modal-annual');
             let flow=[], wealth=[], accW=0;
             for(let m=0; m<12; m++) { let res = getTotals(m); accW += res.b; flow.push(res.b); wealth.push(accW); }
@@ -603,6 +644,7 @@
         function closeModals() { document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active')); }
         function openCloneModal(){ const s=document.getElementById('clone-target'); s.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.month)s.innerHTML+=`<option value="${i}">${m}</option>`}); openModal('modal-clone'); }
         function executeClone() { const t = parseInt(document.getElementById('clone-target').value); state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month])); save(); closeModals(); alert('Clonado'); }
+        function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
         init();
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V104 (Masterpiece)</title>
+    <title>CFO Personal V105 (Strategic)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -19,12 +19,10 @@
                     animation: {
                         'fade-in': 'fadeIn 0.4s ease-out forwards',
                         'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'expand': 'expand 0.3s ease-in-out'
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
-                        expand: { '0%': { maxHeight: '0px', opacity: 0 }, '100%': { maxHeight: '500px', opacity: 1 } }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } }
                     }
                 }
             }
@@ -51,24 +49,16 @@
         body.sb-open .overlay { opacity: 1; pointer-events: auto; }
         @media (min-width: 768px) { .overlay { display: none; } }
 
-        /* --- BOTONES PROFESIONALES (ANIMACIONES) --- */
-        .btn-pro {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden;
-        }
+        /* BUTTONS PRO */
+        .btn-pro { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
         .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); filter: brightness(1.05); }
         .btn-pro:active { transform: scale(0.96); box-shadow: none; }
-        
-        .btn-icon { 
-            width: 36px; height: 36px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            background: #f8fafc; color: #64748b; transition: all 0.3s ease; border: 1px solid #e2e8f0;
-        }
+        .btn-icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #64748b; transition: all 0.3s ease; border: 1px solid #e2e8f0; }
         .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: rotate(90deg) scale(1.1); }
         .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: rotate(0) scale(1.1); }
         .btn-icon.nav:hover { background: #f1f5f9; color: #0f172a; transform: scale(1.1); border-color: #cbd5e1; }
 
-        /* SECCIONES ACORDEÓN */
+        /* SECTION ANIM */
         .section-content { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; overflow: hidden; }
         .section-content.collapsed { max-height: 0; opacity: 0; padding-bottom: 0; pointer-events: none; }
         .section-content.expanded { max-height: 1000px; opacity: 1; }
@@ -77,28 +67,27 @@
         .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 8px 0; font-weight: 600; color: #334155; transition: 0.2s; font-size: 15px; }
         .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 6px; }
 
-        /* MODALES */
+        /* TOOLTIP GLASS */
+        .glass-tooltip { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 20px; z-index: 20; }
+        .chart-container:hover .glass-tooltip { opacity: 1; pointer-events: auto; }
+
+        /* MODALS */
         .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
         .modal-wrap.active { display: flex; animation: fadeIn 0.3s forwards; }
         .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-wrap.active .modal-box { transform: scale(1); }
         .modal-xl { max-width: 1200px; } .modal-lg { max-width: 900px; } .modal-sm { max-width: 480px; }
 
-        /* CALENDARIO GRANDE */
+        /* CALENDARIO */
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
         .cal-cell { aspect-ratio: 1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 15px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; background: #f8fafc; }
         .cal-cell:hover { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); transform: translateY(-2px); z-index: 10; }
         .cal-cell.today { background: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
         .cal-cell.has-event { border: 1px solid #c7d2fe; background: #eef2ff; color: #4338ca; }
         .event-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; bottom: 8px; }
-        /* Dot Colors */
-        .dot-bill { background: #ef4444; } /* Deuda/Pago */
-        .dot-work { background: #3b82f6; } /* Trabajo */
-        .dot-bday { background: #eab308; } /* Cumple */
-        .dot-other { background: #10b981; } /* Otro */
+        .dot-bill { background: #ef4444; } .dot-work { background: #3b82f6; } .dot-bday { background: #eab308; } .dot-other { background: #10b981; }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; overflow: hidden; }
     </style>
 </head>
@@ -165,9 +154,9 @@
                     <div onclick="openSavings()" class="card p-6 bg-[#0f172a] text-white cursor-pointer hover:bg-[#1e293b] h-40 relative overflow-hidden group shadow-xl btn-pro">
                         <div class="absolute -right-6 -top-6 text-white/5 text-[140px] group-hover:text-white/10 transition-colors rotate-12"><i class="ph-fill ph-piggy-bank"></i></div>
                         <div class="relative z-10 flex flex-col justify-between h-full">
-                            <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest">Ahorros & Metas</span>
+                            <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest">Priorizar Metas</span>
                             <h3 class="text-4xl font-extrabold" id="kpi-savings">S/ 0.00</h3>
-                            <div class="text-xs flex items-center gap-2 font-bold text-indigo-300 group-hover:text-white transition-colors bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">Gestionar Metas <i class="ph-bold ph-arrow-right"></i></div>
+                            <div class="text-xs flex items-center gap-2 font-bold text-indigo-300 group-hover:text-white transition-colors bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">Ver Cascada de Ahorro <i class="ph-bold ph-arrow-right"></i></div>
                         </div>
                     </div>
                 </div>
@@ -201,17 +190,17 @@
         <div class="modal-box modal-sm bg-white">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">Fecha</h3>
-            <p class="text-sm text-slate-500 mb-6">Gestionar eventos del día</p>
+            <p class="text-sm text-slate-500 mb-6">Gestionar eventos</p>
             
             <div id="day-events-list" class="space-y-3 mb-6"></div>
             
             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-inner">
                 <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3">Nuevo Evento</label>
                 <div class="flex flex-col gap-3">
-                    <input id="new-event-input" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Ej. Pago Tarjeta Crédito">
+                    <input id="new-event-input" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Nombre...">
                     <div class="flex gap-2">
                         <select id="new-event-type" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none">
-                            <option value="bill">💸 Pago/Deuda</option>
+                            <option value="bill">💸 Pago</option>
                             <option value="work">💼 Trabajo</option>
                             <option value="bday">🎂 Cumpleaños</option>
                             <option value="other">📌 Otro</option>
@@ -226,7 +215,6 @@
     <div id="modal-calendar" class="modal-wrap">
         <div class="modal-box modal-lg bg-white">
             <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            
             <div class="flex flex-col items-center justify-center mb-8 pt-2">
                 <h3 class="text-3xl font-extrabold text-slate-900 mb-4" id="cal-title">Enero 2026</h3>
                 <div class="flex items-center gap-4 bg-slate-100 p-1.5 rounded-full">
@@ -235,55 +223,29 @@
                     <button onclick="calChangeMonth(1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:text-indigo-600 btn-pro btn-icon nav"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
-
             <div class="grid grid-cols-7 gap-1 text-center text-xs font-extrabold text-slate-400 uppercase mb-4 tracking-widest">
                 <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
             </div>
             <div id="calendar-grid" class="cal-grid h-[500px]"></div>
-            
-            <div class="flex gap-4 justify-center mt-6 text-[10px] font-bold uppercase text-slate-500">
-                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#ef4444]"></div> Pago</div>
-                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#3b82f6]"></div> Trabajo</div>
-                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#eab308]"></div> Cumple</div>
-                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#10b981]"></div> Otro</div>
-            </div>
         </div>
     </div>
 
     <div id="modal-savings" class="modal-wrap">
         <div class="modal-box modal-lg bg-slate-50">
             <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            
             <div class="flex items-center gap-4 mb-8">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-piggy-bank text-3xl"></i></div>
-                <div><h3 class="text-2xl font-extrabold text-slate-900">Mis Metas</h3><p class="text-sm text-slate-500 font-medium" id="savings-subtitle">...</p></div>
+                <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-chart-bar-horizontal text-3xl"></i></div>
+                <div><h3 class="text-2xl font-extrabold text-slate-900">Cascada de Ahorro</h3><p class="text-sm text-slate-500 font-medium" id="savings-subtitle">...</p></div>
             </div>
-
-            <div id="goals-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-h-[50vh] overflow-y-auto pr-2"></div>
-            
+            <div id="goals-list" class="grid grid-cols-1 gap-4 mb-8 max-h-[50vh] overflow-y-auto pr-2"></div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <label class="text-xs font-bold text-slate-400 uppercase block mb-3">Nueva Meta</label>
+                <label class="text-xs font-bold text-slate-400 uppercase block mb-3">Configurar Meta</label>
                 <div class="flex gap-4">
-                    <input id="new-goal-name" class="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Auto Nuevo)">
-                    <input id="new-goal-target" type="number" class="w-40 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto Objetivo">
-                    <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i> Crear</button>
+                    <input id="new-goal-priority" type="number" class="w-20 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none text-center focus:border-indigo-500" placeholder="Prio" title="Prioridad (1 es la más alta)">
+                    <input id="new-goal-name" class="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Auto)">
+                    <input id="new-goal-target" type="number" class="w-32 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto">
+                    <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i></button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-advisor" class="modal-wrap">
-        <div class="modal-box modal-lg bg-slate-50">
-            <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex items-center gap-4 mb-8">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-brain text-3xl"></i></div>
-                <div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico.</p></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500"><h4 class="font-bold text-emerald-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-heartbeat"></i> 1. Diagnóstico de Salud</h4><div id="adv-health" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500"><h4 class="font-bold text-indigo-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-piggy-bank"></i> 2. Eficiencia de Ahorro</h4><div id="adv-savings" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500"><h4 class="font-bold text-amber-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-chart-pie-slice"></i> 3. Estructura de Gasto</h4><div id="adv-struct" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500"><h4 class="font-bold text-rose-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-list-checks"></i> 4. Plan de Acción</h4><div id="adv-action" class="text-sm text-slate-600 leading-relaxed"></div></div>
             </div>
         </div>
     </div>
@@ -299,27 +261,12 @@
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Evolución del Flujo</h4></div><div class="flex-1 relative"><canvas id="ch1"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución del Flujo</h4><p class="text-xs">Saldo neto mensual.</p></div></div>
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Acumulado Anual</h4></div><div class="flex-1 relative"><canvas id="ch2"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza Acumulada</h4><p class="text-xs">Crecimiento patrimonial.</p></div></div>
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Ingresos vs Egresos</h4></div><div class="flex-1 relative"><canvas id="ch3"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha Operativa</h4><p class="text-xs">Ingresos vs Gastos.</p></div></div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar de Estructura</h4></div><div class="flex-1 relative"><canvas id="ch4"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura de Gasto</h4><p class="text-xs">Categorías de consumo.</p></div></div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-[400px] flex flex-col relative group">
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar de Estructura</h4></div>
+                    <div class="flex-1 relative"><canvas id="ch4"></canvas></div>
+                    <div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura de Gasto</h4><p class="text-xs">Categorías de consumo.</p></div>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <div id="modal-settings" class="modal-wrap">
-        <div class="modal-box modal-sm">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <h3 class="text-xl font-bold mb-6">Configuración</h3>
-            <div class="space-y-3">
-                <button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-eraser"></i> Limpiar Valores del Mes</button>
-                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v104_master');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
-            </div>
-        </div>
-    </div>
-    <div id="modal-clone" class="modal-wrap">
-        <div class="modal-box modal-sm">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <h3 class="text-lg font-bold mb-4">Duplicar Mes</h3>
-            <select id="clone-target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold mb-4 outline-none"></select>
-            <button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-pro">Confirmar Copia</button>
         </div>
     </div>
 
@@ -341,14 +288,25 @@
                 if(!state.struct || state.struct.length === 0) {
                      state.struct = genYear();
                      state.events = [{name:'San Valentín', d:14, m:2, type:'other'}, {name:'Navidad', d:25, m:12, type:'bday'}];
-                     state.goals = [{name:'Fondo Emergencia', target:5000}];
+                     state.goals = [{name:'Fondo Emergencia', target:5000, priority:1}];
                      await sync(false);
                 }
             } catch (e) {
-                const local = localStorage.getItem('cfo_v104_master');
+                const local = localStorage.getItem('cfo_v105_strat');
                 if(local) state = JSON.parse(local);
             }
-            document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModals(); });
+            // ESCAPE KEY HANDLER
+            document.addEventListener('keydown', (e) => { 
+                if(e.key === 'Escape') {
+                    closeModals();
+                    // Close Sidebar if open
+                    if(document.body.classList.contains('sb-open')) {
+                        document.body.classList.remove('sb-open');
+                        document.body.classList.add('sb-closed');
+                        localStorage.setItem('cfo_sidebar_state', 'closed');
+                    }
+                }
+            });
             render();
         }
 
@@ -361,12 +319,12 @@
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
-                localStorage.setItem('cfo_v104_master', JSON.stringify(state));
+                localStorage.setItem('cfo_v105_strat', JSON.stringify(state));
             } catch(e) {}
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v104_master', JSON.stringify(state)); render(); sync(false); }
+        function save() { localStorage.setItem('cfo_v105_strat', JSON.stringify(state)); render(); sync(false); }
 
         function render() {
             renderSidebar();
@@ -379,7 +337,7 @@
             const nav = document.getElementById('month-nav'); nav.innerHTML = '';
             MONTHS.forEach((m, i) => {
                 const active = i === state.month;
-                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 flex justify-between items-center transition-all ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'} btn-pro">
+                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold flex justify-between items-center transition-all ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'} btn-pro">
                     ${m} ${active ? '<i class="ph-bold ph-caret-right"></i>' : ''}
                 </button>`;
             });
@@ -441,7 +399,7 @@
             document.getElementById('chart-total-center').innerText = fmt(t.e);
             const ctx = document.getElementById('chart-mini'); if(charts.mini) charts.mini.destroy();
             let labels = [], data = []; 
-            // CORREGIDO: Suma todo lo que NO sea ingreso ni ahorro
+            // CORREGIDO: Suma TODO lo que NO sea income ni savings
             state.struct[state.month].forEach(sec=>{
                 if(sec.type !== 'income' && sec.type !== 'savings'){
                     let sum=0; 
@@ -452,7 +410,7 @@
             charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
         }
 
-        // --- CALENDAR 2026 LOGIC (BIG) ---
+        // --- CALENDAR 2026 ---
         function openCalendar() { calMonth = new Date().getMonth(); calYear = 2026; renderCal(); openModal('modal-calendar'); }
         function calChangeMonth(d) { calMonth += d; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--} renderCal(); }
         function renderCal() {
@@ -495,31 +453,49 @@
         }
         function deleteEvent(idx) { state.events.splice(idx,1); save(); openDayDetails(selectedDay); renderCal(); }
 
-        // --- SAVINGS ESPACIOSOS ---
+        // --- SAVINGS CASCADA (WATERFALL) ---
         function openSavings() {
             const l = document.getElementById('goals-list'); l.innerHTML = '';
             const t = getTotals(state.month);
-            const pg = state.goals.length > 0 ? t.s / state.goals.length : 0;
-            document.getElementById('savings-subtitle').innerText = `Ahorro Mes: ${fmt(t.s)} (${fmt(pg)}/meta)`;
-            editingGoalIndex = null; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus text-lg"></i> Crear';
+            let remainingSavings = t.s; // Start with full amount
+            
+            // Sort by Priority (1 first)
+            const sortedGoals = [...state.goals].sort((a,b) => (a.priority || 99) - (b.priority || 99));
 
-            state.goals.forEach((g,i) => {
-                let pct = g.target > 0 ? (pg / g.target) * 100 : 0;
-                let col = pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-600';
+            document.getElementById('savings-subtitle').innerText = `Ahorro Total Mes: ${fmt(t.s)}`;
+            editingGoalIndex = null; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus text-lg"></i>';
+
+            sortedGoals.forEach((g) => {
+                // Find original index
+                const originalIndex = state.goals.findIndex(x => x === g);
+                
+                // Calculate fill for this month
+                let allocated = Math.min(g.target, remainingSavings);
+                if(allocated < 0) allocated = 0;
+                
+                // Update remaining for next priority
+                remainingSavings -= allocated;
+
+                let pct = g.target > 0 ? (allocated / g.target) * 100 : 0;
+                let col = allocated >= g.target ? 'bg-emerald-500' : 'bg-indigo-600';
+                
                 l.innerHTML += `
-                <div class="border border-slate-100 rounded-3xl p-6 shadow-sm bg-white relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 z-0 opacity-50"></div>
+                <div class="border border-slate-100 rounded-2xl p-6 shadow-sm bg-white relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-slate-100 rounded-bl-full -mr-2 -mt-2 flex items-center justify-center text-lg font-bold text-slate-400 pl-2 pt-2">${g.priority||'-'}</div>
                     <div class="relative z-10">
-                        <div class="flex justify-between items-start mb-4">
-                            <div><h4 class="font-bold text-lg text-slate-800">${g.name}</h4><span class="text-xs font-bold text-slate-400 uppercase">Meta: ${fmt(g.target)}</span></div>
-                            <span class="font-bold text-2xl text-indigo-600">${fmt(pg)}</span>
+                        <div class="flex justify-between items-start mb-3">
+                            <div><h4 class="font-bold text-lg text-slate-800">${g.name}</h4><span class="text-xs font-bold text-slate-400 uppercase">Objetivo: ${fmt(g.target)}</span></div>
+                            <div class="text-right">
+                                <span class="font-bold text-xl text-indigo-600 block">${fmt(allocated)}</span>
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Asignado</span>
+                            </div>
                         </div>
-                        <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden mb-4"><div class="h-full ${col} transition-all duration-1000 ease-out" style="width:${Math.min(pct,100)}%"></div></div>
+                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-3"><div class="h-full ${col} transition-all duration-1000 ease-out" style="width:${Math.min(pct,100)}%"></div></div>
                         <div class="flex justify-between items-center">
-                            <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-500">${pct.toFixed(1)}%</span>
+                            <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-500">${pct.toFixed(1)}% Cubierto este mes</span>
                             <div class="flex gap-2">
-                                <button onclick="editGoal(${i})" class="btn-icon edit"><i class="ph-bold ph-pencil-simple"></i></button>
-                                <button onclick="state.goals.splice(${i},1);save();openSavings()" class="btn-icon"><i class="ph-bold ph-trash"></i></button>
+                                <button onclick="editGoal(${originalIndex})" class="btn-icon edit"><i class="ph-bold ph-pencil-simple"></i></button>
+                                <button onclick="state.goals.splice(${originalIndex},1);save();openSavings()" class="btn-icon"><i class="ph-bold ph-trash"></i></button>
                             </div>
                         </div>
                     </div>
@@ -531,27 +507,24 @@
             editingGoalIndex = i;
             document.getElementById('new-goal-name').value = state.goals[i].name;
             document.getElementById('new-goal-target').value = state.goals[i].target;
-            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check text-lg"></i> Guardar';
+            document.getElementById('new-goal-priority').value = state.goals[i].priority || 1;
+            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check text-lg"></i>';
         }
         function addGoal() { 
-            const n = document.getElementById('new-goal-name').value; const t = parseFloat(document.getElementById('new-goal-target').value); 
+            const n = document.getElementById('new-goal-name').value; const t = parseFloat(document.getElementById('new-goal-target').value); const p = parseInt(document.getElementById('new-goal-priority').value) || 99;
             if(n && t) { 
-                if(editingGoalIndex !== null) { state.goals[editingGoalIndex] = {name:n, target:t}; editingGoalIndex = null; }
-                else { state.goals.push({name:n, target:t}); }
+                if(editingGoalIndex !== null) { state.goals[editingGoalIndex] = {name:n, target:t, priority:p}; editingGoalIndex = null; }
+                else { state.goals.push({name:n, target:t, priority:p}); }
                 save(); openSavings(); 
-                document.getElementById('new-goal-name').value=''; document.getElementById('new-goal-target').value='';
+                document.getElementById('new-goal-name').value=''; document.getElementById('new-goal-target').value=''; document.getElementById('new-goal-priority').value='';
             } 
         }
 
         // --- DASHBOARD REAL ---
         function openAnnual() {
             openModal('modal-annual');
-            // Logica cálculo real
-            let flow=[], wealth=[], struct=[], accW=0;
-            for(let m=0; m<12; m++) {
-                let res = getTotals(m);
-                accW += res.b; flow.push(res.b); wealth.push(accW); struct.push(res.e);
-            }
+            let flow=[], wealth=[], accW=0;
+            for(let m=0; m<12; m++) { let res = getTotals(m); accW += res.b; flow.push(res.b); wealth.push(accW); }
             
             const ids = ['ch1','ch2','ch3','ch4'];
             Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#334155';
@@ -562,27 +535,15 @@
             if(charts.ch2) charts.ch2.destroy();
             charts.ch2 = new Chart(document.getElementById('ch2'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Patrimonio', data: wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 
-            // In vs Out
             let incs=[], exps=[]; for(let m=0; m<12; m++){ let t=getTotals(m); incs.push(t.i); exps.push(t.e); }
             if(charts.ch3) charts.ch3.destroy();
             charts.ch3 = new Chart(document.getElementById('ch3'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 }, { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
 
-            // Radar
             let catL=[], catD=[];
             state.struct[state.month].forEach(sec=>{ if(sec.type!=='income' && sec.type!=='savings'){ let s=0; sec.items.forEach((_,x)=>s+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(s>0){ catL.push(sec.title); catD.push(s); } } });
             if(charts.ch4) charts.ch4.destroy();
-            charts.ch4 = new Chart(document.getElementById('ch4'), { type: 'doughnut', data: { labels: catL, datasets: [{ data: catD, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position:'right', labels: { color:'white' } } } } });
-        }
-
-        // --- ADVISOR & UTILS ---
-        function openAdvisor() {
-            const t = getTotals(state.month); const sr = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0; const ratio = t.i > 0 ? (t.e / t.i * 100).toFixed(1) : 0;
-            document.getElementById('adv-health').innerHTML = `<p class="mb-2 font-bold text-lg ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</p><p class="text-justify text-slate-600 text-sm">Flujo Neto Disponible.</p>`;
-            document.getElementById('adv-savings').innerHTML = `<p class="mb-2 font-bold text-lg text-indigo-600">${sr}% Ahorrado</p><p class="text-justify text-slate-600 text-sm">Ratio sobre Ingresos.</p>`;
-            document.getElementById('adv-struct').innerHTML = `<p class="mb-2 font-bold text-lg text-amber-600">${ratio}% Gastado</p><p class="text-justify text-slate-600 text-sm">Ratio de Operación.</p>`;
-            const acts = t.b < 0 ? ["Reducir ocio temporalmente", "Evitar nuevas deudas"] : ["Invertir excedente", "Incrementar fondo"];
-            document.getElementById('adv-action').innerHTML = `<ul class="space-y-2 font-medium text-slate-700">${acts.map(a=>`<li class="flex gap-2"><i class="ph-bold ph-check-circle text-indigo-500 mt-1"></i> ${a}</li>`).join('')}</ul>`;
-            openModal('modal-advisor');
+            // FIXED RADAR FULL VIEW
+            charts.ch4 = new Chart(document.getElementById('ch4'), { type: 'doughnut', data: { labels: catL, datasets: [{ data: catD, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] }, options: { responsive: true, maintainAspectRatio: false, layout: { padding: 20 }, plugins: { legend: { position:'bottom', labels: { color:'white', boxWidth: 10, padding: 20 } } } } });
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -591,6 +552,7 @@
         function openCloneModal(){ const s=document.getElementById('clone-target'); s.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.month)s.innerHTML+=`<option value="${i}">${m}</option>`}); openModal('modal-clone'); }
         function executeClone() { const t = parseInt(document.getElementById('clone-target').value); state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month])); save(); closeModals(); alert('Clonado'); }
         function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
+        function openAdvisor() { openModal('modal-advisor'); }
         init();
     </script>
 </body>

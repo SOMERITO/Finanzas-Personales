@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V103 (Pro Suite)</title>
+    <title>CFO Personal V104 (Masterpiece)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -17,12 +17,14 @@
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: { navy: { 900: '#0f172a', 800: '#1e293b' } },
                     animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out forwards',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'expand': 'expand 0.3s ease-in-out'
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+                        expand: { '0%': { maxHeight: '0px', opacity: 0 }, '100%': { maxHeight: '500px', opacity: 1 } }
                     }
                 }
             }
@@ -49,49 +51,51 @@
         body.sb-open .overlay { opacity: 1; pointer-events: auto; }
         @media (min-width: 768px) { .overlay { display: none; } }
 
-        /* BOTONES DE ACCIÓN (Pro Buttons) */
-        .btn-icon { 
-            width: 32px; height: 32px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            background: #f1f5f9; color: #64748b; transition: all 0.2s; cursor: pointer; border: 1px solid transparent;
+        /* --- BOTONES PROFESIONALES (ANIMACIONES) --- */
+        .btn-pro {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
         }
-        .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: scale(1.1); }
-        .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; }
+        .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); filter: brightness(1.05); }
+        .btn-pro:active { transform: scale(0.96); box-shadow: none; }
+        
+        .btn-icon { 
+            width: 36px; height: 36px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            background: #f8fafc; color: #64748b; transition: all 0.3s ease; border: 1px solid #e2e8f0;
+        }
+        .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: rotate(90deg) scale(1.1); }
+        .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: rotate(0) scale(1.1); }
+        .btn-icon.nav:hover { background: #f1f5f9; color: #0f172a; transform: scale(1.1); border-color: #cbd5e1; }
 
-        .btn-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .btn-hover:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .btn-hover:active { transform: scale(0.95); }
+        /* SECCIONES ACORDEÓN */
+        .section-content { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; overflow: hidden; }
+        .section-content.collapsed { max-height: 0; opacity: 0; padding-bottom: 0; pointer-events: none; }
+        .section-content.expanded { max-height: 1000px; opacity: 1; }
 
         /* INPUTS */
-        .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 6px 0; font-weight: 600; color: #334155; transition: 0.2s; }
-        .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 4px; }
-        
-        /* GLASSPHORMISM TOOLTIP (Tablero) */
-        .glass-tooltip {
-            position: absolute; inset: 0; 
-            background: rgba(15, 23, 42, 0.85); 
-            backdrop-filter: blur(8px); 
-            border-radius: 16px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 20px; z-index: 20;
-        }
-        .chart-container:hover .glass-tooltip { opacity: 1; pointer-events: auto; }
+        .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 8px 0; font-weight: 600; color: #334155; transition: 0.2s; font-size: 15px; }
+        .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 6px; }
 
         /* MODALES */
         .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
         .modal-wrap.active { display: flex; animation: fadeIn 0.3s forwards; }
-        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-wrap.active .modal-box { transform: scale(1); }
-        .modal-xl { max-width: 1200px; } .modal-lg { max-width: 900px; } .modal-sm { max-width: 450px; }
+        .modal-xl { max-width: 1200px; } .modal-lg { max-width: 900px; } .modal-sm { max-width: 480px; }
 
-        /* CALENDARIO GRID */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-cell { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; }
-        .cal-cell:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        /* CALENDARIO GRANDE */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .cal-cell { aspect-ratio: 1; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 15px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; background: #f8fafc; }
+        .cal-cell:hover { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); transform: translateY(-2px); z-index: 10; }
         .cal-cell.today { background: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
-        .cal-cell.has-event { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
-        .cal-cell.today.has-event { background: #4f46e5; color: white; border: 1px solid #818cf8; }
-        .event-dot { width: 5px; height: 5px; background: currentColor; border-radius: 50%; position: absolute; bottom: 6px; opacity: 0.7; }
+        .cal-cell.has-event { border: 1px solid #c7d2fe; background: #eef2ff; color: #4338ca; }
+        .event-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; bottom: 8px; }
+        /* Dot Colors */
+        .dot-bill { background: #ef4444; } /* Deuda/Pago */
+        .dot-work { background: #3b82f6; } /* Trabajo */
+        .dot-bday { background: #eab308; } /* Cumple */
+        .dot-other { background: #10b981; } /* Otro */
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -112,67 +116,67 @@
     <div id="mobile-overlay" class="overlay" onclick="toggleSidebar()"></div>
 
     <aside id="sidebar" class="sidebar">
-        <div class="h-20 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between bg-white">
+        <div class="h-24 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between bg-white">
             <span class="font-extrabold text-2xl text-slate-900 tracking-tight">CFO<span class="text-indigo-600">.</span>Pro</span>
         </div>
-        <nav class="flex-1 overflow-y-auto p-4 space-y-1 bg-white" id="month-nav"></nav>
+        <nav class="flex-1 overflow-y-auto p-4 space-y-2 bg-white" id="month-nav"></nav>
         <div class="p-6 border-t border-slate-100 bg-slate-50 mt-auto">
-            <button onclick="openCloneModal()" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-black shadow-lg shadow-slate-900/20 btn-hover"><i class="ph-bold ph-copy text-lg"></i> Duplicar Mes</button>
+            <button onclick="openCloneModal()" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-copy text-lg"></i> Duplicar Mes</button>
         </div>
     </aside>
 
     <div id="layout-wrap" class="layout-wrap">
         <header class="h-20 bg-[#0f172a] text-white flex items-center justify-between px-6 shadow-md z-30 shrink-0">
             <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/10 rounded-xl transition-colors btn-hover"><i class="ph-bold ph-list text-2xl"></i></button>
-                <div class="flex items-center gap-3 bg-white/10 px-4 py-1.5 rounded-full border border-white/10">
-                    <button onclick="changeMonth(-1)" class="hover:text-indigo-300 btn-hover"><i class="ph-bold ph-caret-left"></i></button>
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/10 rounded-xl transition-colors btn-pro"><i class="ph-bold ph-list text-2xl"></i></button>
+                <div class="flex items-center gap-3 bg-white/10 px-4 py-1.5 rounded-full border border-white/10 shadow-inner">
+                    <button onclick="changeMonth(-1)" class="hover:text-indigo-300 btn-pro"><i class="ph-bold ph-caret-left"></i></button>
                     <div class="text-center w-36">
                         <span class="block text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Ejercicio 2026</span>
                         <span class="block text-lg font-bold leading-none" id="month-title">Enero</span>
                     </div>
-                    <button onclick="changeMonth(1)" class="hover:text-indigo-300 btn-hover"><i class="ph-bold ph-caret-right"></i></button>
+                    <button onclick="changeMonth(1)" class="hover:text-indigo-300 btn-pro"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
             <div class="flex items-center gap-5">
-                <button onclick="openCalendar()" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-xl transition-all btn-hover shadow-lg shadow-indigo-900/50" title="Calendario"><i class="ph-bold ph-calendar text-2xl"></i></button>
+                <button onclick="openCalendar()" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2.5 rounded-xl transition-all btn-pro shadow-lg shadow-indigo-900/50" title="Calendario"><i class="ph-bold ph-calendar text-2xl"></i></button>
                 <div class="h-8 w-px bg-white/10 hidden md:block"></div>
-                <button onclick="openAnnual()" class="hover:text-indigo-300 transition-colors btn-hover" title="Tablero 2026"><i class="ph-bold ph-chart-line-up text-2xl"></i></button>
-                <button onclick="openAdvisor()" class="hover:text-indigo-300 transition-colors btn-hover" title="Consejero"><i class="ph-fill ph-brain text-2xl"></i></button>
-                <button onclick="openSettings()" class="hover:text-indigo-300 transition-colors btn-hover" title="Ajustes"><i class="ph-bold ph-gear text-2xl"></i></button>
+                <button onclick="openAnnual()" class="hover:text-indigo-300 transition-colors btn-pro" title="Tablero 2026"><i class="ph-bold ph-chart-line-up text-2xl"></i></button>
+                <button onclick="openAdvisor()" class="hover:text-indigo-300 transition-colors btn-pro" title="Consejero"><i class="ph-fill ph-brain text-2xl"></i></button>
+                <button onclick="openSettings()" class="hover:text-indigo-300 transition-colors btn-pro" title="Ajustes"><i class="ph-bold ph-gear text-2xl"></i></button>
             </div>
         </header>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 bg-[#f8fafc]" id="workspace">
             <div class="max-w-7xl mx-auto animate-fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
-                    <div class="card p-6 border-b-4 border-slate-800 flex flex-col justify-between h-36 btn-hover">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card p-6 border-b-4 border-slate-800 flex flex-col justify-between h-40 btn-pro">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Disponible Real</span>
                         <h3 class="text-4xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
                     </div>
-                    <div class="card p-6 border-b-4 border-emerald-500 flex flex-col justify-between h-36 btn-hover">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ingresos</span>
+                    <div class="card p-6 border-b-4 border-emerald-500 flex flex-col justify-between h-40 btn-pro">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ingresos Totales</span>
                         <h3 class="text-4xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
                     </div>
-                    <div class="card p-6 border-b-4 border-rose-500 flex flex-col justify-between h-36 btn-hover">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Salidas</span>
+                    <div class="card p-6 border-b-4 border-rose-500 flex flex-col justify-between h-40 btn-pro">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gastos Totales</span>
                         <h3 class="text-4xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
                     </div>
-                    <div onclick="openSavings()" class="card p-6 bg-[#0f172a] text-white cursor-pointer hover:bg-[#1e293b] h-36 relative overflow-hidden group shadow-xl btn-hover">
-                        <div class="absolute -right-6 -top-6 text-white/5 text-9xl group-hover:text-white/10 transition-colors rotate-12"><i class="ph-fill ph-piggy-bank"></i></div>
+                    <div onclick="openSavings()" class="card p-6 bg-[#0f172a] text-white cursor-pointer hover:bg-[#1e293b] h-40 relative overflow-hidden group shadow-xl btn-pro">
+                        <div class="absolute -right-6 -top-6 text-white/5 text-[140px] group-hover:text-white/10 transition-colors rotate-12"><i class="ph-fill ph-piggy-bank"></i></div>
                         <div class="relative z-10 flex flex-col justify-between h-full">
-                            <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest">Ahorros</span>
+                            <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest">Ahorros & Metas</span>
                             <h3 class="text-4xl font-extrabold" id="kpi-savings">S/ 0.00</h3>
-                            <div class="text-xs flex items-center gap-1 font-bold text-indigo-300 group-hover:text-white transition-colors">Gestionar Metas <i class="ph-bold ph-arrow-right"></i></div>
+                            <div class="text-xs flex items-center gap-2 font-bold text-indigo-300 group-hover:text-white transition-colors bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">Gestionar Metas <i class="ph-bold ph-arrow-right"></i></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-5" id="ledger"></div>
+                    <div class="lg:col-span-2 space-y-6" id="ledger"></div>
                     <div class="space-y-6">
-                        <div class="card p-6">
-                            <h4 class="font-bold text-xs text-slate-400 uppercase mb-6 text-center tracking-widest">Distribución del Gasto</h4>
+                        <div class="card p-8">
+                            <h4 class="font-bold text-xs text-slate-400 uppercase mb-8 text-center tracking-widest">Distribución Real de Gastos</h4>
                             <div class="h-64 relative">
                                 <canvas id="chart-mini"></canvas>
                                 <div class="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
@@ -184,9 +188,9 @@
                     </div>
                 </div>
                 
-                <div class="mt-8 flex justify-center">
-                     <button onclick="addSection()" class="py-3 px-6 rounded-full bg-white border border-slate-200 text-slate-500 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md transition-all flex items-center gap-2 btn-hover">
-                        <i class="ph-bold ph-plus-circle text-lg"></i> Crear Nueva Sección
+                <div class="mt-10 flex justify-center">
+                     <button onclick="addSection()" class="py-4 px-8 rounded-full bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 hover:shadow-lg transition-all flex items-center gap-3 btn-pro">
+                        <i class="ph-bold ph-plus-circle text-xl"></i> Crear Nueva Sección
                     </button>
                 </div>
             </div>
@@ -196,31 +200,75 @@
     <div id="modal-day-details" class="modal-wrap z-[80]">
         <div class="modal-box modal-sm bg-white">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">15 Febrero</h3>
-            <p class="text-sm text-slate-500 mb-6">Agenda del día</p>
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">Fecha</h3>
+            <p class="text-sm text-slate-500 mb-6">Gestionar eventos del día</p>
             
             <div id="day-events-list" class="space-y-3 mb-6"></div>
             
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Agregar Evento</label>
-                <div class="flex gap-2">
-                    <input id="new-event-input" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Ej. Cumpleaños">
-                    <button onclick="addEventFromModal()" class="bg-indigo-600 text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-indigo-700 btn-hover"><i class="ph-bold ph-plus"></i></button>
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-inner">
+                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3">Nuevo Evento</label>
+                <div class="flex flex-col gap-3">
+                    <input id="new-event-input" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Ej. Pago Tarjeta Crédito">
+                    <div class="flex gap-2">
+                        <select id="new-event-type" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none">
+                            <option value="bill">💸 Pago/Deuda</option>
+                            <option value="work">💼 Trabajo</option>
+                            <option value="bday">🎂 Cumpleaños</option>
+                            <option value="other">📌 Otro</option>
+                        </select>
+                        <button onclick="addEventFromModal()" class="bg-indigo-600 text-white w-12 rounded-xl flex items-center justify-center hover:bg-indigo-700 btn-pro shadow-md"><i class="ph-bold ph-plus text-lg"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="modal-calendar" class="modal-wrap">
-        <div class="modal-box modal-sm bg-white">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex items-center justify-between mb-6 px-2">
-                <button onclick="calChangeMonth(-1)" class="btn-icon"><i class="ph-bold ph-caret-left"></i></button>
-                <h3 class="text-lg font-extrabold text-slate-900" id="cal-title">Enero 2026</h3>
-                <button onclick="calChangeMonth(1)" class="btn-icon"><i class="ph-bold ph-caret-right"></i></button>
+        <div class="modal-box modal-lg bg-white">
+            <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            
+            <div class="flex flex-col items-center justify-center mb-8 pt-2">
+                <h3 class="text-3xl font-extrabold text-slate-900 mb-4" id="cal-title">Enero 2026</h3>
+                <div class="flex items-center gap-4 bg-slate-100 p-1.5 rounded-full">
+                    <button onclick="calChangeMonth(-1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:text-indigo-600 btn-pro btn-icon nav"><i class="ph-bold ph-caret-left"></i></button>
+                    <span class="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Navegar</span>
+                    <button onclick="calChangeMonth(1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:text-indigo-600 btn-pro btn-icon nav"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
             </div>
-            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold text-slate-400 uppercase mb-2"><div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div></div>
-            <div id="calendar-grid" class="cal-grid"></div>
+
+            <div class="grid grid-cols-7 gap-1 text-center text-xs font-extrabold text-slate-400 uppercase mb-4 tracking-widest">
+                <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+            </div>
+            <div id="calendar-grid" class="cal-grid h-[500px]"></div>
+            
+            <div class="flex gap-4 justify-center mt-6 text-[10px] font-bold uppercase text-slate-500">
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#ef4444]"></div> Pago</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#3b82f6]"></div> Trabajo</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#eab308]"></div> Cumple</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-[#10b981]"></div> Otro</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-savings" class="modal-wrap">
+        <div class="modal-box modal-lg bg-slate-50">
+            <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-piggy-bank text-3xl"></i></div>
+                <div><h3 class="text-2xl font-extrabold text-slate-900">Mis Metas</h3><p class="text-sm text-slate-500 font-medium" id="savings-subtitle">...</p></div>
+            </div>
+
+            <div id="goals-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-h-[50vh] overflow-y-auto pr-2"></div>
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <label class="text-xs font-bold text-slate-400 uppercase block mb-3">Nueva Meta</label>
+                <div class="flex gap-4">
+                    <input id="new-goal-name" class="flex-1 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Auto Nuevo)">
+                    <input id="new-goal-target" type="number" class="w-40 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto Objetivo">
+                    <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i> Crear</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -229,7 +277,7 @@
             <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <div class="flex items-center gap-4 mb-8">
                 <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-brain text-3xl"></i></div>
-                <div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico en tiempo real.</p></div>
+                <div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico.</p></div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500"><h4 class="font-bold text-emerald-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-heartbeat"></i> 1. Diagnóstico de Salud</h4><div id="adv-health" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
@@ -240,49 +288,18 @@
         </div>
     </div>
 
-    <div id="modal-savings" class="modal-wrap">
-        <div class="modal-box modal-sm">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2">Metas de Ahorro</h3>
-            <p class="text-xs text-slate-500 mb-6 font-medium" id="savings-subtitle">...</p>
-            <div id="goals-list" class="space-y-4 mb-6 max-h-[50vh] overflow-y-auto"></div>
-            <div class="pt-4 border-t border-slate-100 flex gap-2">
-                <input id="new-goal-name" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre de Meta">
-                <input id="new-goal-target" type="number" class="w-32 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto">
-                <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-4 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-hover"><i class="ph-bold ph-plus"></i></button>
-            </div>
-        </div>
-    </div>
-
     <div id="modal-annual" class="modal-wrap">
         <div class="modal-box modal-xl bg-[#0f172a] text-white h-[90vh] relative overflow-hidden">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white btn-icon bg-slate-800 border-slate-700"><i class="ph-bold ph-x"></i></button>
             <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-800 relative z-10">
                 <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/50"><i class="ph-bold ph-chart-line-up text-xl"></i></div>
-                <div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Datos reales proyectados del ejercicio.</p></div>
+                <div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Datos reales proyectados.</p></div>
             </div>
-            
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-100px)]">
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Evolución del Flujo</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch1"></canvas></div>
-                    <div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución del Flujo</h4><p class="text-xs">Muestra cómo varía tu saldo final mes a mes. Barras hacia arriba indican ahorro neto.</p></div>
-                </div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Acumulado Anual</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch2"></canvas></div>
-                     <div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza Acumulada</h4><p class="text-xs">El crecimiento de tus ahorros e inversiones a lo largo del año.</p></div>
-                </div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Ingresos vs Egresos</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch3"></canvas></div>
-                     <div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha Operativa</h4><p class="text-xs">Línea Verde (Ingresos) debe estar siempre por encima de la Roja (Gastos).</p></div>
-                </div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar de Estructura</h4></div>
-                    <div class="flex-1 relative"><canvas id="ch4"></canvas></div>
-                     <div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura de Gasto</h4><p class="text-xs">Visualiza qué porcentaje se va a Fijos (Vivienda) vs Variables (Ocio).</p></div>
-                </div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Evolución del Flujo</h4></div><div class="flex-1 relative"><canvas id="ch1"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución del Flujo</h4><p class="text-xs">Saldo neto mensual.</p></div></div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Acumulado Anual</h4></div><div class="flex-1 relative"><canvas id="ch2"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza Acumulada</h4><p class="text-xs">Crecimiento patrimonial.</p></div></div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Ingresos vs Egresos</h4></div><div class="flex-1 relative"><canvas id="ch3"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha Operativa</h4><p class="text-xs">Ingresos vs Gastos.</p></div></div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar de Estructura</h4></div><div class="flex-1 relative"><canvas id="ch4"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura de Gasto</h4><p class="text-xs">Categorías de consumo.</p></div></div>
             </div>
         </div>
     </div>
@@ -292,8 +309,8 @@
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-xl font-bold mb-6">Configuración</h3>
             <div class="space-y-3">
-                <button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-hover"><i class="ph-bold ph-eraser"></i> Limpiar Valores del Mes</button>
-                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v103_pro');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-hover"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
+                <button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-eraser"></i> Limpiar Valores del Mes</button>
+                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v104_master');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
             </div>
         </div>
     </div>
@@ -302,7 +319,7 @@
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-lg font-bold mb-4">Duplicar Mes</h3>
             <select id="clone-target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold mb-4 outline-none"></select>
-            <button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-hover">Confirmar Copia</button>
+            <button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-pro">Confirmar Copia</button>
         </div>
     </div>
 
@@ -323,12 +340,12 @@
                 await sync(true); 
                 if(!state.struct || state.struct.length === 0) {
                      state.struct = genYear();
-                     state.events = [{name:'San Valentín', d:14, m:2}, {name:'Navidad', d:25, m:12}];
+                     state.events = [{name:'San Valentín', d:14, m:2, type:'other'}, {name:'Navidad', d:25, m:12, type:'bday'}];
                      state.goals = [{name:'Fondo Emergencia', target:5000}];
                      await sync(false);
                 }
             } catch (e) {
-                const local = localStorage.getItem('cfo_v103_pro');
+                const local = localStorage.getItem('cfo_v104_master');
                 if(local) state = JSON.parse(local);
             }
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModals(); });
@@ -344,12 +361,12 @@
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
-                localStorage.setItem('cfo_v103_pro', JSON.stringify(state));
+                localStorage.setItem('cfo_v104_master', JSON.stringify(state));
             } catch(e) {}
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v103_pro', JSON.stringify(state)); render(); sync(false); }
+        function save() { localStorage.setItem('cfo_v104_master', JSON.stringify(state)); render(); sync(false); }
 
         function render() {
             renderSidebar();
@@ -362,7 +379,7 @@
             const nav = document.getElementById('month-nav'); nav.innerHTML = '';
             MONTHS.forEach((m, i) => {
                 const active = i === state.month;
-                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 flex justify-between items-center transition-all ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'} btn-hover">
+                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold mb-1 flex justify-between items-center transition-all ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'} btn-pro">
                     ${m} ${active ? '<i class="ph-bold ph-caret-right"></i>' : ''}
                 </button>`;
             });
@@ -375,25 +392,25 @@
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
                 const card = document.createElement('div'); card.className = "card";
                 card.innerHTML = `
-                <div class="p-5 flex justify-between items-center bg-white cursor-pointer select-none group" onclick="toggleSec(${sIdx})">
+                <div class="p-6 flex justify-between items-center bg-white cursor-pointer select-none group" onclick="toggleSec(${sIdx})">
                     <div class="flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><i class="ph-bold ph-caret-down ${sec.collapsed?'-rotate-90':''}"></i></div>
+                        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><i class="ph-bold ph-caret-down ${sec.collapsed?'-rotate-90':''}"></i></div>
                         <input class="font-bold text-lg bg-transparent border-none outline-none w-48 input-row" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
-                        <button onclick="event.stopPropagation();if(confirm('Borrar sección?'))delSec(${sIdx})" class="btn-action btn-icon text-rose-500 hover:bg-rose-50 border-0"><i class="ph-bold ph-trash"></i></button>
+                        <button onclick="event.stopPropagation();if(confirm('Borrar sección?'))delSec(${sIdx})" class="btn-icon text-rose-500 hover:bg-rose-50 border-0"><i class="ph-bold ph-trash"></i></button>
                     </div>
-                    <span class="font-bold text-lg ${sec.type==='income'?'text-emerald-600':'text-slate-800'}">${fmt(total)}</span>
+                    <span class="font-bold text-xl ${sec.type==='income'?'text-emerald-600':'text-slate-800'}">${fmt(total)}</span>
                 </div>
-                <div class="${sec.collapsed ? 'hidden' : 'block'} px-5 pb-5 space-y-2 animate-fade-in">
+                <div class="section-content ${sec.collapsed ? 'collapsed' : 'expanded'} px-6 pb-6 space-y-3">
                     ${sec.type==='savings' 
                     ? `<div class="p-4 bg-indigo-50 rounded-xl flex justify-between items-center"><span class="font-bold text-indigo-900">Monto Ahorrado</span><input type="text" inputmode="decimal" class="text-right bg-transparent font-bold text-2xl text-indigo-700 outline-none w-40 input-row" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)"></div>`
                     : sec.items.map((it,i) => `
-                        <div class="flex items-center gap-3 py-1 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-2 rounded-lg transition-colors group">
-                            <button onclick="delItem(${sIdx},${i})" class="btn-action btn-icon text-rose-400 hover:text-rose-600 w-8 h-8"><i class="ph-bold ph-x"></i></button>
+                        <div class="flex items-center gap-4 py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-3 rounded-lg transition-colors group">
+                            <button onclick="delItem(${sIdx},${i})" class="btn-icon w-8 h-8 text-rose-400 hover:text-rose-600"><i class="ph-bold ph-x"></i></button>
                             <input class="input-row" value="${it}" onchange="renItem(${sIdx},${i},this.value)">
-                            <input type="text" inputmode="decimal" class="text-right font-bold text-slate-800 outline-none bg-transparent w-24 input-row" value="${(state.data[`${state.month}-${sec.id}-${i}`]||0)===0?'':state.data[`${state.month}-${sec.id}-${i}`]}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)" onkeydown="if(event.key==='Enter')addItem(${sIdx})">
+                            <input type="text" inputmode="decimal" class="text-right font-bold text-slate-800 outline-none bg-transparent w-28 input-row" value="${(state.data[`${state.month}-${sec.id}-${i}`]||0)===0?'':state.data[`${state.month}-${sec.id}-${i}`]}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)" onkeydown="if(event.key==='Enter')addItem(${sIdx})">
                         </div>
                     `).join('')}
-                    <button onclick="addItem(${sIdx})" class="w-full mt-3 py-3 border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs justify-center hover:border-indigo-500 hover:text-indigo-500 rounded-xl flex items-center gap-2 transition-all btn-hover"><i class="ph-bold ph-plus"></i> Agregar Fila</button>
+                    <button onclick="addItem(${sIdx})" class="w-full mt-4 py-3 border-2 border-dashed border-slate-200 text-slate-400 font-bold text-xs justify-center hover:border-indigo-500 hover:text-indigo-500 rounded-xl flex items-center gap-2 transition-all btn-pro"><i class="ph-bold ph-plus"></i> Agregar Fila</button>
                 </div>`;
                 con.appendChild(card);
             });
@@ -424,18 +441,18 @@
             document.getElementById('chart-total-center').innerText = fmt(t.e);
             const ctx = document.getElementById('chart-mini'); if(charts.mini) charts.mini.destroy();
             let labels = [], data = []; 
-            // CORREGIDO: Itera todas las secciones y suma todos los items
+            // CORREGIDO: Suma todo lo que NO sea ingreso ni ahorro
             state.struct[state.month].forEach(sec=>{
-                if(sec.type==='expense'){
+                if(sec.type !== 'income' && sec.type !== 'savings'){
                     let sum=0; 
                     sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); 
                     if(sum>0){ labels.push(sec.title); data.push(sum) }
                 }
             });
-            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
+            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
         }
 
-        // --- CALENDAR PRO ---
+        // --- CALENDAR 2026 LOGIC (BIG) ---
         function openCalendar() { calMonth = new Date().getMonth(); calYear = 2026; renderCal(); openModal('modal-calendar'); }
         function calChangeMonth(d) { calMonth += d; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--} renderCal(); }
         function renderCal() {
@@ -446,9 +463,13 @@
             const now = new Date();
             for(let i=0; i<first; i++) grid.innerHTML+=`<div></div>`;
             for(let d=1; d<=days; d++) {
-                const ev = state.events.filter(e => e.d === d && e.m === (calMonth+1));
+                const evs = state.events.filter(e => e.d === d && e.m === (calMonth+1));
                 const isToday = (d === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear());
-                grid.innerHTML += `<div class="cal-cell ${isToday?'today':''} ${ev.length>0?'has-event':''}" onclick="openDayDetails(${d})">${d}${ev.length>0 ? '<div class="event-dot"></div>' : ''}</div>`;
+                const dots = evs.map(e => `<div class="event-dot dot-${e.type||'other'}"></div>`).join('');
+                grid.innerHTML += `<div class="cal-cell ${isToday?'today':''} ${evs.length>0?'has-event':''}" onclick="openDayDetails(${d})">
+                    <span class="z-10">${d}</span>
+                    <div class="flex gap-1 absolute bottom-2">${dots}</div>
+                </div>`;
             }
         }
         function openDayDetails(d) {
@@ -457,44 +478,52 @@
             const l = document.getElementById('day-events-list'); l.innerHTML = '';
             const evs = state.events.filter(e => e.d === d && e.m === (calMonth+1));
             
-            if(evs.length === 0) l.innerHTML = '<p class="text-slate-400 text-sm italic">No hay eventos.</p>';
+            if(evs.length === 0) l.innerHTML = '<p class="text-slate-400 text-sm italic py-4 text-center">No hay eventos.</p>';
             else {
                 evs.forEach(e => {
-                    // Find actual index in main array
                     const idx = state.events.findIndex(x => x === e);
-                    l.innerHTML += `<div class="flex justify-between items-center bg-white border border-slate-100 p-3 rounded-xl shadow-sm"><span class="font-bold text-slate-700">${e.name}</span><button onclick="deleteEvent(${idx})" class="btn-icon w-8 h-8"><i class="ph-bold ph-trash"></i></button></div>`;
+                    const color = e.type === 'bill' ? 'bg-rose-100 text-rose-700' : (e.type === 'work' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700');
+                    l.innerHTML += `<div class="flex justify-between items-center bg-white border border-slate-100 p-4 rounded-2xl shadow-sm mb-2"><div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full ${color.split(' ')[0]}"></span><span class="font-bold text-slate-700">${e.name}</span></div><button onclick="deleteEvent(${idx})" class="btn-icon w-8 h-8"><i class="ph-bold ph-trash"></i></button></div>`;
                 });
             }
             openModal('modal-day-details');
         }
         function addEventFromModal() {
             const n = document.getElementById('new-event-input').value;
-            if(n) { state.events.push({name:n, d:selectedDay, m:calMonth+1}); save(); document.getElementById('new-event-input').value=''; openDayDetails(selectedDay); renderCal(); }
+            const t = document.getElementById('new-event-type').value;
+            if(n) { state.events.push({name:n, d:selectedDay, m:calMonth+1, type:t}); save(); document.getElementById('new-event-input').value=''; openDayDetails(selectedDay); renderCal(); }
         }
         function deleteEvent(idx) { state.events.splice(idx,1); save(); openDayDetails(selectedDay); renderCal(); }
 
-        // --- ADVISOR & GOALS ---
-        function openAdvisor() {
-            const t = getTotals(state.month); const sr = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0; const ratio = t.i > 0 ? (t.e / t.i * 100).toFixed(1) : 0;
-            document.getElementById('adv-health').innerHTML = `<p class="mb-2 font-bold text-lg ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</p><p class="text-justify text-slate-600 text-sm">Flujo Neto Disponible.</p>`;
-            document.getElementById('adv-savings').innerHTML = `<p class="mb-2 font-bold text-lg text-indigo-600">${sr}% Ahorrado</p><p class="text-justify text-slate-600 text-sm">Ratio sobre Ingresos.</p>`;
-            document.getElementById('adv-struct').innerHTML = `<p class="mb-2 font-bold text-lg text-amber-600">${ratio}% Gastado</p><p class="text-justify text-slate-600 text-sm">Ratio de Operación.</p>`;
-            const acts = t.b < 0 ? ["Reducir ocio temporalmente", "Evitar nuevas deudas"] : ["Invertir excedente", "Incrementar fondo"];
-            document.getElementById('adv-action').innerHTML = `<ul class="space-y-2 font-medium text-slate-700">${acts.map(a=>`<li class="flex gap-2"><i class="ph-bold ph-check-circle text-indigo-500 mt-1"></i> ${a}</li>`).join('')}</ul>`;
-            openModal('modal-advisor');
-        }
-
+        // --- SAVINGS ESPACIOSOS ---
         function openSavings() {
             const l = document.getElementById('goals-list'); l.innerHTML = '';
             const t = getTotals(state.month);
             const pg = state.goals.length > 0 ? t.s / state.goals.length : 0;
             document.getElementById('savings-subtitle').innerText = `Ahorro Mes: ${fmt(t.s)} (${fmt(pg)}/meta)`;
-            editingGoalIndex = null; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus"></i>';
+            editingGoalIndex = null; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus text-lg"></i> Crear';
 
             state.goals.forEach((g,i) => {
                 let pct = g.target > 0 ? (pg / g.target) * 100 : 0;
                 let col = pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-600';
-                l.innerHTML += `<div class="border border-slate-100 rounded-xl p-4 shadow-sm bg-slate-50"><div class="flex justify-between mb-2"><span class="font-bold text-slate-700">${g.name}</span><span class="font-bold text-indigo-600 text-sm">${fmt(pg)} / ${fmt(g.target)}</span></div><div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden mb-3"><div class="h-full ${col} transition-all duration-500" style="width:${Math.min(pct,100)}%"></div></div><div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">${pct.toFixed(1)}%</span><div class="flex gap-2"><button onclick="editGoal(${i})" class="btn-icon edit w-8 h-8"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="state.goals.splice(${i},1);save();openSavings()" class="btn-icon w-8 h-8"><i class="ph-bold ph-trash"></i></button></div></div></div>`;
+                l.innerHTML += `
+                <div class="border border-slate-100 rounded-3xl p-6 shadow-sm bg-white relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -mr-4 -mt-4 z-0 opacity-50"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-4">
+                            <div><h4 class="font-bold text-lg text-slate-800">${g.name}</h4><span class="text-xs font-bold text-slate-400 uppercase">Meta: ${fmt(g.target)}</span></div>
+                            <span class="font-bold text-2xl text-indigo-600">${fmt(pg)}</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-4 rounded-full overflow-hidden mb-4"><div class="h-full ${col} transition-all duration-1000 ease-out" style="width:${Math.min(pct,100)}%"></div></div>
+                        <div class="flex justify-between items-center">
+                            <span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-500">${pct.toFixed(1)}%</span>
+                            <div class="flex gap-2">
+                                <button onclick="editGoal(${i})" class="btn-icon edit"><i class="ph-bold ph-pencil-simple"></i></button>
+                                <button onclick="state.goals.splice(${i},1);save();openSavings()" class="btn-icon"><i class="ph-bold ph-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
             });
             openModal('modal-savings');
         }
@@ -502,7 +531,7 @@
             editingGoalIndex = i;
             document.getElementById('new-goal-name').value = state.goals[i].name;
             document.getElementById('new-goal-target').value = state.goals[i].target;
-            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check"></i>';
+            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check text-lg"></i> Guardar';
         }
         function addGoal() { 
             const n = document.getElementById('new-goal-name').value; const t = parseFloat(document.getElementById('new-goal-target').value); 
@@ -514,73 +543,46 @@
             } 
         }
 
-        // --- REAL DASHBOARD DATA ---
-        function calculateAnnualData() {
-            let flow=[], wealth=[], struct=[], cats={};
-            let accWealth = 0;
-            // Loop 12 months
-            for(let m=0; m<12; m++) {
-                const res = getTotals(m);
-                accWealth += res.b; // Accumulate balance
-                flow.push(res.b);
-                wealth.push(accWealth);
-                struct.push(res.e); // Just expenses for now
-                // Categories logic would need deep integration, simplified here
-            }
-            return { flow, wealth, struct };
-        }
-
+        // --- DASHBOARD REAL ---
         function openAnnual() {
             openModal('modal-annual');
-            const d = calculateAnnualData();
+            // Logica cálculo real
+            let flow=[], wealth=[], struct=[], accW=0;
+            for(let m=0; m<12; m++) {
+                let res = getTotals(m);
+                accW += res.b; flow.push(res.b); wealth.push(accW); struct.push(res.e);
+            }
+            
             const ids = ['ch1','ch2','ch3','ch4'];
             Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#334155';
             
-            // 1. Flow
             if(charts.ch1) charts.ch1.destroy();
-            charts.ch1 = new Chart(document.getElementById('ch1'), {
-                type: 'bar',
-                data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Flujo Neto', data: d.flow, backgroundColor: d.flow.map(v=>v>=0?'#10b981':'#f43f5e'), borderRadius:4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid:{display:false} }, y: { display: true } } }
-            });
+            charts.ch1 = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Flujo', data: flow, backgroundColor: flow.map(v=>v>=0?'#10b981':'#f43f5e'), borderRadius:4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid:{display:false} }, y: { display: true } } } });
 
-            // 2. Wealth
             if(charts.ch2) charts.ch2.destroy();
-            charts.ch2 = new Chart(document.getElementById('ch2'), {
-                type: 'line',
-                data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Acumulado', data: d.wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+            charts.ch2 = new Chart(document.getElementById('ch2'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Patrimonio', data: wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
 
-            // 3. In vs Out
-            // Need arrays for In and Out specifically
-            let incs=[], exps=[];
-            for(let m=0; m<12; m++){ let t=getTotals(m); incs.push(t.i); exps.push(t.e); }
+            // In vs Out
+            let incs=[], exps=[]; for(let m=0; m<12; m++){ let t=getTotals(m); incs.push(t.i); exps.push(t.e); }
             if(charts.ch3) charts.ch3.destroy();
-            charts.ch3 = new Chart(document.getElementById('ch3'), {
-                type: 'line',
-                data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [
-                    { label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 },
-                    { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }
-                ] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            charts.ch3 = new Chart(document.getElementById('ch3'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 }, { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } });
 
-            // 4. Radar (Current Month)
-            // Aggregate all expense categories for current month
-            let catLabels=[], catData=[];
-            state.struct[state.month].forEach(sec=>{
-                if(sec.type==='expense'){
-                    let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0));
-                    if(sum>0){ catLabels.push(sec.title); catData.push(sum); }
-                }
-            });
+            // Radar
+            let catL=[], catD=[];
+            state.struct[state.month].forEach(sec=>{ if(sec.type!=='income' && sec.type!=='savings'){ let s=0; sec.items.forEach((_,x)=>s+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(s>0){ catL.push(sec.title); catD.push(s); } } });
             if(charts.ch4) charts.ch4.destroy();
-            charts.ch4 = new Chart(document.getElementById('ch4'), {
-                type: 'doughnut',
-                data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position:'right', labels: { color:'white' } } } }
-            });
+            charts.ch4 = new Chart(document.getElementById('ch4'), { type: 'doughnut', data: { labels: catL, datasets: [{ data: catD, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position:'right', labels: { color:'white' } } } } });
+        }
+
+        // --- ADVISOR & UTILS ---
+        function openAdvisor() {
+            const t = getTotals(state.month); const sr = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0; const ratio = t.i > 0 ? (t.e / t.i * 100).toFixed(1) : 0;
+            document.getElementById('adv-health').innerHTML = `<p class="mb-2 font-bold text-lg ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</p><p class="text-justify text-slate-600 text-sm">Flujo Neto Disponible.</p>`;
+            document.getElementById('adv-savings').innerHTML = `<p class="mb-2 font-bold text-lg text-indigo-600">${sr}% Ahorrado</p><p class="text-justify text-slate-600 text-sm">Ratio sobre Ingresos.</p>`;
+            document.getElementById('adv-struct').innerHTML = `<p class="mb-2 font-bold text-lg text-amber-600">${ratio}% Gastado</p><p class="text-justify text-slate-600 text-sm">Ratio de Operación.</p>`;
+            const acts = t.b < 0 ? ["Reducir ocio temporalmente", "Evitar nuevas deudas"] : ["Invertir excedente", "Incrementar fondo"];
+            document.getElementById('adv-action').innerHTML = `<ul class="space-y-2 font-medium text-slate-700">${acts.map(a=>`<li class="flex gap-2"><i class="ph-bold ph-check-circle text-indigo-500 mt-1"></i> ${a}</li>`).join('')}</ul>`;
+            openModal('modal-advisor');
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }

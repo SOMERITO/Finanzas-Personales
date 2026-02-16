@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V109 (Financial Core)</title>
+    <title>CFO Personal V110 (Architect)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -53,14 +53,14 @@
         .btn-pro { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
         .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); filter: brightness(1.05); }
         .btn-pro:active { transform: scale(0.96); box-shadow: none; }
-        .btn-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #64748b; transition: all 0.3s ease; border: 1px solid #e2e8f0; }
+        .btn-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #64748b; transition: all 0.3s ease; border: 1px solid #e2e8f0; cursor: pointer; }
         .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: rotate(90deg) scale(1.1); }
         .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: rotate(0) scale(1.1); }
-        .btn-icon.nav:hover { background: #f1f5f9; color: #0f172a; transform: scale(1.1); border-color: #cbd5e1; }
+        .btn-icon.refresh:hover { background: #d1fae5; color: #059669; border-color: #6ee7b7; transform: rotate(180deg) scale(1.1); }
 
         /* SYNC LIGHT */
         .sync-light { width: 10px; height: 10px; border-radius: 50%; transition: all 0.5s ease; }
-        .sync-light.ok { background: #10b981; box-shadow: 0 0 12px #10b981; animation: pulse 3s infinite; }
+        .sync-light.ok { background: #10b981; box-shadow: 0 0 12px #10b981; }
         .sync-light.working { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
         .sync-light.error { background: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
 
@@ -73,23 +73,12 @@
         .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 8px 0; font-weight: 600; color: #334155; transition: 0.2s; font-size: 15px; }
         .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 6px; }
         
-        /* FLASH ENTRY ROW */
-        .flash-row { 
-            display: flex; align-items: center; gap: 8px; padding: 4px 8px; 
-            background: #f1f5f9; border-radius: 10px; margin-top: 8px; border: 1px solid transparent; transition: 0.2s;
-        }
+        .flash-row { display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #f1f5f9; border-radius: 10px; margin-top: 8px; border: 1px solid transparent; transition: 0.2s; }
         .flash-row:focus-within { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); }
         .flash-input { background: transparent; border: none; outline: none; font-weight: 600; font-size: 14px; color: #334155; width: 100%; padding: 8px 0; }
-        .flash-input::placeholder { color: #94a3b8; font-weight: 500; }
 
         /* TOOLTIP CORNER */
-        .glass-tooltip { 
-            position: absolute; top: 0; right: 0; width: 220px;
-            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border-radius: 0 0 0 16px; 
-            display: flex; flex-direction: column; align-items: start; text-align: left;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 16px; z-index: 20;
-            border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.1);
-        }
+        .glass-tooltip { position: absolute; top: 0; right: 0; width: 220px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border-radius: 0 0 0 16px; display: flex; flex-direction: column; align-items: start; text-align: left; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 16px; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.1); }
         .chart-container:hover .glass-tooltip { opacity: 1; pointer-events: auto; }
 
         /* MODALES */
@@ -99,13 +88,13 @@
         .modal-wrap.active .modal-box { transform: scale(1); }
         .modal-xl { max-width: 1200px; } .modal-lg { max-width: 900px; } .modal-sm { max-width: 480px; }
 
-        /* CALENDARIO */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .cal-cell { aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 15px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; background: #f8fafc; }
+        /* CALENDARIO PERFECT FIT */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 100%; }
+        .cal-cell { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; background: #f8fafc; }
         .cal-cell:hover { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); transform: translateY(-2px); z-index: 10; }
         .cal-cell.today { background: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
         .cal-cell.has-event { border: 1px solid #c7d2fe; background: #eef2ff; color: #4338ca; }
-        .event-dot { width: 5px; height: 5px; border-radius: 50%; position: absolute; bottom: 6px; }
+        .event-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; }
 
         ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; overflow: hidden; }
@@ -211,7 +200,7 @@
 
     <div id="modal-new-section" class="modal-wrap">
         <div class="modal-box modal-sm bg-white">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <button onclick="smartClose('modal-new-section')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="ph-bold ph-rows-plus text-xl"></i></div>
                 <h3 class="text-xl font-bold text-slate-900">Nueva Sección</h3>
@@ -224,13 +213,19 @@
                     <div class="grid grid-cols-3 gap-2">
                         <button onclick="selectSecType('expense')" id="btn-type-expense" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Gasto</button>
                         <button onclick="selectSecType('income')" id="btn-type-income" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Ingreso</button>
-                        <button onclick="selectSecType('debt')" id="btn-type-debt" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Deuda</button>
+                        <button onclick="selectSecType('debt')" id="btn-type-debt" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Deuda (Préstamo)</button>
                     </div>
                 </div>
 
-                <div id="debt-fields" class="hidden animate-fade-in bg-rose-50 p-4 rounded-xl border border-rose-100">
-                    <label class="block text-xs font-bold text-rose-700 uppercase mb-2">Monto Total de Deuda (Capital + Interés)</label>
-                    <input id="sec-debt-total" type="number" class="w-full bg-white border border-rose-200 rounded-xl px-4 py-3 font-bold text-rose-800 outline-none focus:border-rose-500" placeholder="0.00">
+                <div id="debt-fields" class="hidden animate-fade-in bg-rose-50 p-4 rounded-xl border border-rose-100 space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-rose-700 uppercase mb-1">Monto Inicial Préstamo</label>
+                        <input id="sec-debt-total" type="number" class="w-full bg-white border border-rose-200 rounded-lg px-3 py-2 font-bold text-rose-800 outline-none focus:border-rose-500" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-rose-700 uppercase mb-1">Tasa Interés Mensual (%)</label>
+                        <input id="sec-debt-rate" type="number" class="w-full bg-white border border-rose-200 rounded-lg px-3 py-2 font-bold text-rose-800 outline-none focus:border-rose-500" placeholder="Ej. 5">
+                    </div>
                 </div>
 
                 <button onclick="createSection()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg btn-pro mt-4">Crear Sección</button>
@@ -240,8 +235,8 @@
 
     <div id="modal-calendar" class="modal-wrap">
         <div class="modal-box modal-lg bg-white">
-            <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex flex-col items-center justify-center mb-8 pt-2">
+            <button onclick="smartClose('modal-calendar')" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex flex-col items-center justify-center mb-6 pt-2">
                 <h3 class="text-3xl font-extrabold text-slate-900 mb-4" id="cal-title">Enero 2026</h3>
                 <div class="flex items-center gap-4 bg-slate-100 p-1.5 rounded-full">
                     <button onclick="calChangeMonth(-1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:text-indigo-600 btn-pro btn-icon nav"><i class="ph-bold ph-caret-left"></i></button>
@@ -250,13 +245,13 @@
                 </div>
             </div>
             <div class="grid grid-cols-7 gap-1 text-center text-xs font-extrabold text-slate-400 uppercase mb-4 tracking-widest"><div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div></div>
-            <div id="calendar-grid" class="cal-grid h-[500px]"></div>
+            <div id="calendar-grid" class="cal-grid"></div>
         </div>
     </div>
 
     <div id="modal-day-details" class="modal-wrap z-[80]">
         <div class="modal-box modal-sm bg-white">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <button onclick="smartClose('modal-day-details')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">Fecha</h3>
             <p class="text-sm text-slate-500 mb-6">Agenda</p>
             <div id="day-events-list" class="space-y-3 mb-6"></div>
@@ -273,48 +268,29 @@
         </div>
     </div>
 
-    <div id="modal-savings" class="modal-wrap">
+    <div id="modal-advisor" class="modal-wrap">
         <div class="modal-box modal-lg bg-slate-50">
-            <button onclick="closeModals()" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex items-center gap-4 mb-8">
-                <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-chart-bar-horizontal text-3xl"></i></div>
-                <div><h3 class="text-2xl font-extrabold text-slate-900">Cascada de Ahorro</h3><p class="text-sm text-slate-500 font-medium" id="savings-subtitle">...</p></div>
-            </div>
-            <div id="goals-list" class="grid grid-cols-1 gap-4 mb-8 max-h-[50vh] overflow-y-auto pr-2"></div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <label class="text-xs font-bold text-slate-400 uppercase block mb-3">Configurar Meta</label>
-                <div class="flex flex-col md:flex-row gap-4 items-center">
-                    <div class="flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1">
-                        <button onclick="changeNewGoalPrio(-1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-minus"></i></button>
-                        <input id="new-goal-priority" type="number" class="w-12 bg-transparent text-center font-bold text-slate-800 outline-none" value="1" readonly>
-                        <button onclick="changeNewGoalPrio(1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-plus"></i></button>
-                    </div>
-                    <input id="new-goal-name" class="flex-1 w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Auto)">
-                    <input id="new-goal-target" type="number" class="w-full md:w-32 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto">
-                    <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i></button>
+            <button onclick="smartClose('modal-advisor')" class="absolute top-5 right-5 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center justify-between mb-8 pr-12">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-brain text-3xl"></i></div>
+                    <div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico.</p></div>
                 </div>
+                <button onclick="runAdvisorAnalysis()" class="btn-icon refresh bg-white shadow-sm" title="Recargar Análisis"><i class="ph-bold ph-arrows-clockwise text-lg"></i></button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500"><h4 class="font-bold text-emerald-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-heartbeat"></i> 1. Salud Financiera</h4><div id="adv-health" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500"><h4 class="font-bold text-indigo-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-piggy-bank"></i> 2. Eficiencia de Ahorro</h4><div id="adv-savings" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500"><h4 class="font-bold text-amber-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-chart-pie-slice"></i> 3. Estructura de Gasto</h4><div id="adv-struct" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500"><h4 class="font-bold text-rose-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-list-checks"></i> 4. Estrategia & Acción</h4><div id="adv-action" class="text-sm text-slate-600 leading-relaxed"></div></div>
             </div>
         </div>
     </div>
 
-    <div id="modal-annual" class="modal-wrap">
-        <div class="modal-box modal-xl bg-[#0f172a] text-white h-[90vh] relative overflow-hidden">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white btn-icon bg-slate-800 border-slate-700"><i class="ph-bold ph-x"></i></button>
-            <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-800 relative z-10">
-                <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/50"><i class="ph-bold ph-chart-line-up text-xl"></i></div>
-                <div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Datos reales proyectados.</p></div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-100px)]">
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Flujo</h4></div><div class="flex-1 relative"><canvas id="ch1"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución</h4><p class="text-xs">Saldo neto mensual.</p></div></div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Patrimonio</h4></div><div class="flex-1 relative"><canvas id="ch2"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza</h4><p class="text-xs">Crecimiento acumulado.</p></div></div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Gap</h4></div><div class="flex-1 relative"><canvas id="ch3"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha</h4><p class="text-xs">Ingresos vs Egresos.</p></div></div>
-                <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-[400px] flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar</h4></div><div class="flex-1 relative"><canvas id="ch4"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura</h4><p class="text-xs">Categorías de gasto.</p></div></div>
-            </div>
-        </div>
-    </div>
-    <div id="modal-settings" class="modal-wrap"><div class="modal-box modal-sm"><button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><h3 class="text-xl font-bold mb-6">Configuración</h3><div class="space-y-3"><button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-eraser"></i> Limpiar Mes</button><button onclick="if(confirm('¿Reiniciar TODO?')){localStorage.removeItem('cfo_v109_core');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button></div></div></div>
-    <div id="modal-clone" class="modal-wrap"><div class="modal-box modal-sm"><button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><h3 class="text-lg font-bold mb-4">Duplicar Mes</h3><select id="clone-target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold mb-4 outline-none"></select><button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-pro">Confirmar</button></div></div>
-    <div id="modal-advisor" class="modal-wrap"><div class="modal-box modal-lg bg-slate-50"><button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><div class="flex items-center gap-4 mb-8"><div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-brain text-3xl"></i></div><div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis profundo.</p></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-5"><div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500"><h4 class="font-bold text-emerald-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-heartbeat"></i> 1. Salud Financiera</h4><div id="adv-health" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div><div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500"><h4 class="font-bold text-indigo-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-piggy-bank"></i> 2. Eficiencia de Ahorro</h4><div id="adv-savings" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div><div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500"><h4 class="font-bold text-amber-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-chart-pie-slice"></i> 3. Estructura de Gasto</h4><div id="adv-struct" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div><div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500"><h4 class="font-bold text-rose-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-list-checks"></i> 4. Estrategia & Acción</h4><div id="adv-action" class="text-sm text-slate-600 leading-relaxed"></div></div></div></div></div>
+    <div id="modal-savings" class="modal-wrap"><div class="modal-box modal-lg bg-slate-50"><button onclick="smartClose('modal-savings')" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><div class="flex items-center gap-4 mb-8"><div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-chart-bar-horizontal text-3xl"></i></div><div><h3 class="text-2xl font-extrabold text-slate-900">Cascada de Ahorro</h3><p class="text-sm text-slate-500 font-medium" id="savings-subtitle">...</p></div></div><div id="goals-list" class="grid grid-cols-1 gap-4 mb-8 max-h-[50vh] overflow-y-auto pr-2"></div><div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><label class="text-xs font-bold text-slate-400 uppercase block mb-3">Configurar Meta</label><div class="flex flex-col md:flex-row gap-4 items-center"><div class="flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1"><button onclick="changeNewGoalPrio(-1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-minus"></i></button><input id="new-goal-priority" type="number" class="w-12 bg-transparent text-center font-bold text-slate-800 outline-none" value="1" readonly><button onclick="changeNewGoalPrio(1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-plus"></i></button></div><input id="new-goal-name" class="flex-1 w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre"><input id="new-goal-target" type="number" class="w-full md:w-32 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto"><button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i></button></div></div></div></div>
+    <div id="modal-annual" class="modal-wrap"><div class="modal-box modal-xl bg-[#0f172a] text-white h-[90vh] relative overflow-hidden"><button onclick="smartClose('modal-annual')" class="absolute top-4 right-4 text-slate-400 hover:text-white btn-icon bg-slate-800 border-slate-700"><i class="ph-bold ph-x"></i></button><div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-800 relative z-10"><div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/50"><i class="ph-bold ph-chart-line-up text-xl"></i></div><div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Datos reales proyectados.</p></div></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-100px)]"><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Flujo</h4></div><div class="flex-1 relative"><canvas id="ch1"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución</h4><p class="text-xs">Saldo neto mensual.</p></div></div><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Patrimonio</h4></div><div class="flex-1 relative"><canvas id="ch2"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza</h4><p class="text-xs">Crecimiento.</p></div></div><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Gap</h4></div><div class="flex-1 relative"><canvas id="ch3"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha</h4><p class="text-xs">In vs Out.</p></div></div><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-[400px] flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar</h4></div><div class="flex-1 relative"><canvas id="ch4"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura</h4><p class="text-xs">Categorías.</p></div></div></div></div></div>
+    <div id="modal-settings" class="modal-wrap"><div class="modal-box modal-sm"><button onclick="smartClose('modal-settings')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><h3 class="text-xl font-bold mb-6">Configuración</h3><div class="space-y-3"><button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-eraser"></i> Limpiar Mes</button><button onclick="if(confirm('¿Reiniciar TODO?')){localStorage.removeItem('cfo_v110_arch');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button></div></div></div>
+    <div id="modal-clone" class="modal-wrap"><div class="modal-box modal-sm"><button onclick="smartClose('modal-clone')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><h3 class="text-lg font-bold mb-4">Duplicar Mes</h3><select id="clone-target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold mb-4 outline-none"></select><button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-pro">Confirmar</button></div></div>
 
     <script>
         const CONFIG = { apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", binId: "698a256fd0ea881f40adab7d" };
@@ -328,11 +304,12 @@
         let selectedDay = null;
         let editingGoalIndex = null;
         let newSecType = 'expense';
+        let modalStack = []; // STACK FOR ESC
 
         async function init() {
             await sync(true);
             if(!state.struct || state.struct.length === 0) {
-                 const local = localStorage.getItem('cfo_v109_core');
+                 const local = localStorage.getItem('cfo_v110_arch');
                  if(local) state = JSON.parse(local);
                  else {
                      state.struct = genYear();
@@ -341,18 +318,24 @@
                      await sync(false);
                  }
             }
+            
+            // SMART ESC KEY LISTENER
             document.addEventListener('keydown', (e) => { 
                 if(e.key === 'Escape') {
-                    closeModals();
-                    if(document.body.classList.contains('sb-open')) toggleSidebar();
+                    if(modalStack.length > 0) {
+                        // Close top most modal
+                        const last = modalStack.pop();
+                        document.getElementById(last).classList.remove('active');
+                    } else if(document.body.classList.contains('sb-open')) {
+                        toggleSidebar();
+                    }
                 }
             });
             render();
         }
 
         async function sync(pull) {
-            const ind = document.getElementById('sync-indicator');
-            ind.className = 'sync-light working';
+            const ind = document.getElementById('sync-indicator'); ind.className = 'sync-light working';
             try {
                 if(pull) {
                     const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { headers: { 'X-Master-Key': CONFIG.apiKey } });
@@ -361,16 +344,29 @@
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
-                localStorage.setItem('cfo_v109_core', JSON.stringify(state));
+                localStorage.setItem('cfo_v110_arch', JSON.stringify(state));
                 ind.className = 'sync-light ok';
-            } catch(e) {
-                console.error(e);
-                ind.className = 'sync-light error';
-            }
+            } catch(e) { console.error(e); ind.className = 'sync-light error'; }
+        }
+
+        // --- STACK MODAL LOGIC ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            modalStack.push(id);
+        }
+        window.smartClose = function(id) {
+            document.getElementById(id).classList.remove('active');
+            // Remove from stack if exists
+            const idx = modalStack.indexOf(id);
+            if(idx > -1) modalStack.splice(idx, 1);
+        }
+        function closeModals() {
+            document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active'));
+            modalStack = [];
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v109_core', JSON.stringify(state)); render(); sync(false); }
+        function save() { localStorage.setItem('cfo_v110_arch', JSON.stringify(state)); render(); sync(false); }
 
         function render() {
             renderSidebar();
@@ -396,26 +392,48 @@
                 let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
                 const card = document.createElement('div'); card.className = "card";
                 
-                // HEADER CARD (Igual para todos)
-                let headerColor = sec.type==='income'?'text-emerald-600':(sec.type==='debt'?'text-rose-600':'text-slate-800');
-                let debtHTML = '';
-                
                 // DEBT VISUALIZATION
+                let debtHTML = '';
                 if(sec.type === 'debt') {
-                    const debtTotal = sec.debtTotal || 0;
-                    const paid = total;
-                    const remaining = debtTotal - paid;
-                    const pct = debtTotal > 0 ? (paid / debtTotal * 100) : 0;
+                    const principal = sec.debtTotal || 0;
+                    const rate = sec.debtRate || 0;
+                    
+                    // Simple Calc: Payment logic needs detailed tracking, 
+                    // for simplicity in this version, "total" paid reduces principal? 
+                    // No, let's simulate the prompt logic:
+                    // If Payment > Interest -> Reduces Capital.
+                    // We need to calculate what "Current Principal" is.
+                    // Simplified: Principal = Initial - (Total Payments - Total Interest Paid).
+                    // This requires transaction history. For this UI version, we will calculate based on current month for display.
+                    
+                    const monthlyInterest = principal * (rate/100);
+                    let capitalPaid = 0;
+                    let interestPaid = 0;
+                    let msg = "Realiza un pago para ver el desglose.";
+                    
+                    if(total > 0) {
+                        if(total <= monthlyInterest) {
+                            interestPaid = total;
+                            msg = `⚠️ Solo cubres intereses (Faltan S/ ${fmt(monthlyInterest - total)}).`;
+                        } else {
+                            interestPaid = monthlyInterest;
+                            capitalPaid = total - monthlyInterest;
+                            msg = `✅ Cubres interés (S/ ${fmt(interestPaid)}) y amortizas <b>S/ ${fmt(capitalPaid)}</b> a capital.`;
+                        }
+                    }
+                    
+                    const newPrincipal = principal - capitalPaid;
+                    
                     debtHTML = `
                     <div class="mt-4 bg-rose-50 rounded-xl p-4 border border-rose-100">
-                        <div class="flex justify-between text-xs font-bold text-rose-700 uppercase mb-2">
-                            <span>Pagado: ${fmt(paid)}</span>
-                            <span>Deuda Total: ${fmt(debtTotal)}</span>
+                        <div class="flex justify-between items-center mb-2">
+                             <div class="text-xs font-bold text-rose-800">Monto Inicial: ${fmt(principal)} <span class="text-rose-400">(${rate}%)</span></div>
+                             <div class="text-xs font-bold text-rose-500">Int. Mensual: ${fmt(monthlyInterest)}</div>
                         </div>
-                        <div class="w-full bg-rose-200 h-3 rounded-full overflow-hidden mb-2">
-                            <div class="h-full bg-rose-500 transition-all duration-500" style="width:${Math.min(pct,100)}%"></div>
+                        <div class="bg-white p-3 rounded-lg border border-rose-100 text-sm text-rose-700 mb-2">
+                            ${msg}
                         </div>
-                        <div class="text-right text-xs font-bold text-rose-500">Restante: ${fmt(remaining)}</div>
+                        <div class="text-right text-xs font-bold text-rose-900">Deuda Proyectada: ${fmt(newPrincipal)}</div>
                     </div>`;
                 }
 
@@ -427,7 +445,7 @@
                             <input class="font-bold text-lg bg-transparent border-none outline-none w-48 input-row" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
                             <button onclick="event.stopPropagation();if(confirm('Borrar sección?'))delSec(${sIdx})" class="btn-icon text-rose-500 hover:bg-rose-50 border-0"><i class="ph-bold ph-trash"></i></button>
                         </div>
-                        <span class="font-bold text-xl ${headerColor}">${fmt(total)}</span>
+                        <span class="font-bold text-xl ${sec.type==='income'?'text-emerald-600':(sec.type==='debt'?'text-rose-600':'text-slate-800')}">${fmt(total)}</span>
                     </div>
                     ${debtHTML}
                 </div>
@@ -467,22 +485,21 @@
             newSecType = t; 
             const btns = {expense:'btn-type-expense', income:'btn-type-income', debt:'btn-type-debt'};
             const colors = {expense:'indigo', income:'emerald', debt:'rose'};
-            
             Object.keys(btns).forEach(k => {
                 const b = document.getElementById(btns[k]);
                 if(k === t) b.className = `py-3 rounded-xl border-2 border-${colors[k]}-500 bg-${colors[k]}-50 text-${colors[k]}-700 font-bold text-xs transition-all`;
                 else b.className = "py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all";
             });
-            
             if(t === 'debt') document.getElementById('debt-fields').classList.remove('hidden');
             else document.getElementById('debt-fields').classList.add('hidden');
         }
         window.createSection = function() { 
             const n = document.getElementById('sec-name-input').value; 
             const debtTotal = parseFloat(document.getElementById('sec-debt-total').value) || 0;
+            const debtRate = parseFloat(document.getElementById('sec-debt-rate').value) || 0;
             if(n) { 
-                state.struct[state.month].push({id:'u'+Date.now(), title:n, type:newSecType, items:['Pago 1'], debtTotal:debtTotal, collapsed:false}); 
-                save(); closeModals(); 
+                state.struct[state.month].push({id:'u'+Date.now(), title:n, type:newSecType, items:['Pago Mes'], debtTotal:debtTotal, debtRate:debtRate, collapsed:false}); 
+                save(); smartClose('modal-new-section'); 
             } 
         }
         
@@ -499,43 +516,24 @@
         function getTotals(m) { let i=0,e=0,s=0; state.struct[m].forEach(sec=>{ let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${m}-${sec.id}-${x}`]||0)); if(sec.type==='income')i+=sum; else if(sec.type==='savings')s+=sum; else e+=sum; }); return {i,e,s,b:i-e-s}; }
         function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
 
-        // --- CONSEJERO 2.0 (EXPANDIDO) ---
-        window.openAdvisor = function() {
+        // --- CONSEJERO CON REFRESH ---
+        window.openAdvisor = function() { runAdvisorAnalysis(); openModal('modal-advisor'); }
+        window.runAdvisorAnalysis = function() {
             const t = getTotals(state.month);
-            // Calculate Runway
-            const avgExpense = t.e > 0 ? t.e : 1;
-            const runway = t.s > 0 ? (t.s / avgExpense).toFixed(1) : 0;
-            
-            // Generate detailed texts
+            const runway = t.e > 0 ? (t.s / t.e).toFixed(1) : 0;
             const healthText = `
                 <p class="mb-2">Actualmente, su <b>Flujo de Caja Neto</b> se sitúa en <span class="font-bold ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</span>.</p>
-                <p class="mb-2 text-justify">Si este número es positivo, representa su capacidad real de maniobra mensual. Si es negativo, indica que está consumiendo reservas de capital o adquiriendo deuda para financiar su estilo de vida actual.</p>
-                <p class="text-xs text-slate-500 bg-slate-100 p-2 rounded">Runway estimado (basado en ahorro actual): <b>${runway} meses</b> de supervivencia sin ingresos.</p>
+                <p class="mb-2 text-justify">Si este número es positivo, representa su capacidad real de maniobra. Si es negativo, está en riesgo de liquidez.</p>
+                <p class="text-xs text-slate-500 bg-slate-100 p-2 rounded">Runway estimado: <b>${runway} meses</b> de supervivencia.</p>
             `;
-
-            const savingsText = `
-                <p class="mb-2">Ha logrado retener un <b>${(t.i>0?t.s/t.i*100:0).toFixed(1)}%</b> de sus ingresos brutos.</p>
-                <p class="mb-2 text-justify">La regla de oro sugiere un 20%. Si está por debajo, revise los "gastos hormiga" y suscripciones digitales. Si está por encima, asegúrese de que ese dinero no pierda valor por la inflación (invirtiéndolo).</p>
-            `;
-
-            const structText = `
-                <p class="mb-2">Sus costos operativos representan el <b>${(t.i>0?t.e/t.i*100:0).toFixed(1)}%</b> de sus ingresos.</p>
-                <p class="text-justify">Una estructura pesada (>80%) le deja vulnerable ante cualquier imprevisto. Busque flexibilizar costos fijos (renegociar alquileres, planes de servicios) para aumentar su margen de seguridad.</p>
-            `;
-
-            const actionText = `
-                <ul class="list-disc pl-4 space-y-2 text-sm text-slate-700">
-                    <li><b>Auditoría Flash:</b> Revise las últimas 3 transacciones de la categoría "Ocio" y pregúntese si fueron vitales.</li>
-                    <li><b>Escudo Fiscal:</b> Si tiene ingresos variables, asegúrese de estar aprovechando deducciones fiscales disponibles.</li>
-                    <li><b>Optimización de Deuda:</b> Si tiene deudas activas, aplique el método "Bola de Nieve" (pagar la más pequeña primero) para ganar tracción psicológica.</li>
-                </ul>
-            `;
+            const savingsText = `<p class="mb-2">Tasa de Ahorro: <b>${(t.i>0?t.s/t.i*100:0).toFixed(1)}%</b>.</p><p class="text-justify">Mantenga el hábito de pagarse a usted mismo primero.</p>`;
+            const structText = `<p class="mb-2">Costos Operativos: <b>${(t.i>0?t.e/t.i*100:0).toFixed(1)}%</b>.</p><p class="text-justify">Una estructura ligera le permite pivotar ante crisis.</p>`;
+            const actionText = `<ul class="list-disc pl-4 space-y-2 text-sm text-slate-700"><li><b>Revisión:</b> Audite gastos hormiga.</li><li><b>Deuda:</b> Si tiene deuda registrada, priorice el pago de capital.</li></ul>`;
 
             document.getElementById('adv-health').innerHTML = healthText;
             document.getElementById('adv-savings').innerHTML = savingsText;
             document.getElementById('adv-struct').innerHTML = structText;
             document.getElementById('adv-action').innerHTML = actionText;
-            openModal('modal-advisor');
         }
 
         window.openSettings = function() { openModal('modal-settings'); }
@@ -554,8 +552,6 @@
         window.addEventFromModal = function() { const n = document.getElementById('new-event-input').value; const cat = document.getElementById('new-event-cat').value; if(n) { state.events.push({name:n, d:selectedDay, m:calMonth+1, category:cat}); save(); document.getElementById('new-event-input').value=''; document.getElementById('new-event-cat').value=''; openDayDetails(selectedDay); renderCal(); } }
         window.deleteEvent = function(idx) { state.events.splice(idx,1); save(); openDayDetails(selectedDay); renderCal(); }
         window.openAnnual = function() { openModal('modal-annual'); let flow=[], wealth=[], accW=0; for(let m=0; m<12; m++) { let res = getTotals(m); accW += res.b; flow.push(res.b); wealth.push(accW); } const ids = ['ch1','ch2','ch3','ch4']; Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#334155'; if(charts.ch1) charts.ch1.destroy(); charts.ch1 = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Flujo', data: flow, backgroundColor: flow.map(v=>v>=0?'#10b981':'#f43f5e'), borderRadius:4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid:{display:false} }, y: { display: true } } } }); if(charts.ch2) charts.ch2.destroy(); charts.ch2 = new Chart(document.getElementById('ch2'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Patrimonio', data: wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); let incs=[], exps=[]; for(let m=0; m<12; m++){ let t=getTotals(m); incs.push(t.i); exps.push(t.e); } if(charts.ch3) charts.ch3.destroy(); charts.ch3 = new Chart(document.getElementById('ch3'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 }, { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); let catL=[], catD=[]; state.struct[state.month].forEach(sec=>{ if(sec.type!=='income' && sec.type!=='savings'){ let s=0; sec.items.forEach((_,x)=>s+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(s>0){ catL.push(sec.title); catD.push(s); } } }); if(charts.ch4) charts.ch4.destroy(); charts.ch4 = new Chart(document.getElementById('ch4'), { type: 'doughnut', data: { labels: catL, datasets: [{ data: catD, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] }, options: { responsive: true, maintainAspectRatio: false, layout: { padding: 20 }, plugins: { legend: { position:'bottom', labels: { color:'white', boxWidth: 10, padding: 20 } } } } }); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModals() { document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active')); }
         function openCloneModal(){ const s=document.getElementById('clone-target'); s.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.month)s.innerHTML+=`<option value="${i}">${m}</option>`}); openModal('modal-clone'); }
         function executeClone() { const t = parseInt(document.getElementById('clone-target').value); state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month])); save(); closeModals(); alert('Clonado'); }
         function renderStats() { const t = getTotals(state.month); document.getElementById('kpi-income').innerText = fmt(t.i); document.getElementById('kpi-expenses').innerText = fmt(t.e); document.getElementById('kpi-savings').innerText = fmt(t.s); document.getElementById('kpi-balance').innerText = fmt(t.b); document.getElementById('chart-total-center').innerText = fmt(t.e); const ctx = document.getElementById('chart-mini'); if(charts.mini) charts.mini.destroy(); let labels = [], data = []; state.struct[state.month].forEach(sec=>{ if(sec.type !== 'income' && sec.type !== 'savings'){ let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(sum>0){ labels.push(sec.title); data.push(sum) } } }); charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}}); }

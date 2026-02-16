@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V102 (Glass)</title>
+    <title>CFO Personal V103 (Pro Suite)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -17,14 +17,12 @@
                     fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
                     colors: { navy: { 900: '#0f172a', 800: '#1e293b' } },
                     animation: {
-                        'fade-in': 'fadeIn 0.4s ease-out forwards',
-                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
-                        pop: { '0%': { transform: 'scale(0.8)' }, '100%': { transform: 'scale(1)' } }
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } }
                     }
                 }
             }
@@ -51,46 +49,49 @@
         body.sb-open .overlay { opacity: 1; pointer-events: auto; }
         @media (min-width: 768px) { .overlay { display: none; } }
 
-        /* ANIMACIONES BOTONES */
+        /* BOTONES DE ACCIÓN (Pro Buttons) */
+        .btn-icon { 
+            width: 32px; height: 32px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            background: #f1f5f9; color: #64748b; transition: all 0.2s; cursor: pointer; border: 1px solid transparent;
+        }
+        .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: scale(1.1); }
+        .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; }
+
         .btn-hover { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-hover:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .btn-hover:active { transform: scale(0.95); }
-        
-        /* BOTÓN X (BORRAR) ANIMADO */
-        .btn-close-anim { transition: transform 0.3s ease; }
-        .btn-close-anim:hover { transform: rotate(90deg) scale(1.1); color: #ef4444; }
 
         /* INPUTS */
         .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 6px 0; font-weight: 600; color: #334155; transition: 0.2s; }
         .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 4px; }
         
-        /* GLASSPHORMISM TOOLTIP */
+        /* GLASSPHORMISM TOOLTIP (Tablero) */
         .glass-tooltip {
             position: absolute; inset: 0; 
-            background: rgba(255, 255, 255, 0.1); 
-            backdrop-filter: blur(10px); 
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.85); 
+            backdrop-filter: blur(8px); 
             border-radius: 16px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 20px; z-index: 20;
         }
         .chart-container:hover .glass-tooltip { opacity: 1; pointer-events: auto; }
 
         /* MODALES */
         .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
         .modal-wrap.active { display: flex; animation: fadeIn 0.3s forwards; }
-        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 95vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         .modal-wrap.active .modal-box { transform: scale(1); }
         .modal-xl { max-width: 1200px; } .modal-lg { max-width: 900px; } .modal-sm { max-width: 450px; }
 
         /* CALENDARIO GRID */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-cell { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 600; color: #64748b; position: relative; }
-        .cal-cell:hover { background: #f1f5f9; color: #4f46e5; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .cal-cell { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; }
+        .cal-cell:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .cal-cell.today { background: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
         .cal-cell.has-event { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
-        .cal-cell.today { background: #4f46e5; color: white; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
-        .event-dot { width: 6px; height: 6px; background: #ef4444; border-radius: 50%; position: absolute; bottom: 6px; }
+        .cal-cell.today.has-event { background: #4f46e5; color: white; border: 1px solid #818cf8; }
+        .event-dot { width: 5px; height: 5px; background: currentColor; border-radius: 50%; position: absolute; bottom: 6px; opacity: 0.7; }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -133,12 +134,9 @@
                     <button onclick="changeMonth(1)" class="hover:text-indigo-300 btn-hover"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
-
             <div class="flex items-center gap-5">
-                <button onclick="openCalendar()" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-xl transition-all btn-hover shadow-lg shadow-indigo-900/50" title="Abrir Calendario 2026"><i class="ph-bold ph-calendar text-2xl"></i></button>
-                
+                <button onclick="openCalendar()" class="bg-indigo-600 hover:bg-indigo-500 text-white p-2 rounded-xl transition-all btn-hover shadow-lg shadow-indigo-900/50" title="Calendario"><i class="ph-bold ph-calendar text-2xl"></i></button>
                 <div class="h-8 w-px bg-white/10 hidden md:block"></div>
-                
                 <button onclick="openAnnual()" class="hover:text-indigo-300 transition-colors btn-hover" title="Tablero 2026"><i class="ph-bold ph-chart-line-up text-2xl"></i></button>
                 <button onclick="openAdvisor()" class="hover:text-indigo-300 transition-colors btn-hover" title="Consejero"><i class="ph-fill ph-brain text-2xl"></i></button>
                 <button onclick="openSettings()" class="hover:text-indigo-300 transition-colors btn-hover" title="Ajustes"><i class="ph-bold ph-gear text-2xl"></i></button>
@@ -147,7 +145,6 @@
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 bg-[#f8fafc]" id="workspace">
             <div class="max-w-7xl mx-auto animate-fade-in">
-                
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
                     <div class="card p-6 border-b-4 border-slate-800 flex flex-col justify-between h-36 btn-hover">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Disponible Real</span>
@@ -173,7 +170,6 @@
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 space-y-5" id="ledger"></div>
-                    
                     <div class="space-y-6">
                         <div class="card p-6">
                             <h4 class="font-bold text-xs text-slate-400 uppercase mb-6 text-center tracking-widest">Distribución del Gasto</h4>
@@ -187,7 +183,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="mt-8 flex justify-center">
                      <button onclick="addSection()" class="py-3 px-6 rounded-full bg-white border border-slate-200 text-slate-500 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 hover:shadow-md transition-all flex items-center gap-2 btn-hover">
                         <i class="ph-bold ph-plus-circle text-lg"></i> Crear Nueva Sección
@@ -197,23 +193,43 @@
         </div>
     </div>
 
-    <div id="modal-event-alert" class="modal-wrap z-[100]">
-        <div class="modal-box modal-sm bg-[#0f172a] text-white text-center border-0 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-white/50 hover:text-white btn-close-anim"><i class="ph-bold ph-x text-xl"></i></button>
-            <div class="text-7xl mb-4 mt-2 animate-bounce">📅</div>
-            <h3 class="text-2xl font-extrabold mb-2" id="alert-title">¡Evento Hoy!</h3>
-            <p class="text-indigo-200 mb-8 px-4" id="alert-msg">Recuerda registrarlo.</p>
-            <button onclick="closeModals()" class="w-full py-3 bg-white text-[#0f172a] font-bold rounded-xl hover:bg-indigo-50 transition-colors btn-hover">Entendido</button>
+    <div id="modal-day-details" class="modal-wrap z-[80]">
+        <div class="modal-box modal-sm bg-white">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">15 Febrero</h3>
+            <p class="text-sm text-slate-500 mb-6">Agenda del día</p>
+            
+            <div id="day-events-list" class="space-y-3 mb-6"></div>
+            
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <label class="text-xs font-bold text-slate-400 uppercase block mb-2">Agregar Evento</label>
+                <div class="flex gap-2">
+                    <input id="new-event-input" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Ej. Cumpleaños">
+                    <button onclick="addEventFromModal()" class="bg-indigo-600 text-white w-10 h-10 rounded-lg flex items-center justify-center hover:bg-indigo-700 btn-hover"><i class="ph-bold ph-plus"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-calendar" class="modal-wrap">
+        <div class="modal-box modal-sm bg-white">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center justify-between mb-6 px-2">
+                <button onclick="calChangeMonth(-1)" class="btn-icon"><i class="ph-bold ph-caret-left"></i></button>
+                <h3 class="text-lg font-extrabold text-slate-900" id="cal-title">Enero 2026</h3>
+                <button onclick="calChangeMonth(1)" class="btn-icon"><i class="ph-bold ph-caret-right"></i></button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-extrabold text-slate-400 uppercase mb-2"><div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div></div>
+            <div id="calendar-grid" class="cal-grid"></div>
         </div>
     </div>
 
     <div id="modal-advisor" class="modal-wrap">
         <div class="modal-box modal-lg bg-slate-50">
-            <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-800 btn-close-anim"><i class="ph-bold ph-x text-xl"></i></button>
+            <button onclick="closeModals()" class="absolute top-5 right-5 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <div class="flex items-center gap-4 mb-8">
                 <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-brain text-3xl"></i></div>
-                <div><h3 class="text-2xl font-extrabold text-slate-900 tracking-tight">Consejero Financiero</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico en tiempo real.</p></div>
+                <div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico en tiempo real.</p></div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500"><h4 class="font-bold text-emerald-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-heartbeat"></i> 1. Diagnóstico de Salud</h4><div id="adv-health" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
@@ -226,104 +242,64 @@
 
     <div id="modal-savings" class="modal-wrap">
         <div class="modal-box modal-sm">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-close-anim"><i class="ph-bold ph-x text-xl"></i></button>
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-xl font-extrabold text-slate-900 mb-2">Metas de Ahorro</h3>
             <p class="text-xs text-slate-500 mb-6 font-medium" id="savings-subtitle">...</p>
             <div id="goals-list" class="space-y-4 mb-6 max-h-[50vh] overflow-y-auto"></div>
             <div class="pt-4 border-t border-slate-100 flex gap-2">
-                <input id="new-goal-name" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Auto)">
+                <input id="new-goal-name" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre de Meta">
                 <input id="new-goal-target" type="number" class="w-32 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto">
-                <button onclick="addGoal()" class="bg-indigo-600 text-white px-4 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-hover"><i class="ph-bold ph-plus"></i></button>
+                <button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-4 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-hover"><i class="ph-bold ph-plus"></i></button>
             </div>
         </div>
     </div>
 
     <div id="modal-annual" class="modal-wrap">
         <div class="modal-box modal-xl bg-[#0f172a] text-white h-[90vh] relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600 rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
-            
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white btn-close-anim z-20"><i class="ph-bold ph-x text-xl"></i></button>
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white btn-icon bg-slate-800 border-slate-700"><i class="ph-bold ph-x"></i></button>
             <div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-800 relative z-10">
                 <div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/50"><i class="ph-bold ph-chart-line-up text-xl"></i></div>
-                <div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Visión macroeconómica interactiva.</p></div>
+                <div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Datos reales proyectados del ejercicio.</p></div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-100px)]">
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Tendencia de Flujo</h4><span class="text-2xl font-bold">S/ 12,450</span></div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Evolución del Flujo</h4></div>
                     <div class="flex-1 relative"><canvas id="ch1"></canvas></div>
-                    <div class="glass-tooltip">
-                        <i class="ph-fill ph-trend-up text-4xl text-indigo-400 mb-2"></i>
-                        <h4 class="text-lg font-bold">Análisis de Flujo</h4>
-                        <p class="text-sm text-indigo-100">Compara tus ingresos vs egresos. Ideal para detectar meses deficitarios y planificar liquidez.</p>
-                    </div>
+                    <div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución del Flujo</h4><p class="text-xs">Muestra cómo varía tu saldo final mes a mes. Barras hacia arriba indican ahorro neto.</p></div>
                 </div>
-
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                     <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Patrimonio Neto</h4><span class="text-2xl font-bold">S/ 45,200</span></div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Acumulado Anual</h4></div>
                     <div class="flex-1 relative"><canvas id="ch2"></canvas></div>
-                    <div class="glass-tooltip">
-                        <i class="ph-fill ph-bank text-4xl text-emerald-400 mb-2"></i>
-                        <h4 class="text-lg font-bold">Crecimiento Patrimonial</h4>
-                        <p class="text-sm text-emerald-100">Tu riqueza real (Activos - Pasivos). Si la línea sube, te estás haciendo más rico.</p>
-                    </div>
+                     <div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza Acumulada</h4><p class="text-xs">El crecimiento de tus ahorros e inversiones a lo largo del año.</p></div>
                 </div>
-
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                     <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Gastos Fijos vs Variables</h4><span class="text-2xl font-bold">60% / 40%</span></div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Ingresos vs Egresos</h4></div>
                     <div class="flex-1 relative"><canvas id="ch3"></canvas></div>
-                    <div class="glass-tooltip">
-                        <i class="ph-fill ph-chart-pie-slice text-4xl text-amber-400 mb-2"></i>
-                        <h4 class="text-lg font-bold">Rigidez del Gasto</h4>
-                        <p class="text-sm text-amber-100">Muestra qué tan flexible es tu economía. Más gastos fijos = Mayor riesgo ante crisis.</p>
-                    </div>
+                     <div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha Operativa</h4><p class="text-xs">Línea Verde (Ingresos) debe estar siempre por encima de la Roja (Gastos).</p></div>
                 </div>
-
                 <div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group">
-                     <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar de Consumo</h4><span class="text-2xl font-bold text-rose-400">Alto en Ocio</span></div>
+                    <div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar de Estructura</h4></div>
                     <div class="flex-1 relative"><canvas id="ch4"></canvas></div>
-                    <div class="glass-tooltip">
-                        <i class="ph-fill ph-target text-4xl text-rose-400 mb-2"></i>
-                        <h4 class="text-lg font-bold">Radar de Hábitos</h4>
-                        <p class="text-sm text-rose-100">Identifica en qué áreas se concentra tu dinero (Ocio, Hogar, Transporte, Salud).</p>
-                    </div>
+                     <div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura de Gasto</h4><p class="text-xs">Visualiza qué porcentaje se va a Fijos (Vivienda) vs Variables (Ocio).</p></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div id="modal-calendar" class="modal-wrap">
-        <div class="modal-box modal-sm bg-white">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-close-anim"><i class="ph-bold ph-x text-xl"></i></button>
-            
-            <div class="flex items-center justify-between mb-6">
-                <button onclick="calChangeMonth(-1)" class="p-2 hover:bg-slate-100 rounded-full btn-hover"><i class="ph-bold ph-caret-left text-xl"></i></button>
-                <div class="text-center">
-                    <h3 class="text-xl font-extrabold text-slate-900" id="cal-title">Enero 2026</h3>
-                </div>
-                <button onclick="calChangeMonth(1)" class="p-2 hover:bg-slate-100 rounded-full btn-hover"><i class="ph-bold ph-caret-right text-xl"></i></button>
-            </div>
-
-            <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 uppercase mb-2">
-                <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
-            </div>
-            <div id="calendar-grid" class="cal-grid"></div>
         </div>
     </div>
 
     <div id="modal-settings" class="modal-wrap">
         <div class="modal-box modal-sm">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-close-anim"><i class="ph-bold ph-x text-xl"></i></button>
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-xl font-bold mb-6">Configuración</h3>
             <div class="space-y-3">
                 <button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-hover"><i class="ph-bold ph-eraser"></i> Limpiar Valores del Mes</button>
-                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v101_final');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-hover"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
+                <button onclick="if(confirm('¿Reiniciar DE FÁBRICA?')){localStorage.removeItem('cfo_v103_pro');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-hover"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button>
             </div>
         </div>
     </div>
     <div id="modal-clone" class="modal-wrap">
         <div class="modal-box modal-sm">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-close-anim"><i class="ph-bold ph-x text-xl"></i></button>
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
             <h3 class="text-lg font-bold mb-4">Duplicar Mes</h3>
             <select id="clone-target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold mb-4 outline-none"></select>
             <button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-hover">Confirmar Copia</button>
@@ -339,6 +315,8 @@
         let charts = {};
         let calMonth = new Date().getMonth();
         let calYear = 2026;
+        let selectedDay = null;
+        let editingGoalIndex = null;
 
         async function init() {
             try {
@@ -350,12 +328,11 @@
                      await sync(false);
                 }
             } catch (e) {
-                const local = localStorage.getItem('cfo_v101_final');
+                const local = localStorage.getItem('cfo_v103_pro');
                 if(local) state = JSON.parse(local);
             }
             document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModals(); });
             render();
-            checkEventsToday();
         }
 
         async function sync(pull) {
@@ -367,12 +344,12 @@
                 } else {
                     await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
                 }
-                localStorage.setItem('cfo_v101_final', JSON.stringify(state));
+                localStorage.setItem('cfo_v103_pro', JSON.stringify(state));
             } catch(e) {}
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v101_final', JSON.stringify(state)); render(); sync(false); }
+        function save() { localStorage.setItem('cfo_v103_pro', JSON.stringify(state)); render(); sync(false); }
 
         function render() {
             renderSidebar();
@@ -402,7 +379,7 @@
                     <div class="flex items-center gap-4">
                         <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><i class="ph-bold ph-caret-down ${sec.collapsed?'-rotate-90':''}"></i></div>
                         <input class="font-bold text-lg bg-transparent border-none outline-none w-48 input-row" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
-                        <button onclick="event.stopPropagation();if(confirm('Borrar sección?'))delSec(${sIdx})" class="row-action text-rose-500 hover:bg-rose-50 p-2 rounded-lg btn-close-anim"><i class="ph-bold ph-trash"></i></button>
+                        <button onclick="event.stopPropagation();if(confirm('Borrar sección?'))delSec(${sIdx})" class="btn-action btn-icon text-rose-500 hover:bg-rose-50 border-0"><i class="ph-bold ph-trash"></i></button>
                     </div>
                     <span class="font-bold text-lg ${sec.type==='income'?'text-emerald-600':'text-slate-800'}">${fmt(total)}</span>
                 </div>
@@ -411,7 +388,7 @@
                     ? `<div class="p-4 bg-indigo-50 rounded-xl flex justify-between items-center"><span class="font-bold text-indigo-900">Monto Ahorrado</span><input type="text" inputmode="decimal" class="text-right bg-transparent font-bold text-2xl text-indigo-700 outline-none w-40 input-row" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)"></div>`
                     : sec.items.map((it,i) => `
                         <div class="flex items-center gap-3 py-1 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-2 rounded-lg transition-colors group">
-                            <button onclick="delItem(${sIdx},${i})" class="row-action text-rose-400 hover:text-rose-600 p-1 btn-close-anim"><i class="ph-bold ph-trash"></i></button>
+                            <button onclick="delItem(${sIdx},${i})" class="btn-action btn-icon text-rose-400 hover:text-rose-600 w-8 h-8"><i class="ph-bold ph-x"></i></button>
                             <input class="input-row" value="${it}" onchange="renItem(${sIdx},${i},this.value)">
                             <input type="text" inputmode="decimal" class="text-right font-bold text-slate-800 outline-none bg-transparent w-24 input-row" value="${(state.data[`${state.month}-${sec.id}-${i}`]||0)===0?'':state.data[`${state.month}-${sec.id}-${i}`]}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)" onkeydown="if(event.key==='Enter')addItem(${sIdx})">
                         </div>
@@ -446,71 +423,63 @@
             document.getElementById('kpi-savings').innerText = fmt(t.s); document.getElementById('kpi-balance').innerText = fmt(t.b);
             document.getElementById('chart-total-center').innerText = fmt(t.e);
             const ctx = document.getElementById('chart-mini'); if(charts.mini) charts.mini.destroy();
-            let labels = [], data = []; state.struct[state.month].forEach(sec=>{if(sec.type==='expense'){let sum=0;sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(sum>0){labels.push(sec.title); data.push(sum)}}});
-            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
+            let labels = [], data = []; 
+            // CORREGIDO: Itera todas las secciones y suma todos los items
+            state.struct[state.month].forEach(sec=>{
+                if(sec.type==='expense'){
+                    let sum=0; 
+                    sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); 
+                    if(sum>0){ labels.push(sec.title); data.push(sum) }
+                }
+            });
+            charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}});
         }
 
-        // --- CALENDAR 2026 LOGIC ---
-        function openCalendar() {
-            calMonth = new Date().getMonth(); calYear = 2026;
-            renderCal(); openModal('modal-calendar');
-        }
-        function calChangeMonth(d) {
-            calMonth += d; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--}
-            renderCal();
-        }
+        // --- CALENDAR PRO ---
+        function openCalendar() { calMonth = new Date().getMonth(); calYear = 2026; renderCal(); openModal('modal-calendar'); }
+        function calChangeMonth(d) { calMonth += d; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--} renderCal(); }
         function renderCal() {
             const grid = document.getElementById('calendar-grid'); grid.innerHTML='';
             document.getElementById('cal-title').innerText = `${MONTHS[calMonth]} ${calYear}`;
-            const firstDay = new Date(calYear, calMonth, 1).getDay();
-            const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+            const first = new Date(calYear, calMonth, 1).getDay();
+            const days = new Date(calYear, calMonth + 1, 0).getDate();
             const now = new Date();
-            
-            for(let i=0; i<firstDay; i++) grid.innerHTML+=`<div></div>`;
-            for(let d=1; d<=daysInMonth; d++) {
-                const ev = state.events.find(e => e.d === d && e.m === (calMonth+1));
+            for(let i=0; i<first; i++) grid.innerHTML+=`<div></div>`;
+            for(let d=1; d<=days; d++) {
+                const ev = state.events.filter(e => e.d === d && e.m === (calMonth+1));
                 const isToday = (d === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear());
-                
-                grid.innerHTML += `
-                <div class="cal-cell ${isToday?'today':''} ${ev?'has-event':''}" onclick="clickDay(${d})">
-                    ${d}
-                    ${ev ? '<div class="event-dot"></div>' : ''}
-                </div>`;
+                grid.innerHTML += `<div class="cal-cell ${isToday?'today':''} ${ev.length>0?'has-event':''}" onclick="openDayDetails(${d})">${d}${ev.length>0 ? '<div class="event-dot"></div>' : ''}</div>`;
             }
         }
-        function clickDay(d) {
-            const ev = state.events.find(e => e.d === d && e.m === (calMonth+1));
-            if(ev) {
-                if(confirm(`Evento: ${ev.name}\n¿Borrar evento?`)) {
-                    state.events = state.events.filter(e => !(e.d === d && e.m === (calMonth+1)));
-                    save(); renderCal();
-                }
-            } else {
-                const n = prompt(`Nuevo evento para el ${d} de ${MONTHS[calMonth]}:`);
-                if(n) {
-                    state.events.push({name:n, d:d, m:calMonth+1});
-                    save(); renderCal();
-                }
+        function openDayDetails(d) {
+            selectedDay = d;
+            document.getElementById('day-detail-title').innerText = `${d} de ${MONTHS[calMonth]}`;
+            const l = document.getElementById('day-events-list'); l.innerHTML = '';
+            const evs = state.events.filter(e => e.d === d && e.m === (calMonth+1));
+            
+            if(evs.length === 0) l.innerHTML = '<p class="text-slate-400 text-sm italic">No hay eventos.</p>';
+            else {
+                evs.forEach(e => {
+                    // Find actual index in main array
+                    const idx = state.events.findIndex(x => x === e);
+                    l.innerHTML += `<div class="flex justify-between items-center bg-white border border-slate-100 p-3 rounded-xl shadow-sm"><span class="font-bold text-slate-700">${e.name}</span><button onclick="deleteEvent(${idx})" class="btn-icon w-8 h-8"><i class="ph-bold ph-trash"></i></button></div>`;
+                });
             }
+            openModal('modal-day-details');
         }
+        function addEventFromModal() {
+            const n = document.getElementById('new-event-input').value;
+            if(n) { state.events.push({name:n, d:selectedDay, m:calMonth+1}); save(); document.getElementById('new-event-input').value=''; openDayDetails(selectedDay); renderCal(); }
+        }
+        function deleteEvent(idx) { state.events.splice(idx,1); save(); openDayDetails(selectedDay); renderCal(); }
 
-        function checkEventsToday() {
-            const t = new Date(), d = t.getDate(), m = t.getMonth()+1;
-            const ev = state.events.find(e => e.d === d && e.m === m);
-            if(ev) {
-                document.getElementById('alert-title').innerText = `¡Hoy es ${ev.name}!`;
-                document.getElementById('alert-msg').innerText = "Recuerda registrar gastos.";
-                openModal('modal-event-alert');
-            }
-        }
-
+        // --- ADVISOR & GOALS ---
         function openAdvisor() {
             const t = getTotals(state.month); const sr = t.i > 0 ? (t.s / t.i * 100).toFixed(1) : 0; const ratio = t.i > 0 ? (t.e / t.i * 100).toFixed(1) : 0;
-            // (Misma lógica de textos V101)
-            document.getElementById('adv-health').innerHTML = `<p class="mb-2 font-bold text-lg ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</p><p class="text-justify text-slate-600 text-sm">Flujo de caja disponible.</p>`;
-            document.getElementById('adv-savings').innerHTML = `<p class="mb-2 font-bold text-lg text-indigo-600">${sr}% Ahorrado</p><p class="text-justify text-slate-600 text-sm">Mantén el hábito.</p>`;
-            document.getElementById('adv-struct').innerHTML = `<p class="mb-2 font-bold text-lg text-amber-600">${ratio}% Comprometido</p><p class="text-justify text-slate-600 text-sm">Nivel de gasto operativo.</p>`;
-            const acts = t.b < 0 ? ["Cortar gastos hormiga", "Pausar compras", "Revisar suscripciones"] : ["Invertir excedente", "Fondo emergencia", "Planificar ocio"];
+            document.getElementById('adv-health').innerHTML = `<p class="mb-2 font-bold text-lg ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</p><p class="text-justify text-slate-600 text-sm">Flujo Neto Disponible.</p>`;
+            document.getElementById('adv-savings').innerHTML = `<p class="mb-2 font-bold text-lg text-indigo-600">${sr}% Ahorrado</p><p class="text-justify text-slate-600 text-sm">Ratio sobre Ingresos.</p>`;
+            document.getElementById('adv-struct').innerHTML = `<p class="mb-2 font-bold text-lg text-amber-600">${ratio}% Gastado</p><p class="text-justify text-slate-600 text-sm">Ratio de Operación.</p>`;
+            const acts = t.b < 0 ? ["Reducir ocio temporalmente", "Evitar nuevas deudas"] : ["Invertir excedente", "Incrementar fondo"];
             document.getElementById('adv-action').innerHTML = `<ul class="space-y-2 font-medium text-slate-700">${acts.map(a=>`<li class="flex gap-2"><i class="ph-bold ph-check-circle text-indigo-500 mt-1"></i> ${a}</li>`).join('')}</ul>`;
             openModal('modal-advisor');
         }
@@ -520,26 +489,97 @@
             const t = getTotals(state.month);
             const pg = state.goals.length > 0 ? t.s / state.goals.length : 0;
             document.getElementById('savings-subtitle').innerText = `Ahorro Mes: ${fmt(t.s)} (${fmt(pg)}/meta)`;
+            editingGoalIndex = null; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus"></i>';
+
             state.goals.forEach((g,i) => {
                 let pct = g.target > 0 ? (pg / g.target) * 100 : 0;
                 let col = pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-600';
-                l.innerHTML += `<div class="border border-slate-100 rounded-xl p-4 shadow-sm bg-slate-50"><div class="flex justify-between mb-2"><span class="font-bold text-slate-700">${g.name}</span><span class="font-bold text-indigo-600 text-sm">${fmt(pg)} / ${fmt(g.target)}</span></div><div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden mb-3"><div class="h-full ${col} transition-all duration-500" style="width:${Math.min(pct,100)}%"></div></div><div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">${pct.toFixed(1)}%</span><button onclick="state.goals.splice(${i},1);save();openSavings()" class="text-xs text-rose-500 font-bold hover:text-rose-700 btn-hover">ELIMINAR</button></div></div>`;
+                l.innerHTML += `<div class="border border-slate-100 rounded-xl p-4 shadow-sm bg-slate-50"><div class="flex justify-between mb-2"><span class="font-bold text-slate-700">${g.name}</span><span class="font-bold text-indigo-600 text-sm">${fmt(pg)} / ${fmt(g.target)}</span></div><div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden mb-3"><div class="h-full ${col} transition-all duration-500" style="width:${Math.min(pct,100)}%"></div></div><div class="flex justify-between items-center"><span class="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">${pct.toFixed(1)}%</span><div class="flex gap-2"><button onclick="editGoal(${i})" class="btn-icon edit w-8 h-8"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="state.goals.splice(${i},1);save();openSavings()" class="btn-icon w-8 h-8"><i class="ph-bold ph-trash"></i></button></div></div></div>`;
             });
             openModal('modal-savings');
         }
-        function addGoal() { const n = document.getElementById('new-goal-name').value; const t = parseFloat(document.getElementById('new-goal-target').value); if(n && t) { state.goals.push({name:n, target:t}); save(); openSavings(); } }
+        function editGoal(i) {
+            editingGoalIndex = i;
+            document.getElementById('new-goal-name').value = state.goals[i].name;
+            document.getElementById('new-goal-target').value = state.goals[i].target;
+            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check"></i>';
+        }
+        function addGoal() { 
+            const n = document.getElementById('new-goal-name').value; const t = parseFloat(document.getElementById('new-goal-target').value); 
+            if(n && t) { 
+                if(editingGoalIndex !== null) { state.goals[editingGoalIndex] = {name:n, target:t}; editingGoalIndex = null; }
+                else { state.goals.push({name:n, target:t}); }
+                save(); openSavings(); 
+                document.getElementById('new-goal-name').value=''; document.getElementById('new-goal-target').value='';
+            } 
+        }
+
+        // --- REAL DASHBOARD DATA ---
+        function calculateAnnualData() {
+            let flow=[], wealth=[], struct=[], cats={};
+            let accWealth = 0;
+            // Loop 12 months
+            for(let m=0; m<12; m++) {
+                const res = getTotals(m);
+                accWealth += res.b; // Accumulate balance
+                flow.push(res.b);
+                wealth.push(accWealth);
+                struct.push(res.e); // Just expenses for now
+                // Categories logic would need deep integration, simplified here
+            }
+            return { flow, wealth, struct };
+        }
 
         function openAnnual() {
             openModal('modal-annual');
+            const d = calculateAnnualData();
             const ids = ['ch1','ch2','ch3','ch4'];
             Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#334155';
-            ids.forEach((id) => {
-                if(charts[id]) charts[id].destroy();
-                charts[id] = new Chart(document.getElementById(id), {
-                    type: 'line',
-                    data: { labels: ['Ene','Feb','Mar','Abr','May'], datasets: [{ label: 'Proyección', data: [1200, 1900, 3000, 5000, 4500], borderColor: '#818cf8', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } }, elements: { point: { radius: 0, hitRadius: 50 } } }
-                });
+            
+            // 1. Flow
+            if(charts.ch1) charts.ch1.destroy();
+            charts.ch1 = new Chart(document.getElementById('ch1'), {
+                type: 'bar',
+                data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Flujo Neto', data: d.flow, backgroundColor: d.flow.map(v=>v>=0?'#10b981':'#f43f5e'), borderRadius:4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid:{display:false} }, y: { display: true } } }
+            });
+
+            // 2. Wealth
+            if(charts.ch2) charts.ch2.destroy();
+            charts.ch2 = new Chart(document.getElementById('ch2'), {
+                type: 'line',
+                data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Acumulado', data: d.wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // 3. In vs Out
+            // Need arrays for In and Out specifically
+            let incs=[], exps=[];
+            for(let m=0; m<12; m++){ let t=getTotals(m); incs.push(t.i); exps.push(t.e); }
+            if(charts.ch3) charts.ch3.destroy();
+            charts.ch3 = new Chart(document.getElementById('ch3'), {
+                type: 'line',
+                data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [
+                    { label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 },
+                    { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }
+                ] },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 4. Radar (Current Month)
+            // Aggregate all expense categories for current month
+            let catLabels=[], catData=[];
+            state.struct[state.month].forEach(sec=>{
+                if(sec.type==='expense'){
+                    let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0));
+                    if(sum>0){ catLabels.push(sec.title); catData.push(sum); }
+                }
+            });
+            if(charts.ch4) charts.ch4.destroy();
+            charts.ch4 = new Chart(document.getElementById('ch4'), {
+                type: 'doughnut',
+                data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position:'right', labels: { color:'white' } } } }
             });
         }
 

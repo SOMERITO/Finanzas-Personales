@@ -1,198 +1,103 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="CFO Pro · Finanzas personales con flujo de caja, deudas, metas y proyecciones.">
-  <title>CFO Pro · Finanzas personales</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=200">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="CFO Pro · Finanzas personales con flujo de caja, deudas, metas y proyecciones.">
+<title>CFO Pro · Finanzas personales</title>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=200">
 </head>
 <body>
-  <div class="app-shell">
-    <div id="sidebarOverlay" class="sidebar-overlay" hidden></div>
-    <aside id="sidebar" class="sidebar" aria-label="Navegación mensual">
-      <div class="brand">
-        <div class="brand-mark">$</div>
-        <div><strong>CFO<span>.</span>Pro</strong><small>Finanzas personales</small></div>
-      </div>
-      <div class="sidebar-section-label">Año <span id="sidebarYear">2026</span></div>
-      <nav id="monthNav" class="month-nav"></nav>
-      <div class="sidebar-bottom">
-        <button id="duplicateMonthBtn" class="btn btn-dark btn-block">↗ <span>Duplicar estructura</span></button>
-        <div id="syncBadge" class="sync-badge"><span class="sync-dot"></span><span>Local</span></div>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <div class="topbar-left">
-          <button id="sidebarBtn" class="icon-btn" aria-label="Abrir navegación">☰</button>
-          <div class="month-switcher">
-            <button id="prevMonthBtn" class="icon-btn subtle" aria-label="Mes anterior">‹</button>
-            <div>
-              <small>Ejercicio <span id="headerYear">2026</span></small>
-              <strong id="monthTitle">Octubre</strong>
-            </div>
-            <button id="nextMonthBtn" class="icon-btn subtle" aria-label="Mes siguiente">›</button>
-          </div>
-        </div>
-        <div class="top-actions">
-          <button id="calendarBtn" class="top-action" title="Calendario">◫</button>
-          <button id="annualBtn" class="top-action" title="Tablero anual">◒</button>
-          <button id="advisorBtn" class="top-action" title="Consejero financiero">✦</button>
-          <button id="themeBtn" class="top-action" title="Cambiar tema">◐</button>
-          <button id="settingsBtn" class="top-action" title="Ajustes">⚙</button>
-        </div>
-      </header>
-
-      <section class="workspace">
-        <div class="container">
-          <div class="hero-row">
-            <div>
-              <p class="eyebrow">Panel financiero</p>
-              <h1>Tu dinero, bajo control.</h1>
-              <p class="hero-copy">Registra lo que entra, lo que sale y lo que apartas. CFO Pro convierte esos datos en decisiones.</p>
-            </div>
-            <div class="month-status">
-              <span class="status-dot"></span>
-              <div><small>Periodo actual</small><strong id="longDate">—</strong></div>
-            </div>
-          </div>
-
-          <section class="kpi-grid" aria-label="Resumen del mes">
-            <article class="kpi kpi-dark">
-              <div><span>Saldo final estimado</span><strong id="kpiBalance">S/ 0.00</strong><small>Saldo inicial + flujo del mes</small></div>
-              <div class="kpi-icon">◎</div>
-            </article>
-            <article class="kpi kpi-green">
-              <div><span>Ingresos</span><strong id="kpiIncome">S/ 0.00</strong><small id="kpiIncomeSub">Entradas del periodo</small></div>
-              <div class="kpi-icon">↗</div>
-            </article>
-            <article class="kpi kpi-red">
-              <div><span>Gastos</span><strong id="kpiExpenses">S/ 0.00</strong><small id="kpiExpenseSub">Salidas operativas</small></div>
-              <div class="kpi-icon">↘</div>
-            </article>
-            <article class="kpi kpi-blue">
-              <div><span>Ahorro / metas</span><strong id="kpiSavings">S/ 0.00</strong><small id="kpiSavingsSub">Dinero separado</small></div>
-              <div class="kpi-icon">◈</div>
-            </article>
-          </section>
-
-          <section class="finance-strip">
-            <div><span>Saldo inicial</span><strong id="openingBalanceText">S/ 0.00</strong></div>
-            <div><span>Flujo neto</span><strong id="netFlowText">S/ 0.00</strong></div>
-            <div><span>Tasa de ahorro</span><strong id="savingsRateText">0.0%</strong></div>
-            <div><span>Presupuesto consumido</span><strong id="expenseRateText">0.0%</strong></div>
-          </section>
-
-          <div class="content-grid">
-            <section>
-              <div class="section-header">
-                <div><p class="eyebrow">Libro mensual</p><h2>Movimientos y compromisos</h2></div>
-                <button id="newSectionBtn" class="btn btn-primary">＋ Nueva sección</button>
-              </div>
-              <div id="ledger" class="ledger"></div>
-            </section>
-
-            <aside class="side-column">
-              <article class="card budget-card">
-                <div class="card-head"><div><span class="eyebrow">Gasto por categoría</span><h3>Distribución</h3></div><span class="mini-badge" id="expenseCountBadge">0 categorías</span></div>
-                <div class="chart-wrap"><canvas id="expenseChart"></canvas><div class="chart-center"><span>Salidas</span><strong id="chartTotal">S/ 0.00</strong></div></div>
-              </article>
-
-              <article class="card focus-card">
-                <div class="card-head"><div><span class="eyebrow">Lectura rápida</span><h3>Decisión del mes</h3></div><span class="focus-spark">✦</span></div>
-                <div id="focusInsight" class="focus-insight"></div>
-              </article>
-
-              <article class="card goals-card">
-                <div class="card-head"><div><span class="eyebrow">Metas</span><h3>Prioridades</h3></div><button id="goalsBtn" class="text-btn">Gestionar</button></div>
-                <div id="goalMiniList" class="goal-mini-list"></div>
-              </article>
-            </aside>
-          </div>
-        </div>
-      </section>
-    </main>
+<div class="app-shell">
+<div id="sidebarOverlay" class="sidebar-overlay" hidden></div>
+<aside id="sidebar" class="sidebar" aria-label="Navegación mensual">
+  <div class="brand"><div class="brand-mark">$</div><div><strong>CFO<span>.</span>Pro</strong><small>Finanzas personales</small></div></div>
+  <div class="sidebar-section-label">Año <span id="sidebarYear">2026</span></div>
+  <nav id="monthNav" class="month-nav"></nav>
+  <div class="sidebar-bottom">
+    <button id="duplicateMonthBtn" class="btn btn-dark btn-block">↗ <span>Duplicar estructura</span></button>
+    <div id="syncBadge" class="sync-badge"><span class="sync-dot"></span><span>Local</span></div>
+  </div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div class="topbar-left">
+    <button id="sidebarBtn" class="icon-btn" aria-label="Abrir navegación">☰</button>
+    <div class="month-switcher">
+      <button id="prevMonthBtn" class="icon-btn subtle" aria-label="Mes anterior">‹</button>
+      <div><small>Ejercicio <span id="headerYear">2026</span></small><strong id="monthTitle">Octubre</strong></div>
+      <button id="nextMonthBtn" class="icon-btn subtle" aria-label="Mes siguiente">›</button>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="calendarBtn" class="top-action" title="Calendario" aria-label="Calendario">◫</button>
+    <button id="annualBtn" class="top-action" title="Tablero anual" aria-label="Tablero anual">◒</button>
+    <button id="advisorBtn" class="top-action" title="Consejero financiero" aria-label="Consejero financiero">✦</button>
+    <button id="themeBtn" class="top-action" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+    <button id="settingsBtn" class="top-action" title="Ajustes" aria-label="Ajustes">⚙</button>
+  </div>
+</header>
+<section class="workspace">
+<div class="container">
+  <div class="hero-row">
+    <div><p class="eyebrow">Panel financiero</p><h1>Tu dinero, bajo control.</h1><p class="hero-copy">Registra lo que entra, lo que sale y lo que apartas. CFO Pro convierte esos datos en decisiones.</p></div>
+    <div class="month-status"><span class="status-dot"></span><div><small>Fecha de hoy</small><strong id="longDate">—</strong></div></div>
   </div>
 
-  <div id="modalHost" class="modal-host" aria-live="polite"></div>
+  <section class="kpi-grid" aria-label="Resumen financiero">
+    <article class="kpi kpi-dark"><div><span>Saldo final estimado</span><strong id="kpiBalance">S/ 0.00</strong><small>Saldo inicial + flujo del mes</small></div><div class="kpi-icon">◎</div></article>
+    <article class="kpi kpi-green"><div><span>Ingresos</span><strong id="kpiIncome">S/ 0.00</strong><small id="kpiIncomeSub">Entradas del periodo</small></div><div class="kpi-icon">↗</div></article>
+    <article class="kpi kpi-red"><div><span>Gastos</span><strong id="kpiExpenses">S/ 0.00</strong><small id="kpiExpenseSub">Salidas operativas</small></div><div class="kpi-icon">↘</div></article>
+    <article class="kpi kpi-blue"><div><span>Ahorro / metas</span><strong id="kpiSavings">S/ 0.00</strong><small id="kpiSavingsSub">Dinero separado</small></div><div class="kpi-icon">◈</div></article>
+  </section>
 
-  <template id="newSectionTemplate">
-    <div class="modal-box small-modal">
-      <button class="modal-close" data-close>×</button>
-      <div class="modal-title"><span class="modal-icon">＋</span><div><span class="eyebrow">Estructura</span><h2>Nueva sección</h2></div></div>
-      <label>Nombre<input id="secName" placeholder="Ej. Alimentación, Sueldo, Tarjeta…" autocomplete="off"></label>
-      <label>Tipo<select id="secType"><option value="expense">Gasto</option><option value="income">Ingreso</option><option value="savings">Ahorro</option><option value="debt">Deuda</option></select></label>
-      <div id="debtFields" class="conditional-fields" hidden>
-        <label>Saldo inicial de la deuda<input id="debtTotal" type="number" min="0" step="0.01" placeholder="0.00"></label>
-        <label>Tasa mensual (%)<input id="debtRate" type="number" min="0" step="0.01" placeholder="0.00"></label>
-      </div>
-      <div class="modal-actions"><button class="btn btn-ghost" data-close>Cancelar</button><button id="createSectionConfirm" class="btn btn-primary">Crear sección</button></div>
-    </div>
-  </template>
+  <section class="finance-strip">
+    <div><span>Saldo inicial</span><strong id="openingBalanceText">S/ 0.00</strong></div>
+    <div><span>Flujo neto</span><strong id="netFlowText">S/ 0.00</strong></div>
+    <div><span>Tasa de ahorro</span><strong id="savingsRateText">0.0%</strong></div>
+    <div><span>Gasto / ingreso</span><strong id="expenseRateText">0.0%</strong></div>
+  </section>
 
-  <template id="settingsTemplate">
-    <div class="modal-box medium-modal">
-      <button class="modal-close" data-close>×</button>
-      <div class="modal-title"><span class="modal-icon">⚙</span><div><span class="eyebrow">Configuración</span><h2>Preferencias y seguridad</h2></div></div>
-      <div class="settings-grid">
-        <label>Saldo inicial del año<input id="yearOpeningBalance" type="number" step="0.01"></label>
-        <label>Mes por defecto<select id="defaultMonthSelect"></select></label>
-      </div>
-      <div class="settings-block"><h3>Respaldo local</h3><p>Tu información principal se guarda en este dispositivo. Puedes exportarla e importarla en cualquier otro.</p><div class="settings-actions"><button id="exportBtn" class="btn btn-secondary">↓ Exportar JSON</button><label class="btn btn-secondary">↑ Importar JSON<input id="importInput" type="file" accept="application/json,.json" hidden></label></div></div>
-      <div class="settings-block warning-block"><h3>Nube heredada · JSONBin</h3><p class="warning-copy">La versión anterior guardaba una clave maestra dentro del navegador. La V2 ya no la publica en el código. Puedes configurar aquí tu credencial solo si necesitas recuperar ese flujo heredado.</p><div class="settings-grid"><label>Bin ID<input id="jsonbinId" autocomplete="off"></label><label>Master Key<input id="jsonbinKey" type="password" autocomplete="off"></label></div><div class="settings-actions"><button id="cloudPullBtn" class="btn btn-secondary">↓ Recuperar nube</button><button id="cloudPushBtn" class="btn btn-secondary">↑ Guardar en nube</button></div></div>
-      <div class="settings-block danger-block"><h3>Zona de peligro</h3><button id="clearMonthBtn" class="btn btn-danger">Limpiar montos del mes</button><button id="resetBtn" class="btn btn-danger-outline">Restablecer aplicación</button></div>
-      <div class="modal-actions"><button class="btn btn-primary" data-close>Listo</button></div>
-    </div>
-  </template>
+  <div class="content-grid">
+    <section>
+      <div class="section-header"><div><p class="eyebrow">Libro mensual</p><h2>Movimientos y compromisos</h2></div><button id="newSectionBtn" class="btn btn-primary">＋ Nueva sección</button></div>
+      <div id="ledger" class="ledger"></div>
+    </section>
+    <aside class="side-column">
+      <article class="card budget-card"><div class="card-head"><div><span class="eyebrow">Gasto por categoría</span><h3>Distribución</h3></div><span class="mini-badge" id="expenseCountBadge">0 categorías</span></div><div class="chart-wrap"><canvas id="expenseChart"></canvas><div class="chart-center"><span>Salidas</span><strong id="chartTotal">S/ 0.00</strong></div></div></article>
+      <article class="card focus-card"><div class="card-head"><div><span class="eyebrow">Lectura rápida</span><h3>Decisión del mes</h3></div><span class="focus-spark">✦</span></div><div id="focusInsight" class="focus-insight"></div></article>
+      <article class="card goals-card"><div class="card-head"><div><span class="eyebrow">Metas</span><h3>Prioridades</h3></div><button id="goalsBtn" class="text-btn">Gestionar</button></div><div id="goalMiniList" class="goal-mini-list"></div></article>
+    </aside>
+  </div>
+</div>
+</section>
+</main>
+</div>
 
-  <template id="goalsTemplate">
-    <div class="modal-box medium-modal">
-      <button class="modal-close" data-close>×</button>
-      <div class="modal-title"><span class="modal-icon">◈</span><div><span class="eyebrow">Metas</span><h2>Cascada de ahorro</h2></div></div>
-      <div id="goalsList" class="goals-list"></div>
-      <div class="goal-form"><label>Meta<input id="goalName" placeholder="Fondo de emergencia"></label><label>Objetivo<input id="goalTarget" type="number" min="0" step="0.01" placeholder="5000"></label><label>Aporte de este mes<input id="goalContribution" type="number" min="0" step="0.01" placeholder="0"></label><button id="addGoalBtn" class="btn btn-primary">＋ Añadir</button></div>
-    </div>
-  </template>
+<div id="modalHost" class="modal-host" aria-live="polite"></div>
 
-  <template id="calendarTemplate">
-    <div class="modal-box large-modal">
-      <button class="modal-close" data-close>×</button>
-      <div class="modal-title"><span class="modal-icon">◫</span><div><span class="eyebrow">Agenda</span><h2 id="calendarTitle">Octubre 2026</h2></div></div>
-      <div class="calendar-nav"><button id="calPrev" class="icon-btn">‹</button><span id="calRangeLabel"></span><button id="calNext" class="icon-btn">›</button></div>
-      <div class="weekdays"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-      <div id="calendarGrid" class="calendar-grid"></div>
-      <div class="calendar-form"><label>Evento<input id="eventName" placeholder="Pago, cumpleaños, cita…"></label><label>Categoría<input id="eventCat" placeholder="General"></label><button id="addEventBtn" class="btn btn-primary">＋ Añadir</button></div>
-      <div id="eventList" class="event-list"></div>
-    </div>
-  </template>
+<template id="newSectionTemplate"><div class="modal-box small-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">＋</span><div><span class="eyebrow">Estructura</span><h2>Nueva sección</h2></div></div><label>Nombre<input id="secName" placeholder="Ej. Alimentación, Sueldo, Tarjeta…" autocomplete="off"></label><label>Tipo<select id="secType"><option value="expense">Gasto</option><option value="income">Ingreso</option><option value="savings">Ahorro</option><option value="debt">Deuda</option></select></label><div id="debtFields" class="conditional-fields" hidden><label>Saldo inicial de la deuda<input id="debtTotal" type="number" min="0" step="0.01" placeholder="0.00"></label><label>Tasa mensual (%)<input id="debtRate" type="number" min="0" step="0.01" placeholder="0.00"></label></div><div class="modal-actions"><button class="btn btn-ghost" data-close>Cancelar</button><button id="createSectionConfirm" class="btn btn-primary">Crear sección</button></div></div></template>
 
-  <template id="annualTemplate">
-    <div class="modal-box xlarge-modal dark-modal">
-      <button class="modal-close" data-close>×</button>
-      <div class="modal-title"><span class="modal-icon dark">◒</span><div><span class="eyebrow">Panorama</span><h2>Tablero anual <span id="annualYearLabel">2026</span></h2></div></div>
-      <div class="annual-kpis"><div><span>Ingresos del año</span><strong id="annualIncome">S/ 0.00</strong></div><div><span>Gastos del año</span><strong id="annualExpense">S/ 0.00</strong></div><div><span>Ahorro del año</span><strong id="annualSavings">S/ 0.00</strong></div><div><span>Flujo acumulado</span><strong id="annualNet">S/ 0.00</strong></div></div>
-      <div class="annual-grid"><article class="annual-chart"><h3>Flujo mensual</h3><canvas id="annualFlowChart"></canvas></article><article class="annual-chart"><h3>Ingresos vs gastos</h3><canvas id="annualInOutChart"></canvas></article><article class="annual-chart wide"><h3>Flujo acumulado</h3><canvas id="annualWealthChart"></canvas></article></div>
-    </div>
-  </template>
+<template id="settingsTemplate"><div class="modal-box medium-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">⚙</span><div><span class="eyebrow">Configuración</span><h2>Preferencias y seguridad</h2></div></div><div class="settings-grid"><label>Saldo inicial del año<input id="yearOpeningBalance" type="number" step="0.01"></label><label>Mes por defecto<select id="defaultMonthSelect"></select></label></div><div class="settings-block"><h3>Respaldo local</h3><p>La nueva arquitectura guarda tus datos en este dispositivo. Exporta un JSON para conservar una copia independiente.</p><div class="settings-actions"><button id="exportBtn" class="btn btn-secondary">↓ Exportar JSON</button><label class="btn btn-secondary">↑ Importar JSON<input id="importInput" type="file" accept="application/json,.json" hidden></label></div></div><div class="settings-block warning-block"><h3>Seguridad</h3><p class="warning-copy">Las credenciales maestras de servicios externos ya no forman parte del código público de la aplicación.</p></div><div class="settings-block danger-block"><h3>Zona de peligro</h3><button id="clearMonthBtn" class="btn btn-danger">Limpiar montos del mes</button><button id="resetBtn" class="btn btn-danger-outline">Restablecer aplicación</button></div><div class="modal-actions"><button class="btn btn-primary" data-close>Listo</button></div></div></template>
 
-  <template id="advisorTemplate">
-    <div class="modal-box medium-modal">
-      <button class="modal-close" data-close>×</button>
-      <div class="modal-title"><span class="modal-icon">✦</span><div><span class="eyebrow">CFO</span><h2>Consejero financiero</h2></div></div>
-      <div id="advisorContent" class="advisor-grid"></div>
-    </div>
-  </template>
+<template id="goalsTemplate"><div class="modal-box medium-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">◈</span><div><span class="eyebrow">Metas</span><h2>Cascada de ahorro</h2></div></div><div id="goalsList" class="goals-list"></div><div class="goal-form"><label>Meta<input id="goalName" placeholder="Fondo de emergencia"></label><label>Objetivo<input id="goalTarget" type="number" min="0" step="0.01" placeholder="5000"></label><label>Aporte de este mes<input id="goalContribution" type="number" min="0" step="0.01" placeholder="0"></label><button id="addGoalBtn" class="btn btn-primary">＋ Añadir</button></div></div></template>
 
-  <template id="cloneTemplate">
-    <div class="modal-box small-modal"><button class="modal-close" data-close>×</button><div class="modal-title"><span class="modal-icon">↗</span><div><span class="eyebrow">Plantilla</span><h2>Duplicar estructura</h2></div></div><p class="modal-copy">Copia nombres, tipos y configuración de secciones al mes elegido. Los montos no se copian para evitar sobrescribir datos.</p><label>Destino<select id="cloneTarget"></select></label><div class="modal-actions"><button class="btn btn-ghost" data-close>Cancelar</button><button id="cloneConfirm" class="btn btn-primary">Duplicar</button></div></div>
-  </template>
+<template id="calendarTemplate"><div class="modal-box large-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">◫</span><div><span class="eyebrow">Agenda</span><h2 id="calendarTitle">Octubre 2026</h2></div></div><div class="calendar-nav"><button id="calPrev" class="icon-btn" aria-label="Mes anterior">‹</button><span>Selecciona un día</span><button id="calNext" class="icon-btn" aria-label="Mes siguiente">›</button></div><div class="weekdays"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div id="calendarGrid" class="calendar-grid"></div><div class="calendar-form"><label>Evento<input id="eventName" placeholder="Pago, cumpleaños, cita…"></label><label>Categoría<input id="eventCat" placeholder="General"></label><button id="addEventBtn" class="btn btn-primary">＋ Añadir</button></div><div id="eventList" class="event-list"></div></div></template>
 
-  <div id="toast" class="toast" role="status"></div>
-  <script src="app.js?v=200"></script>
+<template id="annualTemplate"><div class="modal-box xlarge-modal dark-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon dark">◒</span><div><span class="eyebrow">Panorama</span><h2>Tablero anual <span id="annualYearLabel">2026</span></h2></div></div><div class="annual-kpis"><div><span>Ingresos del año</span><strong id="annualIncome">S/ 0.00</strong></div><div><span>Gastos del año</span><strong id="annualExpense">S/ 0.00</strong></div><div><span>Ahorro del año</span><strong id="annualSavings">S/ 0.00</strong></div><div><span>Flujo acumulado</span><strong id="annualNet">S/ 0.00</strong></div></div><div class="annual-grid"><article class="annual-chart"><h3>Flujo mensual</h3><canvas id="annualFlowChart"></canvas></article><article class="annual-chart"><h3>Ingresos vs gastos</h3><canvas id="annualInOutChart"></canvas></article><article class="annual-chart wide"><h3>Flujo acumulado</h3><canvas id="annualWealthChart"></canvas></article></div></div></template>
+
+<template id="advisorTemplate"><div class="modal-box medium-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">✦</span><div><span class="eyebrow">CFO</span><h2>Consejero financiero</h2></div></div><div id="advisorContent" class="advisor-grid"></div></div></template>
+
+<template id="cloneTemplate"><div class="modal-box small-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">↗</span><div><span class="eyebrow">Plantilla</span><h2>Duplicar estructura</h2></div></div><p class="modal-copy">Copia nombres, tipos y configuración de secciones al mes elegido. Los montos no se copian.</p><label>Destino<select id="cloneTarget"></select></label><div class="modal-actions"><button class="btn btn-ghost" data-close>Cancelar</button><button id="cloneConfirm" class="btn btn-primary">Duplicar</button></div></div></template>
+
+<div id="toast" class="toast" role="status"></div>
+<script defer src="app-core.js?v=200"></script>
+<script defer src="app-data.js?v=200"></script>
+<script defer src="app-render.js?v=200"></script>
+<script defer src="app-visual.js?v=200"></script>
+<script defer src="app-modals.js?v=200"></script>
+<script defer src="app-actions.js?v=200"></script>
 </body>
 </html>

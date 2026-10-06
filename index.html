@@ -1,562 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CFO Personal V110 (Architect)</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
-                    colors: { navy: { 900: '#0f172a', 800: '#1e293b' } },
-                    animation: {
-                        'fade-in': 'fadeIn 0.3s ease-out forwards',
-                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                    },
-                    keyframes: {
-                        fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } },
-                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body { background: #f8fafc; color: #1e293b; overflow: hidden; -webkit-tap-highlight-color: transparent; }
-        
-        /* SIDEBAR */
-        .sidebar { 
-            width: 280px; background: white; border-right: 1px solid #e2e8f0; 
-            display: flex; flex-direction: column; position: fixed; top:0; bottom:0; left:0; z-index: 50;
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        body.sb-closed .sidebar { transform: translateX(-100%); }
-        body.sb-open .sidebar { transform: translateX(0); }
-        .layout-wrap { transition: margin-left 0.3s cubic-bezier(0.25, 1, 0.5, 1); height: 100vh; display: flex; flex-direction: column; }
-        @media (min-width: 768px) {
-            body.sb-open .layout-wrap { margin-left: 280px; }
-            body.sb-closed .layout-wrap { margin-left: 0; }
-        }
-        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 40; opacity: 0; pointer-events: none; transition: 0.3s; }
-        body.sb-open .overlay { opacity: 1; pointer-events: auto; }
-        @media (min-width: 768px) { .overlay { display: none; } }
-
-        /* BUTTONS PRO */
-        .btn-pro { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-        .btn-pro:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); filter: brightness(1.05); }
-        .btn-pro:active { transform: scale(0.96); box-shadow: none; }
-        .btn-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #64748b; transition: all 0.3s ease; border: 1px solid #e2e8f0; cursor: pointer; }
-        .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: rotate(90deg) scale(1.1); }
-        .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: rotate(0) scale(1.1); }
-        .btn-icon.refresh:hover { background: #d1fae5; color: #059669; border-color: #6ee7b7; transform: rotate(180deg) scale(1.1); }
-
-        /* SYNC LIGHT */
-        .sync-light { width: 10px; height: 10px; border-radius: 50%; transition: all 0.5s ease; }
-        .sync-light.ok { background: #10b981; box-shadow: 0 0 12px #10b981; }
-        .sync-light.working { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; }
-        .sync-light.error { background: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2); }
-
-        /* SECTION ANIM */
-        .section-content { transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; overflow: hidden; }
-        .section-content.collapsed { max-height: 0; opacity: 0; padding-bottom: 0; pointer-events: none; }
-        .section-content.expanded { max-height: 1000px; opacity: 1; }
-
-        /* INPUTS */
-        .input-row { background: transparent; width: 100%; outline: none; border-bottom: 1px solid transparent; padding: 8px 0; font-weight: 600; color: #334155; transition: 0.2s; font-size: 15px; }
-        .input-row:focus { border-bottom-color: #6366f1; color: #0f172a; background: rgba(99, 102, 241, 0.05); padding-left: 8px; border-radius: 6px; }
-        
-        .flash-row { display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #f1f5f9; border-radius: 10px; margin-top: 8px; border: 1px solid transparent; transition: 0.2s; }
-        .flash-row:focus-within { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); }
-        .flash-input { background: transparent; border: none; outline: none; font-weight: 600; font-size: 14px; color: #334155; width: 100%; padding: 8px 0; }
-
-        /* TOOLTIP CORNER */
-        .glass-tooltip { position: absolute; top: 0; right: 0; width: 220px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border-radius: 0 0 0 16px; display: flex; flex-direction: column; align-items: start; text-align: left; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; padding: 16px; z-index: 20; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.1); }
-        .chart-container:hover .glass-tooltip { opacity: 1; pointer-events: auto; }
-
-        /* MODALES */
-        .modal-wrap { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
-        .modal-wrap.active { display: flex; animation: fadeIn 0.3s forwards; }
-        .modal-box { background: white; width: 95%; border-radius: 24px; padding: 24px; box-shadow: 0 25px 60px -12px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .modal-wrap.active .modal-box { transform: scale(1); }
-        .modal-xl { max-width: 1200px; } .modal-lg { max-width: 900px; } .modal-sm { max-width: 480px; }
-
-        /* CALENDARIO PERFECT FIT */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 100%; }
-        .cal-cell { aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 600; color: #64748b; position: relative; border: 1px solid transparent; background: #f8fafc; }
-        .cal-cell:hover { background: white; border-color: #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); transform: translateY(-2px); z-index: 10; }
-        .cal-cell.today { background: #4f46e5; color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
-        .cal-cell.has-event { border: 1px solid #c7d2fe; background: #eef2ff; color: #4338ca; }
-        .event-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; }
-
-        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .card { background: white; border-radius: 20px; box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; overflow: hidden; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="CFO Pro · Finanzas personales con flujo de caja, deudas, metas y proyecciones.">
+<title>CFO Pro · Finanzas personales</title>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="styles.css?v=200">
 </head>
-<body class="sb-closed">
+<body>
+<div class="app-shell">
+<div id="sidebarOverlay" class="sidebar-overlay" hidden></div>
+<aside id="sidebar" class="sidebar" aria-label="Navegación mensual">
+  <div class="brand"><div class="brand-mark">$</div><div><strong>CFO<span>.</span>Pro</strong><small>Finanzas personales</small></div></div>
+  <div class="sidebar-section-label">Año <span id="sidebarYear">2026</span></div>
+  <nav id="monthNav" class="month-nav"></nav>
+  <div class="sidebar-bottom">
+    <button id="duplicateMonthBtn" class="btn btn-dark btn-block">↗ <span>Duplicar estructura</span></button>
+    <div id="syncBadge" class="sync-badge"><span class="sync-dot"></span><span>Local</span></div>
+  </div>
+</aside>
+<main class="main">
+<header class="topbar">
+  <div class="topbar-left">
+    <button id="sidebarBtn" class="icon-btn" aria-label="Abrir navegación">☰</button>
+    <div class="month-switcher">
+      <button id="prevMonthBtn" class="icon-btn subtle" aria-label="Mes anterior">‹</button>
+      <div><small>Ejercicio <span id="headerYear">2026</span></small><strong id="monthTitle">Octubre</strong></div>
+      <button id="nextMonthBtn" class="icon-btn subtle" aria-label="Mes siguiente">›</button>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="calendarBtn" class="top-action" title="Calendario" aria-label="Calendario">◫</button>
+    <button id="annualBtn" class="top-action" title="Tablero anual" aria-label="Tablero anual">◒</button>
+    <button id="advisorBtn" class="top-action" title="Consejero financiero" aria-label="Consejero financiero">✦</button>
+    <button id="themeBtn" class="top-action" title="Cambiar tema" aria-label="Cambiar tema">◐</button>
+    <button id="settingsBtn" class="top-action" title="Ajustes" aria-label="Ajustes">⚙</button>
+  </div>
+</header>
+<section class="workspace">
+<div class="container">
+  <div class="hero-row">
+    <div><p class="eyebrow">Panel financiero</p><h1>Tu dinero, bajo control.</h1><p class="hero-copy">Registra lo que entra, lo que sale y lo que apartas. CFO Pro convierte esos datos en decisiones.</p></div>
+    <div class="month-status"><span class="status-dot"></span><div><small>Fecha de hoy</small><strong id="longDate">—</strong></div></div>
+  </div>
 
-    <script>
-        (function() {
-            const savedState = localStorage.getItem('cfo_sidebar_state');
-            const isMobile = window.innerWidth < 768;
-            if (savedState) document.body.className = savedState === 'open' ? 'sb-open' : 'sb-closed';
-            else document.body.className = isMobile ? 'sb-closed' : 'sb-open';
-        })();
-    </script>
+  <section class="kpi-grid" aria-label="Resumen financiero">
+    <article class="kpi kpi-dark"><div><span>Saldo final estimado</span><strong id="kpiBalance">S/ 0.00</strong><small>Saldo inicial + flujo del mes</small></div><div class="kpi-icon">◎</div></article>
+    <article class="kpi kpi-green"><div><span>Ingresos</span><strong id="kpiIncome">S/ 0.00</strong><small id="kpiIncomeSub">Entradas del periodo</small></div><div class="kpi-icon">↗</div></article>
+    <article class="kpi kpi-red"><div><span>Gastos</span><strong id="kpiExpenses">S/ 0.00</strong><small id="kpiExpenseSub">Salidas operativas</small></div><div class="kpi-icon">↘</div></article>
+    <article class="kpi kpi-blue"><div><span>Ahorro / metas</span><strong id="kpiSavings">S/ 0.00</strong><small id="kpiSavingsSub">Dinero separado</small></div><div class="kpi-icon">◈</div></article>
+  </section>
 
-    <div id="mobile-overlay" class="overlay" onclick="toggleSidebar()"></div>
+  <section class="finance-strip">
+    <div><span>Saldo inicial</span><strong id="openingBalanceText">S/ 0.00</strong></div>
+    <div><span>Flujo neto</span><strong id="netFlowText">S/ 0.00</strong></div>
+    <div><span>Tasa de ahorro</span><strong id="savingsRateText">0.0%</strong></div>
+    <div><span>Gasto / ingreso</span><strong id="expenseRateText">0.0%</strong></div>
+  </section>
 
-    <aside id="sidebar" class="sidebar">
-        <div class="h-24 flex items-center px-6 border-b border-slate-100 shrink-0 justify-between bg-white">
-            <span class="font-extrabold text-2xl text-slate-900 tracking-tight">CFO<span class="text-indigo-600">.</span>Pro</span>
-        </div>
-        <nav class="flex-1 overflow-y-auto p-4 space-y-2 bg-white" id="month-nav"></nav>
-        <div class="p-6 border-t border-slate-100 bg-slate-50 mt-auto">
-            <button onclick="openCloneModal()" class="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-copy text-lg"></i> Duplicar Mes</button>
-        </div>
+  <div class="content-grid">
+    <section>
+      <div class="section-header"><div><p class="eyebrow">Libro mensual</p><h2>Movimientos y compromisos</h2></div><button id="newSectionBtn" class="btn btn-primary">＋ Nueva sección</button></div>
+      <div id="ledger" class="ledger"></div>
+    </section>
+    <aside class="side-column">
+      <article class="card budget-card"><div class="card-head"><div><span class="eyebrow">Gasto por categoría</span><h3>Distribución</h3></div><span class="mini-badge" id="expenseCountBadge">0 categorías</span></div><div class="chart-wrap"><canvas id="expenseChart"></canvas><div class="chart-center"><span>Salidas</span><strong id="chartTotal">S/ 0.00</strong></div></div></article>
+      <article class="card focus-card"><div class="card-head"><div><span class="eyebrow">Lectura rápida</span><h3>Decisión del mes</h3></div><span class="focus-spark">✦</span></div><div id="focusInsight" class="focus-insight"></div></article>
+      <article class="card goals-card"><div class="card-head"><div><span class="eyebrow">Metas</span><h3>Prioridades</h3></div><button id="goalsBtn" class="text-btn">Gestionar</button></div><div id="goalMiniList" class="goal-mini-list"></div></article>
     </aside>
+  </div>
+</div>
+</section>
+</main>
+</div>
 
-    <div id="layout-wrap" class="layout-wrap">
-        <header class="h-20 bg-[#0f172a] text-white flex items-center justify-between px-6 shadow-md z-30 shrink-0">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="p-2 hover:bg-white/10 rounded-xl transition-colors btn-pro"><i class="ph-bold ph-list text-2xl"></i></button>
-                <div class="flex items-center gap-3 bg-white/10 px-4 py-1.5 rounded-full border border-white/10 shadow-inner">
-                    <button onclick="changeMonth(-1)" class="hover:text-indigo-300 btn-pro"><i class="ph-bold ph-caret-left"></i></button>
-                    <div class="text-center w-36">
-                        <span class="block text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Ejercicio 2026</span>
-                        <span class="block text-lg font-bold leading-none" id="month-title">Enero</span>
-                    </div>
-                    <button onclick="changeMonth(1)" class="hover:text-indigo-300 btn-pro"><i class="ph-bold ph-caret-right"></i></button>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-5">
-                <div id="sync-indicator" class="sync-light working" title="Sincronización"></div>
-                <div class="h-8 w-px bg-white/10 hidden md:block"></div>
-                
-                <button onclick="openCalendar()" class="hover:text-indigo-300 transition-colors btn-pro" title="Calendario"><i class="ph-bold ph-calendar text-2xl"></i></button>
-                <button onclick="openAnnual()" class="hover:text-indigo-300 transition-colors btn-pro" title="Tablero"><i class="ph-bold ph-chart-line-up text-2xl"></i></button>
-                <button onclick="openAdvisor()" class="hover:text-indigo-300 transition-colors btn-pro" title="Consejero"><i class="ph-fill ph-brain text-2xl"></i></button>
-                <button onclick="openSettings()" class="hover:text-indigo-300 transition-colors btn-pro" title="Ajustes"><i class="ph-bold ph-gear text-2xl"></i></button>
-            </div>
-        </header>
+<div id="modalHost" class="modal-host" aria-live="polite"></div>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32 bg-[#f8fafc]" id="workspace">
-            <div class="max-w-7xl mx-auto animate-fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="card p-6 border-b-4 border-slate-800 flex flex-col justify-between h-40 btn-pro">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Disponible Real</span>
-                        <h3 class="text-4xl font-extrabold text-slate-900 truncate" id="kpi-balance">S/ 0.00</h3>
-                    </div>
-                    <div class="card p-6 border-b-4 border-emerald-500 flex flex-col justify-between h-40 btn-pro">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Ingresos</span>
-                        <h3 class="text-4xl font-extrabold text-emerald-600 truncate" id="kpi-income">S/ 0.00</h3>
-                    </div>
-                    <div class="card p-6 border-b-4 border-rose-500 flex flex-col justify-between h-40 btn-pro">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gastos</span>
-                        <h3 class="text-4xl font-extrabold text-rose-500 truncate" id="kpi-expenses">S/ 0.00</h3>
-                    </div>
-                    <div onclick="openSavings()" class="card p-6 bg-[#0f172a] text-white cursor-pointer hover:bg-[#1e293b] h-40 relative overflow-hidden group shadow-xl btn-pro">
-                        <div class="absolute -right-6 -top-6 text-white/5 text-[140px] group-hover:text-white/10 transition-colors rotate-12"><i class="ph-fill ph-piggy-bank"></i></div>
-                        <div class="relative z-10 flex flex-col justify-between h-full">
-                            <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest">Metas & Deudas</span>
-                            <h3 class="text-4xl font-extrabold" id="kpi-savings">S/ 0.00</h3>
-                            <div class="text-xs flex items-center gap-2 font-bold text-indigo-300 group-hover:text-white transition-colors bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-sm">Gestionar <i class="ph-bold ph-arrow-right"></i></div>
-                        </div>
-                    </div>
-                </div>
+<template id="newSectionTemplate"><div class="modal-box small-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">＋</span><div><span class="eyebrow">Estructura</span><h2>Nueva sección</h2></div></div><label>Nombre<input id="secName" placeholder="Ej. Alimentación, Sueldo, Tarjeta…" autocomplete="off"></label><label>Tipo<select id="secType"><option value="expense">Gasto</option><option value="income">Ingreso</option><option value="savings">Ahorro</option><option value="debt">Deuda</option></select></label><div id="debtFields" class="conditional-fields" hidden><label>Saldo inicial de la deuda<input id="debtTotal" type="number" min="0" step="0.01" placeholder="0.00"></label><label>Tasa mensual (%)<input id="debtRate" type="number" min="0" step="0.01" placeholder="0.00"></label></div><div class="modal-actions"><button class="btn btn-ghost" data-close>Cancelar</button><button id="createSectionConfirm" class="btn btn-primary">Crear sección</button></div></div></template>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 space-y-6" id="ledger"></div>
-                    <div class="space-y-6">
-                        <div class="card p-8">
-                            <h4 class="font-bold text-xs text-slate-400 uppercase mb-8 text-center tracking-widest">Distribución del Gasto</h4>
-                            <div class="h-64 relative">
-                                <canvas id="chart-mini"></canvas>
-                                <div class="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                                    <span class="text-[10px] uppercase font-bold text-slate-400">Salidas</span>
-                                    <span id="chart-total-center" class="font-bold text-slate-800 text-xl">S/ 0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-10 flex justify-center">
-                     <button onclick="openNewSectionModal()" class="py-4 px-8 rounded-full bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:border-indigo-500 hover:text-indigo-600 hover:shadow-lg transition-all flex items-center gap-3 btn-pro">
-                        <i class="ph-bold ph-plus-circle text-xl"></i> Crear Nueva Sección
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+<template id="settingsTemplate"><div class="modal-box medium-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">⚙</span><div><span class="eyebrow">Configuración</span><h2>Preferencias y seguridad</h2></div></div><div class="settings-grid"><label>Saldo inicial del año<input id="yearOpeningBalance" type="number" step="0.01"></label><label>Mes por defecto<select id="defaultMonthSelect"></select></label></div><div class="settings-block"><h3>Respaldo local</h3><p>La nueva arquitectura guarda tus datos en este dispositivo. Exporta un JSON para conservar una copia independiente.</p><div class="settings-actions"><button id="exportBtn" class="btn btn-secondary">↓ Exportar JSON</button><label class="btn btn-secondary">↑ Importar JSON<input id="importInput" type="file" accept="application/json,.json" hidden></label></div></div><div class="settings-block warning-block"><h3>Seguridad</h3><p class="warning-copy">Las credenciales maestras de servicios externos ya no forman parte del código público de la aplicación.</p></div><div class="settings-block danger-block"><h3>Zona de peligro</h3><button id="clearMonthBtn" class="btn btn-danger">Limpiar montos del mes</button><button id="resetBtn" class="btn btn-danger-outline">Restablecer aplicación</button></div><div class="modal-actions"><button class="btn btn-primary" data-close>Listo</button></div></div></template>
 
-    <div id="modal-new-section" class="modal-wrap">
-        <div class="modal-box modal-sm bg-white">
-            <button onclick="smartClose('modal-new-section')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="ph-bold ph-rows-plus text-xl"></i></div>
-                <h3 class="text-xl font-bold text-slate-900">Nueva Sección</h3>
-            </div>
-            <div class="space-y-4">
-                <div><label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre</label><input id="sec-name-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-800 outline-none focus:border-indigo-500" placeholder="Ej. Tarjeta Visa, Préstamo..."></div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de Flujo</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="selectSecType('expense')" id="btn-type-expense" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Gasto</button>
-                        <button onclick="selectSecType('income')" id="btn-type-income" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Ingreso</button>
-                        <button onclick="selectSecType('debt')" id="btn-type-debt" class="py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all">Deuda (Préstamo)</button>
-                    </div>
-                </div>
+<template id="goalsTemplate"><div class="modal-box medium-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">◈</span><div><span class="eyebrow">Metas</span><h2>Cascada de ahorro</h2></div></div><div id="goalsList" class="goals-list"></div><div class="goal-form"><label>Meta<input id="goalName" placeholder="Fondo de emergencia"></label><label>Objetivo<input id="goalTarget" type="number" min="0" step="0.01" placeholder="5000"></label><label>Aporte de este mes<input id="goalContribution" type="number" min="0" step="0.01" placeholder="0"></label><button id="addGoalBtn" class="btn btn-primary">＋ Añadir</button></div></div></template>
 
-                <div id="debt-fields" class="hidden animate-fade-in bg-rose-50 p-4 rounded-xl border border-rose-100 space-y-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-rose-700 uppercase mb-1">Monto Inicial Préstamo</label>
-                        <input id="sec-debt-total" type="number" class="w-full bg-white border border-rose-200 rounded-lg px-3 py-2 font-bold text-rose-800 outline-none focus:border-rose-500" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-rose-700 uppercase mb-1">Tasa Interés Mensual (%)</label>
-                        <input id="sec-debt-rate" type="number" class="w-full bg-white border border-rose-200 rounded-lg px-3 py-2 font-bold text-rose-800 outline-none focus:border-rose-500" placeholder="Ej. 5">
-                    </div>
-                </div>
+<template id="calendarTemplate"><div class="modal-box large-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">◫</span><div><span class="eyebrow">Agenda</span><h2 id="calendarTitle">Octubre 2026</h2></div></div><div class="calendar-nav"><button id="calPrev" class="icon-btn" aria-label="Mes anterior">‹</button><span>Selecciona un día</span><button id="calNext" class="icon-btn" aria-label="Mes siguiente">›</button></div><div class="weekdays"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span></div><div id="calendarGrid" class="calendar-grid"></div><div class="calendar-form"><label>Evento<input id="eventName" placeholder="Pago, cumpleaños, cita…"></label><label>Categoría<input id="eventCat" placeholder="General"></label><button id="addEventBtn" class="btn btn-primary">＋ Añadir</button></div><div id="eventList" class="event-list"></div></div></template>
 
-                <button onclick="createSection()" class="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg btn-pro mt-4">Crear Sección</button>
-            </div>
-        </div>
-    </div>
+<template id="annualTemplate"><div class="modal-box xlarge-modal dark-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon dark">◒</span><div><span class="eyebrow">Panorama</span><h2>Tablero anual <span id="annualYearLabel">2026</span></h2></div></div><div class="annual-kpis"><div><span>Ingresos del año</span><strong id="annualIncome">S/ 0.00</strong></div><div><span>Gastos del año</span><strong id="annualExpense">S/ 0.00</strong></div><div><span>Ahorro del año</span><strong id="annualSavings">S/ 0.00</strong></div><div><span>Flujo acumulado</span><strong id="annualNet">S/ 0.00</strong></div></div><div class="annual-grid"><article class="annual-chart"><h3>Flujo mensual</h3><canvas id="annualFlowChart"></canvas></article><article class="annual-chart"><h3>Ingresos vs gastos</h3><canvas id="annualInOutChart"></canvas></article><article class="annual-chart wide"><h3>Flujo acumulado</h3><canvas id="annualWealthChart"></canvas></article></div></div></template>
 
-    <div id="modal-calendar" class="modal-wrap">
-        <div class="modal-box modal-lg bg-white">
-            <button onclick="smartClose('modal-calendar')" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex flex-col items-center justify-center mb-6 pt-2">
-                <h3 class="text-3xl font-extrabold text-slate-900 mb-4" id="cal-title">Enero 2026</h3>
-                <div class="flex items-center gap-4 bg-slate-100 p-1.5 rounded-full">
-                    <button onclick="calChangeMonth(-1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:text-indigo-600 btn-pro btn-icon nav"><i class="ph-bold ph-caret-left"></i></button>
-                    <span class="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Navegar</span>
-                    <button onclick="calChangeMonth(1)" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:text-indigo-600 btn-pro btn-icon nav"><i class="ph-bold ph-caret-right"></i></button>
-                </div>
-            </div>
-            <div class="grid grid-cols-7 gap-1 text-center text-xs font-extrabold text-slate-400 uppercase mb-4 tracking-widest"><div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div></div>
-            <div id="calendar-grid" class="cal-grid"></div>
-        </div>
-    </div>
+<template id="advisorTemplate"><div class="modal-box medium-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">✦</span><div><span class="eyebrow">CFO</span><h2>Consejero financiero</h2></div></div><div id="advisorContent" class="advisor-grid"></div></div></template>
 
-    <div id="modal-day-details" class="modal-wrap z-[80]">
-        <div class="modal-box modal-sm bg-white">
-            <button onclick="smartClose('modal-day-details')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <h3 class="text-2xl font-extrabold text-slate-900 mb-1" id="day-detail-title">Fecha</h3>
-            <p class="text-sm text-slate-500 mb-6">Agenda</p>
-            <div id="day-events-list" class="space-y-3 mb-6"></div>
-            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-inner">
-                <label class="text-[10px] font-bold text-slate-400 uppercase block mb-3">Nuevo Evento</label>
-                <div class="flex flex-col gap-3">
-                    <input id="new-event-input" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Cena)...">
-                    <div class="flex gap-2">
-                        <input id="new-event-cat" class="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Categoría (ej. Gym, Salud)...">
-                        <button onclick="addEventFromModal()" class="bg-indigo-600 text-white w-12 rounded-xl flex items-center justify-center hover:bg-indigo-700 btn-pro shadow-md"><i class="ph-bold ph-plus text-lg"></i></button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<template id="cloneTemplate"><div class="modal-box small-modal"><button class="modal-close" data-close aria-label="Cerrar">×</button><div class="modal-title"><span class="modal-icon">↗</span><div><span class="eyebrow">Plantilla</span><h2>Duplicar estructura</h2></div></div><p class="modal-copy">Copia nombres, tipos y configuración de secciones al mes elegido. Los montos no se copian.</p><label>Destino<select id="cloneTarget"></select></label><div class="modal-actions"><button class="btn btn-ghost" data-close>Cancelar</button><button id="cloneConfirm" class="btn btn-primary">Duplicar</button></div></div></template>
 
-    <div id="modal-advisor" class="modal-wrap">
-        <div class="modal-box modal-lg bg-slate-50">
-            <button onclick="smartClose('modal-advisor')" class="absolute top-5 right-5 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex items-center justify-between mb-8 pr-12">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-brain text-3xl"></i></div>
-                    <div><h3 class="text-2xl font-extrabold text-slate-900">Consejero CFO</h3><p class="text-sm text-slate-500 font-medium">Análisis estratégico.</p></div>
-                </div>
-                <button onclick="runAdvisorAnalysis()" class="btn-icon refresh bg-white shadow-sm" title="Recargar Análisis"><i class="ph-bold ph-arrows-clockwise text-lg"></i></button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500"><h4 class="font-bold text-emerald-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-heartbeat"></i> 1. Salud Financiera</h4><div id="adv-health" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500"><h4 class="font-bold text-indigo-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-piggy-bank"></i> 2. Eficiencia de Ahorro</h4><div id="adv-savings" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500"><h4 class="font-bold text-amber-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-chart-pie-slice"></i> 3. Estructura de Gasto</h4><div id="adv-struct" class="text-sm text-slate-600 leading-relaxed text-justify"></div></div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-rose-500"><h4 class="font-bold text-rose-700 text-xs uppercase mb-3 tracking-widest flex items-center gap-2"><i class="ph-bold ph-list-checks"></i> 4. Estrategia & Acción</h4><div id="adv-action" class="text-sm text-slate-600 leading-relaxed"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-savings" class="modal-wrap"><div class="modal-box modal-lg bg-slate-50"><button onclick="smartClose('modal-savings')" class="absolute top-6 right-6 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><div class="flex items-center gap-4 mb-8"><div class="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200"><i class="ph-fill ph-chart-bar-horizontal text-3xl"></i></div><div><h3 class="text-2xl font-extrabold text-slate-900">Cascada de Ahorro</h3><p class="text-sm text-slate-500 font-medium" id="savings-subtitle">...</p></div></div><div id="goals-list" class="grid grid-cols-1 gap-4 mb-8 max-h-[50vh] overflow-y-auto pr-2"></div><div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><label class="text-xs font-bold text-slate-400 uppercase block mb-3">Configurar Meta</label><div class="flex flex-col md:flex-row gap-4 items-center"><div class="flex items-center bg-slate-50 rounded-xl border border-slate-200 p-1"><button onclick="changeNewGoalPrio(-1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-minus"></i></button><input id="new-goal-priority" type="number" class="w-12 bg-transparent text-center font-bold text-slate-800 outline-none" value="1" readonly><button onclick="changeNewGoalPrio(1)" class="w-10 h-10 rounded-lg bg-white shadow-sm text-slate-600 font-bold hover:text-indigo-600 btn-pro flex items-center justify-center"><i class="ph-bold ph-plus"></i></button></div><input id="new-goal-name" class="flex-1 w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre"><input id="new-goal-target" type="number" class="w-full md:w-32 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Monto"><button onclick="addGoal()" id="btn-add-goal" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center gap-2"><i class="ph-bold ph-plus text-lg"></i></button></div></div></div></div>
-    <div id="modal-annual" class="modal-wrap"><div class="modal-box modal-xl bg-[#0f172a] text-white h-[90vh] relative overflow-hidden"><button onclick="smartClose('modal-annual')" class="absolute top-4 right-4 text-slate-400 hover:text-white btn-icon bg-slate-800 border-slate-700"><i class="ph-bold ph-x"></i></button><div class="flex items-center gap-3 mb-8 pb-4 border-b border-slate-800 relative z-10"><div class="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/50"><i class="ph-bold ph-chart-line-up text-xl"></i></div><div><h3 class="text-3xl font-extrabold tracking-tight">Tablero 2026</h3><p class="text-slate-400 text-sm">Datos reales proyectados.</p></div></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-100px)]"><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-indigo-300 uppercase tracking-widest text-[10px]">Flujo</h4></div><div class="flex-1 relative"><canvas id="ch1"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-trend-up text-3xl text-indigo-400 mb-2"></i><h4 class="font-bold">Evolución</h4><p class="text-xs">Saldo neto mensual.</p></div></div><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-emerald-300 uppercase tracking-widest text-[10px]">Patrimonio</h4></div><div class="flex-1 relative"><canvas id="ch2"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-bank text-3xl text-emerald-400 mb-2"></i><h4 class="font-bold">Riqueza</h4><p class="text-xs">Crecimiento.</p></div></div><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-80 flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-amber-300 uppercase tracking-widest text-[10px]">Gap</h4></div><div class="flex-1 relative"><canvas id="ch3"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-arrows-left-right text-3xl text-amber-400 mb-2"></i><h4 class="font-bold">Brecha</h4><p class="text-xs">In vs Out.</p></div></div><div class="chart-container bg-slate-800/40 border border-slate-700 rounded-2xl p-6 h-[400px] flex flex-col relative group"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-rose-300 uppercase tracking-widest text-[10px]">Radar</h4></div><div class="flex-1 relative"><canvas id="ch4"></canvas></div><div class="glass-tooltip text-white"><i class="ph-fill ph-chart-pie-slice text-3xl text-rose-400 mb-2"></i><h4 class="font-bold">Estructura</h4><p class="text-xs">Categorías.</p></div></div></div></div></div>
-    <div id="modal-settings" class="modal-wrap"><div class="modal-box modal-sm"><button onclick="smartClose('modal-settings')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><h3 class="text-xl font-bold mb-6">Configuración</h3><div class="space-y-3"><button onclick="clearMonth()" class="w-full py-4 bg-amber-50 border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-eraser"></i> Limpiar Mes</button><button onclick="if(confirm('¿Reiniciar TODO?')){localStorage.removeItem('cfo_v110_arch');location.reload()}" class="w-full py-4 bg-rose-50 border border-rose-200 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2 btn-pro"><i class="ph-bold ph-trash"></i> Resetear Fábrica</button></div></div></div>
-    <div id="modal-clone" class="modal-wrap"><div class="modal-box modal-sm"><button onclick="smartClose('modal-clone')" class="absolute top-4 right-4 text-slate-400 btn-icon"><i class="ph-bold ph-x"></i></button><h3 class="text-lg font-bold mb-4">Duplicar Mes</h3><select id="clone-target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold mb-4 outline-none"></select><button onclick="executeClone()" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg btn-pro">Confirmar</button></div></div>
-
-    <script>
-        const CONFIG = { apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", binId: "698a256fd0ea881f40adab7d" };
-        const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        const BASE = [{id:'i',title:'Ingresos',type:'income',items:['Sueldo'],collapsed:false},{id:'f',title:'Gastos Fijos',type:'expense',items:['Alquiler'],collapsed:false},{id:'s',title:'Ahorros',type:'savings',items:['Fondo'],collapsed:false}];
-        
-        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
-        let charts = {};
-        let calMonth = new Date().getMonth();
-        let calYear = 2026;
-        let selectedDay = null;
-        let editingGoalIndex = null;
-        let newSecType = 'expense';
-        let modalStack = []; // STACK FOR ESC
-
-        async function init() {
-            await sync(true);
-            if(!state.struct || state.struct.length === 0) {
-                 const local = localStorage.getItem('cfo_v110_arch');
-                 if(local) state = JSON.parse(local);
-                 else {
-                     state.struct = genYear();
-                     state.events = [{name:'San Valentín', d:14, m:2, type:'other'}, {name:'Navidad', d:25, m:12, type:'bday'}];
-                     state.goals = [{name:'Fondo Emergencia', target:5000, priority:1}];
-                     await sync(false);
-                 }
-            }
-            
-            // SMART ESC KEY LISTENER
-            document.addEventListener('keydown', (e) => { 
-                if(e.key === 'Escape') {
-                    if(modalStack.length > 0) {
-                        // Close top most modal
-                        const last = modalStack.pop();
-                        document.getElementById(last).classList.remove('active');
-                    } else if(document.body.classList.contains('sb-open')) {
-                        toggleSidebar();
-                    }
-                }
-            });
-            render();
-        }
-
-        async function sync(pull) {
-            const ind = document.getElementById('sync-indicator'); ind.className = 'sync-light working';
-            try {
-                if(pull) {
-                    const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { headers: { 'X-Master-Key': CONFIG.apiKey } });
-                    const j = await r.json();
-                    if(j.record && j.record.struct) state = j.record;
-                } else {
-                    await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey }, body: JSON.stringify(state) });
-                }
-                localStorage.setItem('cfo_v110_arch', JSON.stringify(state));
-                ind.className = 'sync-light ok';
-            } catch(e) { console.error(e); ind.className = 'sync-light error'; }
-        }
-
-        // --- STACK MODAL LOGIC ---
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-            modalStack.push(id);
-        }
-        window.smartClose = function(id) {
-            document.getElementById(id).classList.remove('active');
-            // Remove from stack if exists
-            const idx = modalStack.indexOf(id);
-            if(idx > -1) modalStack.splice(idx, 1);
-        }
-        function closeModals() {
-            document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active'));
-            modalStack = [];
-        }
-
-        function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v110_arch', JSON.stringify(state)); render(); sync(false); }
-
-        function render() {
-            renderSidebar();
-            document.getElementById('month-title').innerText = MONTHS[state.month];
-            renderLedger();
-            renderStats();
-        }
-
-        function renderSidebar() {
-            const nav = document.getElementById('month-nav'); nav.innerHTML = '';
-            MONTHS.forEach((m, i) => {
-                const active = i === state.month;
-                nav.innerHTML += `<button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold flex justify-between items-center transition-all ${active ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'} btn-pro">
-                    ${m} ${active ? '<i class="ph-bold ph-caret-right"></i>' : ''}
-                </button>`;
-            });
-        }
-
-        function renderLedger() {
-            const con = document.getElementById('ledger'); con.innerHTML = '';
-            const st = state.struct[state.month];
-            st.forEach((sec, sIdx) => {
-                let total = 0; sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
-                const card = document.createElement('div'); card.className = "card";
-                
-                // DEBT VISUALIZATION
-                let debtHTML = '';
-                if(sec.type === 'debt') {
-                    const principal = sec.debtTotal || 0;
-                    const rate = sec.debtRate || 0;
-                    
-                    // Simple Calc: Payment logic needs detailed tracking, 
-                    // for simplicity in this version, "total" paid reduces principal? 
-                    // No, let's simulate the prompt logic:
-                    // If Payment > Interest -> Reduces Capital.
-                    // We need to calculate what "Current Principal" is.
-                    // Simplified: Principal = Initial - (Total Payments - Total Interest Paid).
-                    // This requires transaction history. For this UI version, we will calculate based on current month for display.
-                    
-                    const monthlyInterest = principal * (rate/100);
-                    let capitalPaid = 0;
-                    let interestPaid = 0;
-                    let msg = "Realiza un pago para ver el desglose.";
-                    
-                    if(total > 0) {
-                        if(total <= monthlyInterest) {
-                            interestPaid = total;
-                            msg = `⚠️ Solo cubres intereses (Faltan S/ ${fmt(monthlyInterest - total)}).`;
-                        } else {
-                            interestPaid = monthlyInterest;
-                            capitalPaid = total - monthlyInterest;
-                            msg = `✅ Cubres interés (S/ ${fmt(interestPaid)}) y amortizas <b>S/ ${fmt(capitalPaid)}</b> a capital.`;
-                        }
-                    }
-                    
-                    const newPrincipal = principal - capitalPaid;
-                    
-                    debtHTML = `
-                    <div class="mt-4 bg-rose-50 rounded-xl p-4 border border-rose-100">
-                        <div class="flex justify-between items-center mb-2">
-                             <div class="text-xs font-bold text-rose-800">Monto Inicial: ${fmt(principal)} <span class="text-rose-400">(${rate}%)</span></div>
-                             <div class="text-xs font-bold text-rose-500">Int. Mensual: ${fmt(monthlyInterest)}</div>
-                        </div>
-                        <div class="bg-white p-3 rounded-lg border border-rose-100 text-sm text-rose-700 mb-2">
-                            ${msg}
-                        </div>
-                        <div class="text-right text-xs font-bold text-rose-900">Deuda Proyectada: ${fmt(newPrincipal)}</div>
-                    </div>`;
-                }
-
-                card.innerHTML = `
-                <div class="p-6 cursor-pointer select-none group" onclick="toggleSec(${sIdx})">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors"><i class="ph-bold ph-caret-down ${sec.collapsed?'-rotate-90':''}"></i></div>
-                            <input class="font-bold text-lg bg-transparent border-none outline-none w-48 input-row" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
-                            <button onclick="event.stopPropagation();if(confirm('Borrar sección?'))delSec(${sIdx})" class="btn-icon text-rose-500 hover:bg-rose-50 border-0"><i class="ph-bold ph-trash"></i></button>
-                        </div>
-                        <span class="font-bold text-xl ${sec.type==='income'?'text-emerald-600':(sec.type==='debt'?'text-rose-600':'text-slate-800')}">${fmt(total)}</span>
-                    </div>
-                    ${debtHTML}
-                </div>
-                <div class="section-content ${sec.collapsed ? 'collapsed' : 'expanded'} px-6 pb-6 space-y-3">
-                    ${sec.type==='savings' 
-                    ? `<div class="p-4 bg-indigo-50 rounded-xl flex justify-between items-center"><span class="font-bold text-indigo-900">Monto Ahorrado</span><input type="text" inputmode="decimal" class="text-right bg-transparent font-bold text-2xl text-indigo-700 outline-none w-40 input-row" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)"></div>`
-                    : sec.items.map((it,i) => `
-                        <div class="flex items-center gap-4 py-2 border-b border-slate-50 last:border-0 hover:bg-slate-50 px-3 rounded-lg transition-colors group">
-                            <button onclick="delItem(${sIdx},${i})" class="btn-icon w-8 h-8 text-rose-400 hover:text-rose-600"><i class="ph-bold ph-x"></i></button>
-                            <input class="input-row" value="${it}" onchange="renItem(${sIdx},${i},this.value)">
-                            <input type="text" inputmode="decimal" class="text-right font-bold text-slate-800 outline-none bg-transparent w-28 input-row" value="${(state.data[`${state.month}-${sec.id}-${i}`]||0)===0?'':state.data[`${state.month}-${sec.id}-${i}`]}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)">
-                        </div>
-                    `).join('') + `
-                        <div class="flash-row">
-                            <i class="ph-bold ph-plus text-slate-400"></i>
-                            <input class="flash-input" placeholder="Escribe y presiona Enter..." onkeydown="if(event.key==='Enter')quickAdd(${sIdx},this)">
-                            <input class="flash-input text-right w-24" placeholder="0.00" type="number" onkeydown="if(event.key==='Enter')quickAdd(${sIdx},this.previousElementSibling)">
-                        </div>
-                    `}
-                </div>`;
-                con.appendChild(card);
-            });
-        }
-
-        // GLOBAL LOGIC
-        window.quickAdd = function(sIdx, nameInput) {
-            const name = nameInput.value; const amtInput = nameInput.nextElementSibling; const amt = amtInput.value;
-            if(name) {
-                state.struct[state.month][sIdx].items.push(name);
-                const newIdx = state.struct[state.month][sIdx].items.length - 1;
-                if(amt) state.data[`${state.month}-${state.struct[state.month][sIdx].id}-${newIdx}`] = parseFloat(amt);
-                save();
-            }
-        }
-        window.openNewSectionModal = function() { openModal('modal-new-section'); document.getElementById('sec-name-input').value = ''; selectSecType('expense'); }
-        window.selectSecType = function(t) { 
-            newSecType = t; 
-            const btns = {expense:'btn-type-expense', income:'btn-type-income', debt:'btn-type-debt'};
-            const colors = {expense:'indigo', income:'emerald', debt:'rose'};
-            Object.keys(btns).forEach(k => {
-                const b = document.getElementById(btns[k]);
-                if(k === t) b.className = `py-3 rounded-xl border-2 border-${colors[k]}-500 bg-${colors[k]}-50 text-${colors[k]}-700 font-bold text-xs transition-all`;
-                else b.className = "py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition-all";
-            });
-            if(t === 'debt') document.getElementById('debt-fields').classList.remove('hidden');
-            else document.getElementById('debt-fields').classList.add('hidden');
-        }
-        window.createSection = function() { 
-            const n = document.getElementById('sec-name-input').value; 
-            const debtTotal = parseFloat(document.getElementById('sec-debt-total').value) || 0;
-            const debtRate = parseFloat(document.getElementById('sec-debt-rate').value) || 0;
-            if(n) { 
-                state.struct[state.month].push({id:'u'+Date.now(), title:n, type:newSecType, items:['Pago Mes'], debtTotal:debtTotal, debtRate:debtRate, collapsed:false}); 
-                save(); smartClose('modal-new-section'); 
-            } 
-        }
-        
-        function toggleSidebar() { const isClosed = document.body.classList.contains('sb-closed'); if(isClosed) { document.body.classList.remove('sb-closed'); document.body.classList.add('sb-open'); localStorage.setItem('cfo_sidebar_state', 'open'); } else { document.body.classList.remove('sb-open'); document.body.classList.add('sb-closed'); localStorage.setItem('cfo_sidebar_state', 'closed'); } }
-        function setMonth(i) { state.month = i; render(); if(window.innerWidth<768) toggleSidebar(); }
-        function changeMonth(d) { let n=state.month+d; if(n>=0 && n<=11) { state.month=n; render(); } }
-        function saveVal(k,v) { state.data[k]=parseFloat(v)||0; save(); }
-        function delItem(s,i) { state.struct[state.month][s].items.splice(i,1); save(); }
-        function renItem(s,i,v) { state.struct[state.month][s].items[i]=v; save(); }
-        function toggleSec(s) { state.struct[state.month][s].collapsed=!state.struct[state.month][s].collapsed; save(); }
-        function updSec(s,v) { state.struct[state.month][s].title=v; save(); }
-        function delSec(s) { state.struct[state.month].splice(s,1); save(); }
-        function clearMonth() { if(confirm('¿Limpiar montos?')) { const m = state.month; Object.keys(state.data).forEach(k => { if(k.startsWith(`${m}-`)) state.data[k] = 0; }); save(); closeModals(); } }
-        function getTotals(m) { let i=0,e=0,s=0; state.struct[m].forEach(sec=>{ let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${m}-${sec.id}-${x}`]||0)); if(sec.type==='income')i+=sum; else if(sec.type==='savings')s+=sum; else e+=sum; }); return {i,e,s,b:i-e-s}; }
-        function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits:2}); }
-
-        // --- CONSEJERO CON REFRESH ---
-        window.openAdvisor = function() { runAdvisorAnalysis(); openModal('modal-advisor'); }
-        window.runAdvisorAnalysis = function() {
-            const t = getTotals(state.month);
-            const runway = t.e > 0 ? (t.s / t.e).toFixed(1) : 0;
-            const healthText = `
-                <p class="mb-2">Actualmente, su <b>Flujo de Caja Neto</b> se sitúa en <span class="font-bold ${t.b>=0?'text-emerald-600':'text-rose-600'}">${fmt(t.b)}</span>.</p>
-                <p class="mb-2 text-justify">Si este número es positivo, representa su capacidad real de maniobra. Si es negativo, está en riesgo de liquidez.</p>
-                <p class="text-xs text-slate-500 bg-slate-100 p-2 rounded">Runway estimado: <b>${runway} meses</b> de supervivencia.</p>
-            `;
-            const savingsText = `<p class="mb-2">Tasa de Ahorro: <b>${(t.i>0?t.s/t.i*100:0).toFixed(1)}%</b>.</p><p class="text-justify">Mantenga el hábito de pagarse a usted mismo primero.</p>`;
-            const structText = `<p class="mb-2">Costos Operativos: <b>${(t.i>0?t.e/t.i*100:0).toFixed(1)}%</b>.</p><p class="text-justify">Una estructura ligera le permite pivotar ante crisis.</p>`;
-            const actionText = `<ul class="list-disc pl-4 space-y-2 text-sm text-slate-700"><li><b>Revisión:</b> Audite gastos hormiga.</li><li><b>Deuda:</b> Si tiene deuda registrada, priorice el pago de capital.</li></ul>`;
-
-            document.getElementById('adv-health').innerHTML = healthText;
-            document.getElementById('adv-savings').innerHTML = savingsText;
-            document.getElementById('adv-struct').innerHTML = structText;
-            document.getElementById('adv-action').innerHTML = actionText;
-        }
-
-        window.openSettings = function() { openModal('modal-settings'); }
-        window.changeNewGoalPrio = function(d) { const inp = document.getElementById('new-goal-priority'); let v = parseInt(inp.value) + d; if(v < 1) v = 1; inp.value = v; }
-        window.openSavings = function() { const l = document.getElementById('goals-list'); l.innerHTML = ''; const t = getTotals(state.month); let remainingSavings = t.s; const sortedGoals = [...state.goals].sort((a,b) => (a.priority || 99) - (b.priority || 99)); document.getElementById('savings-subtitle').innerText = `Total Disponible: ${fmt(t.s)}`; editingGoalIndex = null; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus text-lg"></i>'; sortedGoals.forEach((g) => { const originalIndex = state.goals.findIndex(x => x === g); let allocated = Math.min(g.target, remainingSavings); if(allocated < 0) allocated = 0; remainingSavings -= allocated; let pct = g.target > 0 ? (allocated / g.target) * 100 : 0; let col = allocated >= g.target ? 'bg-emerald-500' : 'bg-indigo-600'; l.innerHTML += `<div class="border border-slate-100 rounded-2xl p-6 shadow-sm bg-white relative overflow-hidden group"><div class="absolute top-0 right-0 w-16 h-16 bg-slate-100 rounded-bl-full -mr-2 -mt-2 flex items-center justify-center text-lg font-bold text-slate-400 pl-2 pt-2">${g.priority||'-'}</div><div class="relative z-10"><div class="flex justify-between items-start mb-3"><div><h4 class="font-bold text-lg text-slate-800">${g.name}</h4><span class="text-xs font-bold text-slate-400 uppercase">Objetivo: ${fmt(g.target)}</span></div><div class="text-right"><span class="font-bold text-xl text-indigo-600 block">${fmt(allocated)}</span><span class="text-[10px] font-bold text-slate-400 uppercase">Asignado</span></div></div><div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-3"><div class="h-full ${col} transition-all duration-1000 ease-out" style="width:${Math.min(pct,100)}%"></div></div><div class="flex justify-between items-center"><span class="px-3 py-1 bg-slate-100 rounded-lg text-xs font-bold text-slate-500">${pct.toFixed(1)}% Cubierto</span><div class="flex gap-2"><button onclick="editGoal(${originalIndex})" class="btn-icon edit"><i class="ph-bold ph-pencil-simple"></i></button><button onclick="state.goals.splice(${originalIndex},1);save();openSavings()" class="btn-icon"><i class="ph-bold ph-trash"></i></button></div></div></div></div>`; }); openModal('modal-savings'); }
-        window.editGoal = function(i) { editingGoalIndex = i; document.getElementById('new-goal-name').value = state.goals[i].name; document.getElementById('new-goal-target').value = state.goals[i].target; document.getElementById('new-goal-priority').value = state.goals[i].priority || 1; document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check text-lg"></i>'; }
-        window.addGoal = function() { const n = document.getElementById('new-goal-name').value; const t = parseFloat(document.getElementById('new-goal-target').value); const p = parseInt(document.getElementById('new-goal-priority').value) || 99; if(n && t) { if(editingGoalIndex !== null) { state.goals[editingGoalIndex] = {name:n, target:t, priority:p}; editingGoalIndex = null; } else { state.goals.push({name:n, target:t, priority:p}); } save(); openSavings(); document.getElementById('new-goal-name').value=''; document.getElementById('new-goal-target').value=''; document.getElementById('new-goal-priority').value=1; } }
-
-        function openCalendar() { calMonth = new Date().getMonth(); calYear = 2026; renderCal(); openModal('modal-calendar'); }
-        function calChangeMonth(d) { calMonth += d; if(calMonth>11){calMonth=0;calYear++} if(calMonth<0){calMonth=11;calYear--} renderCal(); }
-        function renderCal() { const grid = document.getElementById('calendar-grid'); grid.innerHTML=''; document.getElementById('cal-title').innerText = `${MONTHS[calMonth]} ${calYear}`; const first = new Date(calYear, calMonth, 1).getDay(); const days = new Date(calYear, calMonth + 1, 0).getDate(); const now = new Date(); for(let i=0; i<first; i++) grid.innerHTML+=`<div></div>`; for(let d=1; d<=days; d++) { const evs = state.events.filter(e => e.d === d && e.m === (calMonth+1)); const isToday = (d === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear()); const dots = evs.map(e => `<div class="event-dot" style="background:${getColor(e.type||e.category)}"></div>`).join(''); grid.innerHTML += `<div class="cal-cell ${isToday?'today':''} ${evs.length>0?'has-event':''}" onclick="openDayDetails(${d})"><span class="z-10">${d}</span><div class="flex gap-1 absolute bottom-2">${dots}</div></div>`; } }
-        function getColor(s) { if(!s) return '#94a3b8'; let hash = 0; for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash); const c = (hash & 0x00FFFFFF).toString(16).toUpperCase(); return '#' + "00000".substring(0, 6 - c.length) + c; }
-        
-        function openDayDetails(d) { selectedDay = d; document.getElementById('day-detail-title').innerText = `${d} de ${MONTHS[calMonth]}`; const l = document.getElementById('day-events-list'); l.innerHTML = ''; const evs = state.events.filter(e => e.d === d && e.m === (calMonth+1)); if(evs.length === 0) l.innerHTML = '<p class="text-slate-400 text-sm italic py-4 text-center">No hay eventos.</p>'; else { evs.forEach(e => { const idx = state.events.findIndex(x => x === e); const bg = getColor(e.type||e.category); l.innerHTML += `<div class="flex justify-between items-center bg-white border border-slate-100 p-4 rounded-2xl shadow-sm mb-2"><div class="flex items-center gap-3"><span class="w-3 h-3 rounded-full" style="background:${bg}"></span><div><p class="font-bold text-slate-700">${e.name}</p><p class="text-[10px] font-bold text-slate-400 uppercase">${e.type||e.category || 'General'}</p></div></div><button onclick="deleteEvent(${idx})" class="btn-icon w-8 h-8"><i class="ph-bold ph-trash"></i></button></div>`; }); } openModal('modal-day-details'); }
-        
-        window.addEventFromModal = function() { const n = document.getElementById('new-event-input').value; const cat = document.getElementById('new-event-cat').value; if(n) { state.events.push({name:n, d:selectedDay, m:calMonth+1, category:cat}); save(); document.getElementById('new-event-input').value=''; document.getElementById('new-event-cat').value=''; openDayDetails(selectedDay); renderCal(); } }
-        window.deleteEvent = function(idx) { state.events.splice(idx,1); save(); openDayDetails(selectedDay); renderCal(); }
-        window.openAnnual = function() { openModal('modal-annual'); let flow=[], wealth=[], accW=0; for(let m=0; m<12; m++) { let res = getTotals(m); accW += res.b; flow.push(res.b); wealth.push(accW); } const ids = ['ch1','ch2','ch3','ch4']; Chart.defaults.color = '#94a3b8'; Chart.defaults.borderColor = '#334155'; if(charts.ch1) charts.ch1.destroy(); charts.ch1 = new Chart(document.getElementById('ch1'), { type: 'bar', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Flujo', data: flow, backgroundColor: flow.map(v=>v>=0?'#10b981':'#f43f5e'), borderRadius:4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid:{display:false} }, y: { display: true } } } }); if(charts.ch2) charts.ch2.destroy(); charts.ch2 = new Chart(document.getElementById('ch2'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Patrimonio', data: wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', fill: true, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); let incs=[], exps=[]; for(let m=0; m<12; m++){ let t=getTotals(m); incs.push(t.i); exps.push(t.e); } if(charts.ch3) charts.ch3.destroy(); charts.ch3 = new Chart(document.getElementById('ch3'), { type: 'line', data: { labels: ['E','F','M','A','M','J','J','A','S','O','N','D'], datasets: [{ label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 }, { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false } }); let catL=[], catD=[]; state.struct[state.month].forEach(sec=>{ if(sec.type!=='income' && sec.type!=='savings'){ let s=0; sec.items.forEach((_,x)=>s+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(s>0){ catL.push(sec.title); catD.push(s); } } }); if(charts.ch4) charts.ch4.destroy(); charts.ch4 = new Chart(document.getElementById('ch4'), { type: 'doughnut', data: { labels: catL, datasets: [{ data: catD, backgroundColor: ['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'], borderWidth:0 }] }, options: { responsive: true, maintainAspectRatio: false, layout: { padding: 20 }, plugins: { legend: { position:'bottom', labels: { color:'white', boxWidth: 10, padding: 20 } } } } }); }
-        function openCloneModal(){ const s=document.getElementById('clone-target'); s.innerHTML=''; MONTHS.forEach((m,i)=>{if(i!==state.month)s.innerHTML+=`<option value="${i}">${m}</option>`}); openModal('modal-clone'); }
-        function executeClone() { const t = parseInt(document.getElementById('clone-target').value); state.struct[t] = JSON.parse(JSON.stringify(state.struct[state.month])); save(); closeModals(); alert('Clonado'); }
-        function renderStats() { const t = getTotals(state.month); document.getElementById('kpi-income').innerText = fmt(t.i); document.getElementById('kpi-expenses').innerText = fmt(t.e); document.getElementById('kpi-savings').innerText = fmt(t.s); document.getElementById('kpi-balance').innerText = fmt(t.b); document.getElementById('chart-total-center').innerText = fmt(t.e); const ctx = document.getElementById('chart-mini'); if(charts.mini) charts.mini.destroy(); let labels = [], data = []; state.struct[state.month].forEach(sec=>{ if(sec.type !== 'income' && sec.type !== 'savings'){ let sum=0; sec.items.forEach((_,x)=>sum+=(state.data[`${state.month}-${sec.id}-${x}`]||0)); if(sum>0){ labels.push(sec.title); data.push(sum) } } }); charts.mini = new Chart(ctx, {type:'doughnut',data:{labels:labels,datasets:[{data:data,backgroundColor:['#6366f1','#f43f5e','#10b981','#f59e0b','#ec4899','#14b8a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'75%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,font:{size:11,family:'Plus Jakarta Sans'}}}}}}); }
-
-        init();
-    </script>
+<div id="toast" class="toast" role="status"></div>
+<script defer src="app-core.js?v=200"></script>
+<script defer src="app-data.js?v=200"></script>
+<script defer src="app-render.js?v=200"></script>
+<script defer src="app-visual.js?v=200"></script>
+<script defer src="app-modals.js?v=200"></script>
+<script defer src="app-actions.js?v=200"></script>
 </body>
 </html>

@@ -10,11 +10,13 @@ const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const dateKey=(y,m,d)=>`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 const today=()=>{const d=new Date();return dateKey(d.getFullYear(),d.getMonth(),d.getDate())};
 const copy=o=>JSON.parse(JSON.stringify(o));
-const defaults=()=>({theme:"system",defaultMonth:new Date().getMonth(),yearOpeningBalance:0,jsonbinId:"",jsonbinKey:""});
-let settings=(()=>{try{return {...defaults(),...JSON.parse(localStorage.getItem(SETTINGS)||"{}")}}catch{return defaults()}})();
-function blankMonth(){return {openingBalance:0,sections:[
- {id:uid("sec"),title:"Ingresos",type:"income",items:[{id:uid("item"),name:"Sueldo",amount:0}],collapsed:false},
- {id:uid("sec"),title:"Gastos Fijos",type:"expense",items:[{id:uid("item"),name:"Alquiler",amount:0}],collapsed:false},
- {id:uid("sec"),title:"Gastos Variables",type:"expense",items:[{id:uid("item"),name:"Alimentación",amount:0}],collapsed:false},
- {id:uid("sec"),title:"Ahorro",type:"savings",items:[{id:uid("item"),name:"Fondo de emergencia",amount:0}],collapsed:false}]}}
-function emptyState(){return {version:V,year:new Date().getFullYear(),activeMonth:new Date().getMonth(),months:Array.from({length:12},blankMonth),goals:[{id:uid("goal"),name:"Fondo de emergencia",target:5000,contributions:{}}],events:[]}}
+const settingsState={theme:localStorage.getItem("cfo_pro_theme")||"system"};
+const settings={};
+Object.defineProperty(settings,"theme",{enumerable:true,get:()=>settingsState.theme,set:value=>{settingsState.theme=value;localStorage.setItem("cfo_pro_theme",value)}});
+function persistTheme(){localStorage.setItem("cfo_pro_theme",settings.theme)}
+function blankMonth(){return{openingBalance:0,sections:[
+{id:uid("sec"),title:"Ingresos",type:"income",items:[{id:uid("item"),name:"Sueldo",amount:0}],collapsed:false},
+{id:uid("sec"),title:"Gastos Fijos",type:"expense",items:[{id:uid("item"),name:"Alquiler",amount:0}],collapsed:false},
+{id:uid("sec"),title:"Gastos Variables",type:"expense",items:[{id:uid("item"),name:"Alimentación",amount:0}],collapsed:false},
+{id:uid("sec"),title:"Ahorro",type:"savings",items:[{id:uid("item"),name:"Fondo de emergencia",amount:0}],collapsed:false}]}}
+function emptyState(){return{version:V,year:new Date().getFullYear(),activeMonth:new Date().getMonth(),months:Array.from({length:12},blankMonth),goals:[{id:uid("goal"),name:"Fondo de emergencia",target:5000,contributions:{}}],events:[]}}

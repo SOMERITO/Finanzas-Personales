@@ -951,9 +951,10 @@
                 setSyncState('ok', 'Firebase sincronizado');
                 return true;
             } catch (error) {
+                window.cfoLastSyncError = error;
                 console.error('Error de sincronización con Firebase:', error);
                 setSyncState('error', 'Error de sincronización');
-                showToast('No se pudo guardar en Firebase. Revisa tu conexión.', 'error');
+                showToast('No se pudo guardar en Firebase. Revisa el detalle en la pantalla.', 'error');
                 return false;
             }
         }
@@ -980,8 +981,10 @@
                 state = normalizeCfoState(candidate);
                 const ok = await sync(false);
                 if (!ok) {
+                    const detail = window.cfoLastSyncError;
+                    const detailText = detail ? ((detail.code ? detail.code + ': ' : '') + (detail.message || 'Error desconocido')) : 'No se recibió detalle técnico.';
                     document.getElementById('migration-error').textContent =
-                        'No se pudo guardar en Firestore. Tus datos importados siguen en esta pantalla; verifica la conexión y vuelve a intentarlo.';
+                        'No se pudo guardar en Firestore. Tus datos importados siguen en esta pantalla; no cierres la pestaña. Detalle: ' + detailText;
                     return;
                 }
                 document.getElementById('migration-gate').classList.add('hidden');
@@ -1924,18 +1927,25 @@
                 const snapshot = await getDoc(doc(db, "users", user.uid));
                 if (!snapshot.exists()) return null;
                 const data = snapshot.data();
+                if (data && typeof data.appStateJson === "string") {
+                    return JSON.parse(data.appStateJson);
+                }
+                // Compatibilidad futura con documentos creados con una versión anterior.
                 return data && data.appState ? data.appState : null;
             },
             saveState: async function(appState) {
                 const user = auth.currentUser;
                 if (!user) throw new Error("Debes iniciar sesión antes de guardar en Firestore.");
                 const serialized = JSON.stringify(appState);
-                if (serialized.length > 850000) {
-                    throw new Error("Los datos superan el tamaño recomendado para un documento de Firestore. Se necesita dividirlos en varios documentos.");
+                const byteLength = new TextEncoder().encode(serialized).length;
+                if (byteLength > 800000) {
+                    throw new Error("El respaldo ocupa " + byteLength + " bytes y supera el límite preventivo de 800 KB. No se guardó; conserva el JSON y avísame para dividir los datos en varios documentos.");
                 }
+                // El estado contiene arrays de meses que a su vez contienen arrays de secciones.
+                // Guardarlo como JSON serializado evita arrays anidados no admitidos por Firestore.
                 await setDoc(doc(db, "users", user.uid), {
-                    appState: appState,
-                    schemaVersion: 1,
+                    appStateJson: serialized,
+                    schemaVersion: 2,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
             }

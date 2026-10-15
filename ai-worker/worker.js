@@ -44,7 +44,7 @@ async function verifyFirebaseToken(token, env) {
   const now = Math.floor(Date.now() / 1000);
   if (claims.aud !== env.FIREBASE_PROJECT_ID) throw new Error("El token no pertenece al proyecto Firebase configurado.");
   if (claims.iss !== "https://securetoken.google.com/" + env.FIREBASE_PROJECT_ID) throw new Error("El emisor del token no es válido.");
-  if (typeof claims.sub !== "string" || !claims.sub || claims.exp <= now || claims.iat > now + 60) throw new Error("El token de sesión ha vencido o no es válido.");
+  if (typeof claims.sub !== "string" || !claims.sub || !Number.isFinite(claims.exp) || !Number.isFinite(claims.iat) || claims.exp <= now || claims.iat > now + 60) throw new Error("El token de sesión ha vencido o no es válido.");
   if (claims.sub !== env.ALLOWED_FIREBASE_UID) throw new Error("Esta cuenta no está autorizada para usar el diagnóstico financiero.");
   let keys = await getFirebaseJwks(false);
   let jwk = keys.find(function(key) { return key.kid === header.kid; });
@@ -151,6 +151,6 @@ export default {
     const outputText = typeof responseData.output_text === "string" ? responseData.output_text : (Array.isArray(responseData.output) ? responseData.output.map(function(item) { return Array.isArray(item.content) ? item.content.filter(function(c) { return c.type === "output_text" && typeof c.text === "string"; }).map(function(c) { return c.text; }).join("\n") : ""; }).filter(Boolean).join("\n\n") : "");
     if (!outputText.trim()) return fail("El modelo no devolvió texto en la evaluación. Inténtalo nuevamente.", 502, origin);
     const usage = responseData.usage ? { input_tokens: responseData.usage.input_tokens || 0, output_tokens: responseData.usage.output_tokens || 0 } : null;
-    return json({ text: outputText, model: responseData.model || model, generatedAt: report.generatedAt, usage: usage, month: report.month, year: report.year }, 200, origin);
+    return json({ text: outputText, model: responseData.model || model, generatedAt: new Date().toISOString(), capturedAt: report.capturedAt, usage: usage, month: report.month, year: report.year }, 200, origin);
   }
 };

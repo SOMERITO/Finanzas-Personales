@@ -1,0 +1,2061 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <title>CFO Personal Pro | Prueba IA</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+                    colors: {
+                        navy: { 950: '#070b14', 900: '#0f172a', 800: '#1e293b' }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'pulse-soft': 'pulseSoft 2s infinite ease-in-out'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: 0, transform: 'translateY(6px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } },
+                        slideUp: { '0%': { transform: 'translateY(24px)', opacity: 0 }, '100%': { transform: 'translateY(0)', opacity: 1 } },
+                        pulseSoft: { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.5 } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --bg-card: rgba(255, 255, 255, 0.88);
+            --border-card: rgba(226, 232, 240, 0.9);
+            --text-main: #0f172a;
+        }
+        html.dark {
+            --bg-main: #070b14;
+            --bg-card: rgba(15, 23, 42, 0.78);
+            --border-card: rgba(51, 65, 85, 0.6);
+            --text-main: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+            color: var(--text-main);
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* SIDEBAR GLASS */
+        .sidebar { 
+            width: 280px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-card); 
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0; bottom: 0; left: 0;
+            z-index: 50;
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease, border-color 0.3s ease;
+        }
+        body.sb-closed .sidebar { transform: translateX(-100%); }
+        body.sb-open .sidebar { transform: translateX(0); }
+        
+        .layout-wrap {
+            transition: margin-left 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (min-width: 768px) {
+            body.sb-open .layout-wrap { margin-left: 280px; }
+            body.sb-closed .layout-wrap { margin-left: 0; }
+        }
+        .overlay {
+            position: fixed; inset: 0;
+            background: rgba(7, 11, 20, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 40; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        body.sb-open .overlay { opacity: 1; pointer-events: auto; }
+        @media (min-width: 768px) { .overlay { display: none; } }
+
+        /* CARDS & GLASSMORPHISM */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 22px;
+            box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.04);
+            border: 1px solid var(--border-card);
+            overflow: hidden;
+            transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.3s ease;
+        }
+        html.dark .card {
+            box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.35);
+        }
+        .card-kpi:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 35px -6px rgba(99, 102, 241, 0.12);
+        }
+
+        /* BUTTONS PRO */
+        .btn-pro { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .btn-pro:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .btn-pro:active { transform: scale(0.96); }
+        
+        .btn-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(148, 163, 184, 0.1);
+            color: #64748b;
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        html.dark .btn-icon { color: #94a3b8; background: rgba(255, 255, 255, 0.05); }
+        .btn-icon:hover { background: #fee2e2; color: #ef4444; border-color: #fca5a5; transform: scale(1.08); }
+        html.dark .btn-icon:hover { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+        .btn-icon.edit:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: scale(1.08); }
+        .btn-icon.refresh:hover { background: #d1fae5; color: #059669; border-color: #6ee7b7; transform: rotate(180deg) scale(1.08); }
+        .btn-icon.nav:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: scale(1.08); }
+
+        /* SYNC LIGHT */
+        .sync-light { width: 9px; height: 9px; border-radius: 50%; transition: all 0.4s ease; }
+        .sync-light.ok { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .sync-light.working { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; animation: pulseSoft 1s infinite; }
+        .sync-light.error { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+
+        /* SECTION COLLAPSE ANIMATION */
+        .section-content {
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.25s ease;
+            overflow: hidden;
+        }
+        .section-content.collapsed { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; pointer-events: none; }
+        .section-content.expanded { max-height: 2000px; opacity: 1; }
+
+        /* INPUTS */
+        .input-row {
+            background: transparent; width: 100%; outline: none;
+            border-bottom: 1.5px solid transparent;
+            padding: 6px 4px; font-weight: 600;
+            color: inherit; transition: all 0.2s ease; font-size: 14.5px;
+            border-radius: 6px;
+        }
+        .input-row:focus {
+            border-bottom-color: #6366f1;
+            background: rgba(99, 102, 241, 0.08);
+            padding-left: 10px;
+        }
+        
+        .flash-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 5px 8px 5px 14px;
+            background: rgba(148, 163, 184, 0.1);
+            border-radius: 14px; margin-top: 12px;
+            border: 1.5px solid transparent; transition: all 0.25s ease;
+        }
+        .flash-row:focus-within {
+            background: var(--bg-card);
+            border-color: #6366f1;
+            box-shadow: 0 6px 20px -4px rgba(99, 102, 241, 0.2);
+        }
+        .flash-input {
+            background: transparent; border: none; outline: none;
+            font-weight: 600; font-size: 14px; color: inherit;
+            width: 100%; padding: 6px 0;
+        }
+
+        /* TOOLTIP CORNER */
+        .glass-tooltip {
+            position: absolute; top: 12px; right: 12px; width: 210px;
+            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px);
+            border-radius: 14px; display: flex; flex-direction: column;
+            align-items: start; text-align: left; opacity: 0;
+            transform: translateY(-6px);
+            transition: all 0.25s ease; pointer-events: none;
+            padding: 14px; z-index: 20;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        }
+        .chart-container:hover .glass-tooltip { opacity: 1; transform: translateY(0); }
+
+        /* MODALS */
+        .modal-wrap {
+            position: fixed; inset: 0; z-index: 70;
+            display: none; align-items: center; justify-content: center;
+            background: rgba(7, 11, 20, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 16px;
+        }
+        .modal-wrap.active { display: flex; animation: fadeIn 0.25s forwards; }
+        .modal-box {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-card);
+            width: 100%; border-radius: 26px; padding: 28px;
+            box-shadow: 0 25px 70px -12px rgba(0,0,0,0.55);
+            max-height: 90vh; overflow-y: auto;
+            transform: scale(0.95) translateY(10px);
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+        }
+        .modal-wrap.active .modal-box { transform: scale(1) translateY(0); }
+        .modal-xl { max-width: 1180px; } .modal-lg { max-width: 860px; } .modal-sm { max-width: 460px; }
+
+        /* CALENDAR */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; }
+        .cal-cell {
+            aspect-ratio: 1; border-radius: 14px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+            font-size: 14px; font-weight: 700;
+            position: relative; border: 1px solid var(--border-card);
+            background: rgba(148, 163, 184, 0.06);
+        }
+        .cal-cell:hover {
+            border-color: #6366f1;
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.18);
+            transform: translateY(-2px); z-index: 10;
+        }
+        .cal-cell.today {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white !important; border-color: transparent;
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45);
+        }
+        .cal-cell.has-event { border-color: rgba(99, 102, 241, 0.45); background: rgba(99, 102, 241, 0.1); }
+        .event-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+    
+        /* AUTHENTICATION AND FIRST-RUN MIGRATION GATES */
+        .cfo-gate {
+            position: fixed; inset: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px; overflow-y: auto;
+            background: rgba(7, 11, 20, 0.94);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        }
+        .cfo-gate.hidden { display: none !important; }
+        .cfo-gate-card {
+            width: 100%; max-width: 480px; padding: 28px;
+            border-radius: 24px; border: 1px solid var(--border-card);
+            background: var(--bg-card); color: var(--text-main);
+            box-shadow: 0 25px 70px -12px rgba(0,0,0,.55);
+        }
+        .cfo-gate-input {
+            display:block; width:100%; margin-top:6px; padding:12px 14px;
+            border:1px solid var(--border-card); border-radius:12px;
+            background:rgba(148,163,184,.10); color:inherit; outline:none;
+        }
+        .cfo-gate-input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+        .cfo-gate-error { color:#ef4444; font-size:12px; font-weight:700; min-height:18px; }
+
+            .cfo-ai-panel { background: linear-gradient(135deg, rgba(79,70,229,.08), rgba(16,185,129,.05)); border: 1px solid rgba(99,102,241,.22); border-radius: 20px; }
+        .cfo-ai-output { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+        .cfo-ai-status { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+        .cfo-ai-status.ok { color: #059669; }
+        .cfo-ai-status.loading { color: #d97706; }
+        .cfo-ai-status.error { color: #e11d48; }
+    </style>
+</head>
+<body class="sb-closed">
+
+    <!-- AUTHENTICATION GATE: sign-in only, no public registration -->
+    <div id="auth-gate" class="cfo-gate">
+        <div class="cfo-gate-card">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg">
+                    <i class="ph-bold ph-trend-up text-2xl"></i>
+                </div>
+                <div>
+                    <p class="font-extrabold text-xl">CFO<span class="text-indigo-500">.</span>Pro</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acceso privado</p>
+                </div>
+            </div>
+            <h1 class="text-2xl font-extrabold mb-2">Inicia sesión</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Ingresa con la cuenta autorizada para consultar tus finanzas personales.</p>
+            <form id="cfo-login-form" onsubmit="event.preventDefault(); signInCfo();" class="space-y-4">
+                <div>
+                    <label for="cfo-login-email" class="text-xs font-extrabold uppercase text-slate-500">Correo electrónico</label>
+                    <input id="cfo-login-email" type="email" autocomplete="username" required class="cfo-gate-input" placeholder="tu-correo@ejemplo.com">
+                </div>
+                <div>
+                    <label for="cfo-login-password" class="text-xs font-extrabold uppercase text-slate-500">Contraseña</label>
+                    <input id="cfo-login-password" type="password" autocomplete="current-password" required class="cfo-gate-input" placeholder="Tu contraseña">
+                </div>
+                <button id="btn-cfo-login" type="submit" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-lg shadow-indigo-500/20 transition-all">Entrar de forma segura</button>
+                <p id="auth-error" class="cfo-gate-error" role="alert"></p>
+            </form>
+            <p class="text-[11px] text-slate-400 mt-4">El registro público está deshabilitado. Las cuentas se administran desde Firebase Authentication.</p>
+        </div>
+    </div>
+
+    <!-- FIRST-RUN DATA MIGRATION GATE -->
+    <div id="migration-gate" class="cfo-gate hidden">
+        <div class="cfo-gate-card">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-5">
+                <i class="ph-bold ph-database text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold mb-2">Configurar tus datos</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">Has iniciado sesión, pero todavía no hay datos guardados en Firestore para esta cuenta.</p>
+            <p class="text-xs text-slate-400 mb-5">Para conservar tus registros, exporta un JSON desde la versión publicada anterior (Ajustes y Datos → Exportar JSON) y cárgalo aquí. También puedes empezar sin datos previos.</p>
+            <div id="migration-actions" class="space-y-3">
+                <div>
+                    <label for="initial-backup-file" class="text-xs font-extrabold uppercase text-slate-500">Copia de seguridad (.json)</label>
+                    <input id="initial-backup-file" type="file" accept=".json,application/json" class="cfo-gate-input">
+                </div>
+                <button onclick="importInitialBackup()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold transition-all">Importar respaldo a Firestore</button>
+                <button id="btn-use-local-backup" onclick="importLocalBackupToCloud()" class="w-full py-3 rounded-xl border border-indigo-500/40 text-indigo-600 dark:text-indigo-300 font-bold transition-all hidden">Usar copia local de este navegador</button>
+                <button onclick="startFreshCloudData()" class="w-full py-3 rounded-xl border border-slate-300 dark:border-slate-700 font-bold transition-all">Empezar sin datos previos</button>
+            </div>
+            <p id="migration-error" class="cfo-gate-error mt-4" role="alert"></p>
+            <p id="migration-account-email" class="text-[11px] text-slate-400 mt-2"></p>
+        </div>
+    </div>
+
+
+    <script>
+        (function() {
+            const savedState = localStorage.getItem('cfo_sidebar_state');
+            const savedTheme = localStorage.getItem('cfo_theme') || 'light';
+            const isMobile = window.innerWidth < 768;
+            if (savedState) document.body.className = savedState === 'open' ? 'sb-open' : 'sb-closed';
+            else document.body.className = isMobile ? 'sb-closed' : 'sb-open';
+            
+            if (savedTheme === 'dark') document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        })();
+    </script>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2.5 pointer-events-none"></div>
+
+    <div id="mobile-overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar">
+        <div class="h-20 flex items-center px-6 border-b border-slate-200/70 dark:border-slate-800 shrink-0 justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/30">
+                    <i class="ph-bold ph-trend-up text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-xl tracking-tight block leading-none">CFO<span class="text-indigo-500">.</span>Pro</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Architect V120</span>
+                </div>
+            </div>
+            <button onclick="toggleSidebar()" class="md:hidden btn-icon"><i class="ph-bold ph-x"></i></button>
+        </div>
+
+        <div class="px-6 pt-4 pb-2">
+            <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Libros Mensuales (2026)</span>
+        </div>
+        <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1.5" id="month-nav"></nav>
+
+        <div class="p-4 border-t border-slate-200/70 dark:border-slate-800/80 space-y-2">
+            <button onclick="openCloneModal()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 btn-pro">
+                <i class="ph-bold ph-copy text-base"></i> Duplicar Mes Actual
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN LAYOUT -->
+    <div id="layout-wrap" class="layout-wrap">
+        <header class="h-20 bg-navy-900/95 dark:bg-navy-950/90 backdrop-blur-md text-white flex items-center justify-between px-4 md:px-8 border-b border-white/10 z-30 shrink-0">
+            <div class="flex items-center gap-3 md:gap-4">
+                <button onclick="toggleSidebar()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro" title="Menú Lateral">
+                    <i class="ph-bold ph-list text-2xl"></i>
+                </button>
+                <div class="flex items-center gap-2 md:gap-3 bg-white/10 px-3 md:px-4 py-1.5 rounded-2xl border border-white/10 shadow-inner">
+                    <button onclick="changeMonth(-1)" class="p-1 hover:text-indigo-300 btn-pro"><i class="ph-bold ph-caret-left text-lg"></i></button>
+                    <div class="text-center w-28 md:w-36 select-none">
+                        <span class="block text-[9px] font-bold text-indigo-300 uppercase tracking-widest">Ejercicio 2026</span>
+                        <span class="block text-base md:text-lg font-extrabold leading-tight" id="month-title">Enero</span>
+                    </div>
+                    <button onclick="changeMonth(1)" class="p-1 hover:text-indigo-300 btn-pro"><i class="ph-bold ph-caret-right text-lg"></i></button>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 md:gap-4">
+                <!-- SYNC BADGE -->
+                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10" title="Estado de sincronización en la nube">
+                    <div id="sync-indicator" class="sync-light working"></div>
+                    <span id="sync-text" class="text-[11px] font-bold text-slate-300 hidden sm:inline">Sincronizando</span>
+                </div>
+
+                <div class="h-6 w-px bg-white/10 hidden sm:block"></div>
+                
+                <button onclick="openCalendar()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Calendario Financiero">
+                    <i class="ph-bold ph-calendar-blank text-xl"></i>
+                </button>
+                <button onclick="openAnnual()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Tablero Anual 2026">
+                    <i class="ph-bold ph-chart-line-up text-xl"></i>
+                </button>
+                <button onclick="openAdvisor()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-indigo-300 hover:text-indigo-200" title="Consejero Inteligente CFO">
+                    <i class="ph-fill ph-sparkle text-xl"></i>
+                </button>
+                <button onclick="toggleTheme()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-amber-300" title="Cambiar Tema Claro/Oscuro">
+                    <i id="theme-icon" class="ph-fill ph-moon text-xl"></i>
+                </button>
+                <button onclick="openSettings()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Configuración y Respaldo">
+                    <i class="ph-bold ph-gear text-xl"></i>
+                </button>
+                <button id="btn-cfo-logout" onclick="signOutCfo()" class="hidden p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-rose-300" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <i class="ph-bold ph-sign-out text-xl"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- WORKSPACE -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-32" id="workspace">
+            <div class="max-w-7xl mx-auto animate-fade-in">
+                
+                <!-- KPI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                    <!-- DISPONIBLE REAL -->
+                    <div class="card card-kpi p-6 border-b-4 border-b-indigo-500 flex flex-col justify-between h-44 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Disponible Real</span>
+                            <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+                                <i class="ph-bold ph-wallet text-xl"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl md:text-4xl font-extrabold truncate tracking-tight" id="kpi-balance">S/ 0.00</h3>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-[11px] font-bold text-slate-400" id="kpi-balance-sub">Margen libre</span>
+                                <span id="kpi-balance-badge" class="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INGRESOS -->
+                    <div class="card card-kpi p-6 border-b-4 border-b-emerald-500 flex flex-col justify-between h-44 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Ingresos Totales</span>
+                            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                <i class="ph-bold ph-arrow-circle-down-left text-xl"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl md:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 truncate tracking-tight" id="kpi-income">S/ 0.00</h3>
+                            <p class="text-[11px] font-bold text-slate-400 mt-2 flex items-center gap-1">
+                                <i class="ph-fill ph-check-circle text-emerald-500"></i> Flujo de entrada activo
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- GASTOS -->
+                    <div class="card card-kpi p-6 border-b-4 border-b-rose-500 flex flex-col justify-between h-44 relative overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Salidas & Deuda</span>
+                            <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                                <i class="ph-bold ph-arrow-circle-up-right text-xl"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-3xl md:text-4xl font-extrabold text-rose-500 truncate tracking-tight" id="kpi-expenses">S/ 0.00</h3>
+                            <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+                                <div id="kpi-expense-bar" class="bg-rose-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <span id="kpi-expense-ratio" class="text-[10px] font-bold text-slate-400 mt-1 block">0% de tus ingresos</span>
+                        </div>
+                    </div>
+
+                    <!-- AHORROS & METAS -->
+                    <div onclick="openSavings()" class="card card-kpi p-6 bg-gradient-to-br from-navy-900 via-indigo-950 to-navy-900 text-white cursor-pointer h-44 relative overflow-hidden group shadow-xl border-0">
+                        <div class="absolute -right-6 -top-6 text-white/5 text-[140px] group-hover:text-white/10 group-hover:scale-110 transition-all duration-500 rotate-12 pointer-events-none">
+                            <i class="ph-fill ph-piggy-bank"></i>
+                        </div>
+                        <div class="relative z-10 flex flex-col justify-between h-full">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-extrabold text-indigo-300 uppercase tracking-widest">Ahorro & Metas</span>
+                                <span id="kpi-savings-rate" class="text-[10px] font-extrabold bg-indigo-500/30 border border-indigo-400/30 text-indigo-200 px-2.5 py-0.5 rounded-full">0% tasa</span>
+                            </div>
+                            <h3 class="text-3xl md:text-4xl font-extrabold tracking-tight" id="kpi-savings">S/ 0.00</h3>
+                            <div class="text-xs flex items-center gap-2 font-bold text-indigo-200 group-hover:text-white transition-colors bg-white/10 w-fit px-3.5 py-1.5 rounded-xl backdrop-blur-sm border border-white/10">
+                                Cascada de Metas <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAIN GRID: LEDGER + CHART -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- LEDGER SECTIONS -->
+                    <div class="lg:col-span-2 space-y-5" id="ledger"></div>
+
+                    <!-- RIGHT SIDEBAR: DONUT & BREAKDOWN -->
+                    <div class="space-y-6">
+                        <div class="card p-6 md:p-7 sticky top-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <h4 class="font-extrabold text-sm uppercase tracking-wider">Estructura de Gasto</h4>
+                                    <p class="text-xs text-slate-400 font-medium">Distribución por secciones</p>
+                                </div>
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                                    <i class="ph-bold ph-chart-donut text-lg"></i>
+                                </div>
+                            </div>
+
+                            <div class="h-60 relative">
+                                <canvas id="chart-mini"></canvas>
+                                <div class="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                                    <span class="text-[10px] uppercase font-extrabold text-slate-400 tracking-widest">Salidas</span>
+                                    <span id="chart-total-center" class="font-extrabold text-xl mt-0.5">S/ 0.00</span>
+                                </div>
+                            </div>
+
+                            <!-- CATEGORY BREAKDOWN LIST -->
+                            <div id="chart-breakdown" class="mt-6 pt-5 border-t border-slate-200/70 dark:border-slate-800 space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NEW SECTION CTA -->
+                <div class="mt-10 flex justify-center">
+                    <button onclick="openNewSectionModal()" class="py-4 px-8 rounded-2xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-extrabold text-sm hover:border-indigo-500 hover:text-indigo-500 dark:hover:border-indigo-400 dark:hover:text-indigo-400 hover:shadow-xl transition-all flex items-center gap-3 btn-pro">
+                        <i class="ph-bold ph-plus-circle text-xl"></i> Añadir Nueva Sección Financiera
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NUEVA SECCIÓN -->
+    <div id="modal-new-section" class="modal-wrap">
+        <div class="modal-box modal-sm">
+            <button onclick="smartClose('modal-new-section')" class="absolute top-5 right-5 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><i class="ph-bold ph-rows-plus text-2xl"></i></div>
+                <div>
+                    <h3 class="text-xl font-extrabold">Nueva Sección</h3>
+                    <p class="text-xs text-slate-400 font-medium">Personaliza tu estructura del mes</p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-400 uppercase mb-2">Nombre de la Sección</label>
+                    <input id="sec-name-input" class="w-full bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-500 transition-colors" placeholder="Ej. Tarjeta Crédito, Inversiones, Variables...">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-400 uppercase mb-2">Tipo de Flujo</label>
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <button onclick="selectSecType('expense')" id="btn-type-expense" class="py-3 rounded-xl border font-bold text-xs transition-all">Gasto</button>
+                        <button onclick="selectSecType('income')" id="btn-type-income" class="py-3 rounded-xl border font-bold text-xs transition-all">Ingreso</button>
+                        <button onclick="selectSecType('debt')" id="btn-type-debt" class="py-3 rounded-xl border font-bold text-xs transition-all">Deuda / Préstamo</button>
+                    </div>
+                </div>
+
+                <div id="debt-fields" class="hidden animate-fade-in bg-rose-500/10 p-4 rounded-2xl border border-rose-500/20 space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-extrabold text-rose-500 uppercase mb-1">Capital Inicial del Préstamo (S/)</label>
+                        <input id="sec-debt-total" type="number" step="0.01" class="w-full bg-white dark:bg-slate-900 border border-rose-500/30 rounded-xl px-3.5 py-2.5 font-bold text-rose-600 dark:text-rose-400 outline-none focus:border-rose-500" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-extrabold text-rose-500 uppercase mb-1">Tasa de Interés Mensual (%)</label>
+                        <input id="sec-debt-rate" type="number" step="0.1" class="w-full bg-white dark:bg-slate-900 border border-rose-500/30 rounded-xl px-3.5 py-2.5 font-bold text-rose-600 dark:text-rose-400 outline-none focus:border-rose-500" placeholder="Ej. 3.5">
+                    </div>
+                </div>
+
+                <button onclick="createSection()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-all shadow-lg shadow-indigo-500/30 btn-pro mt-2">
+                    Crear Sección
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CALENDARIO -->
+    <div id="modal-calendar" class="modal-wrap">
+        <div class="modal-box modal-lg">
+            <button onclick="smartClose('modal-calendar')" class="absolute top-6 right-6 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex flex-col items-center justify-center mb-6 pt-2">
+                <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 mb-1">Agenda de Pagos & Eventos</span>
+                <h3 class="text-3xl font-extrabold mb-4" id="cal-title">Enero 2026</h3>
+                <div class="flex items-center gap-3 bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-full">
+                    <button onclick="calChangeMonth(-1)" class="btn-icon nav bg-white dark:bg-slate-900 shadow-sm rounded-full"><i class="ph-bold ph-caret-left"></i></button>
+                    <span class="text-xs font-extrabold text-slate-500 dark:text-slate-400 px-3 uppercase tracking-widest">Cambiar Mes</span>
+                    <button onclick="calChangeMonth(1)" class="btn-icon nav bg-white dark:bg-slate-900 shadow-sm rounded-full"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-extrabold text-slate-400 uppercase mb-3 tracking-widest">
+                <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+            </div>
+            <div id="calendar-grid" class="cal-grid"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: DETALLE DEL DÍA -->
+    <div id="modal-day-details" class="modal-wrap z-[80]">
+        <div class="modal-box modal-sm">
+            <button onclick="smartClose('modal-day-details')" class="absolute top-5 right-5 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <h3 class="text-2xl font-extrabold mb-1" id="day-detail-title">Fecha</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">Recordatorios y vencimientos</p>
+            <div id="day-events-list" class="space-y-2.5 mb-6 max-h-60 overflow-y-auto pr-1"></div>
+            <div class="bg-slate-100/80 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
+                <label class="text-[10px] font-extrabold text-slate-400 uppercase block mb-3">Añadir Recordatorio</label>
+                <div class="flex flex-col gap-3">
+                    <input id="new-event-input" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre (ej. Pago Tarjeta, Cumpleaños)...">
+                    <div class="flex gap-2">
+                        <input id="new-event-cat" class="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Etiqueta (ej. Banco, Fijo, Salud)..." onkeydown="if(event.key==='Enter')addEventFromModal()">
+                        <button onclick="addEventFromModal()" class="bg-indigo-600 text-white px-5 rounded-xl flex items-center justify-center hover:bg-indigo-700 btn-pro shadow-md">
+                            <i class="ph-bold ph-plus text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CONSEJERO CFO -->
+    <div id="modal-advisor" class="modal-wrap">
+        <div class="modal-box modal-lg">
+            <button onclick="smartClose('modal-advisor')" class="absolute top-5 right-5 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center justify-between mb-8 pr-12">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i class="ph-fill ph-brain text-3xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-extrabold">Diagnóstico CFO</h3>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Análisis automático e IA del mes seleccionado</p>
+                    </div>
+                </div>
+                <button onclick="runAdvisorAnalysis(); showToast('Diagnóstico actualizado', 'info')" class="btn-icon refresh" title="Recargar Análisis">
+                    <i class="ph-bold ph-arrows-clockwise text-lg"></i>
+                </button>
+            </div>
+            <section class="cfo-ai-panel p-5 md:p-6 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="ph-fill ph-sparkle text-indigo-500 text-xl"></i>
+                            <h4 class="font-extrabold text-sm uppercase tracking-wider">Evaluación financiera con IA</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Analiza solo el mes seleccionado y los datos registrados hasta el momento de generar la evaluación. La IA no recibe los demás meses ni tu correo o credenciales.</p>
+                        <p class="text-[10px] text-slate-400 mt-2">Al generar, se enviará a OpenAI un resumen de importes, conceptos, deudas, metas y eventos del mes seleccionado.</p>
+                    </div>
+                    <div class="sm:w-64 shrink-0">
+                        <button id="btn-ai-diagnosis" onclick="generateAIDiagnosis()" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                            <i class="ph-bold ph-sparkle text-base"></i> Generar evaluación con IA
+                        </button>
+                        <p id="ai-diagnosis-status" class="cfo-ai-status mt-3 text-slate-400">IA pendiente de configurar</p>
+                    </div>
+                </div>
+                <div id="ai-diagnosis-meta" class="text-[10px] text-slate-400 mt-3"></div>
+                <div id="ai-diagnosis-output" class="cfo-ai-output hidden mt-4 p-4 md:p-5 rounded-2xl bg-white/80 dark:bg-slate-950/50 border border-slate-200/70 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200" role="status" aria-live="polite"></div>
+            </section>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="p-6 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border-l-4 border-emerald-500">
+                    <h4 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs uppercase mb-3 tracking-widest flex items-center gap-2">
+                        <i class="ph-bold ph-heartbeat text-base"></i> 1. Liquidez & Supervivencia
+                    </h4>
+                    <div id="adv-health" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2"></div>
+                </div>
+                <div class="p-6 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border-l-4 border-indigo-500">
+                    <h4 class="font-extrabold text-indigo-600 dark:text-indigo-400 text-xs uppercase mb-3 tracking-widest flex items-center gap-2">
+                        <i class="ph-bold ph-piggy-bank text-base"></i> 2. Eficiencia de Ahorro
+                    </h4>
+                    <div id="adv-savings" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2"></div>
+                </div>
+                <div class="p-6 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border-l-4 border-amber-500">
+                    <h4 class="font-extrabold text-amber-600 dark:text-amber-400 text-xs uppercase mb-3 tracking-widest flex items-center gap-2">
+                        <i class="ph-bold ph-chart-pie-slice text-base"></i> 3. Rigidez Operativa
+                    </h4>
+                    <div id="adv-struct" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed space-y-2"></div>
+                </div>
+                <div class="p-6 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border-l-4 border-rose-500">
+                    <h4 class="font-extrabold text-rose-600 dark:text-rose-400 text-xs uppercase mb-3 tracking-widest flex items-center gap-2">
+                        <i class="ph-bold ph-list-checks text-base"></i> 4. Plan de Acción Directivo
+                    </h4>
+                    <div id="adv-action" class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CASCADA DE AHORRO -->
+    <div id="modal-savings" class="modal-wrap">
+        <div class="modal-box modal-lg">
+            <button onclick="smartClose('modal-savings')" class="absolute top-6 right-6 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="ph-fill ph-chart-bar-horizontal text-3xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-extrabold">Cascada de Ahorro</h3>
+                    <p class="text-sm text-indigo-500 font-bold" id="savings-subtitle">...</p>
+                </div>
+            </div>
+            <div id="goals-list" class="grid grid-cols-1 gap-4 mb-6 max-h-[46vh] overflow-y-auto pr-1"></div>
+            <div class="bg-slate-100/80 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
+                <label class="text-[11px] font-extrabold text-slate-400 uppercase block mb-3">Configurar Meta por Prioridad (1 = Más Alta)</label>
+                <div class="flex flex-col md:flex-row gap-3 items-center">
+                    <div class="flex items-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+                        <button onclick="changeNewGoalPrio(-1)" class="w-9 h-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-bold flex items-center justify-center"><i class="ph-bold ph-minus"></i></button>
+                        <input id="new-goal-priority" type="number" class="w-10 bg-transparent text-center font-extrabold outline-none" value="1" readonly>
+                        <button onclick="changeNewGoalPrio(1)" class="w-9 h-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-bold flex items-center justify-center"><i class="ph-bold ph-plus"></i></button>
+                    </div>
+                    <input id="new-goal-name" class="flex-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Nombre de la meta (ej. Fondo de Emergencia)">
+                    <input id="new-goal-target" type="number" step="0.01" class="w-full md:w-36 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-3 rounded-xl text-sm font-bold outline-none focus:border-indigo-500" placeholder="Objetivo (S/)">
+                    <button onclick="addGoal()" id="btn-add-goal" class="w-full md:w-auto bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors btn-pro flex items-center justify-center gap-2 shadow-md">
+                        <i class="ph-bold ph-plus text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TABLERO ANUAL -->
+    <div id="modal-annual" class="modal-wrap">
+        <div class="modal-box modal-xl !bg-navy-900 !text-white !border-slate-800 h-[90vh] relative overflow-hidden">
+            <button onclick="smartClose('modal-annual')" class="absolute top-5 right-5 btn-icon !bg-slate-800 !text-slate-300 hover:!bg-rose-500 hover:!text-white"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-800 relative z-10">
+                <div class="w-11 h-11 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/40">
+                    <i class="ph-bold ph-chart-line-up text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight">Tablero Ejecutivo 2026</h3>
+                    <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Consolidado Anual & Proyección de Patrimonio</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20 overflow-y-auto relative z-10 pr-2 max-h-[calc(90vh-110px)]">
+                <div class="chart-container bg-slate-800/40 border border-slate-700/70 rounded-2xl p-6 h-80 flex flex-col relative group">
+                    <h4 class="font-extrabold text-indigo-300 uppercase tracking-widest text-[11px] mb-2">Flujo de Caja Neto Mensual</h4>
+                    <div class="flex-1 relative"><canvas id="ch1"></canvas></div>
+                    <div class="glass-tooltip text-white">
+                        <i class="ph-fill ph-trend-up text-2xl text-indigo-400 mb-1"></i>
+                        <h4 class="font-bold text-sm">Liquidez Mensual</h4>
+                        <p class="text-xs text-slate-300 mt-1">Saldo disponible real al cierre de cada mes.</p>
+                    </div>
+                </div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700/70 rounded-2xl p-6 h-80 flex flex-col relative group">
+                    <h4 class="font-extrabold text-emerald-300 uppercase tracking-widest text-[11px] mb-2">Curva de Patrimonio Acumulado (Neto + Ahorro)</h4>
+                    <div class="flex-1 relative"><canvas id="ch2"></canvas></div>
+                    <div class="glass-tooltip text-white">
+                        <i class="ph-fill ph-bank text-2xl text-emerald-400 mb-1"></i>
+                        <h4 class="font-bold text-sm">Riqueza Acumulada</h4>
+                        <p class="text-xs text-slate-300 mt-1">Suma progresiva del ahorro más el excedente mensual.</p>
+                    </div>
+                </div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700/70 rounded-2xl p-6 h-80 flex flex-col relative group">
+                    <h4 class="font-extrabold text-amber-300 uppercase tracking-widest text-[11px] mb-2">Brecha Operativa (Ingresos vs Salidas)</h4>
+                    <div class="flex-1 relative"><canvas id="ch3"></canvas></div>
+                    <div class="glass-tooltip text-white">
+                        <i class="ph-fill ph-arrows-left-right text-2xl text-amber-400 mb-1"></i>
+                        <h4 class="font-bold text-sm">Brecha In vs Out</h4>
+                        <p class="text-xs text-slate-300 mt-1">Comparativa directa entre generación de ingresos y nivel de gasto.</p>
+                    </div>
+                </div>
+                <div class="chart-container bg-slate-800/40 border border-slate-700/70 rounded-2xl p-6 h-80 flex flex-col relative group">
+                    <h4 class="font-extrabold text-rose-300 uppercase tracking-widest text-[11px] mb-2">Distribución del Mes Activo</h4>
+                    <div class="flex-1 relative"><canvas id="ch4"></canvas></div>
+                    <div class="glass-tooltip text-white">
+                        <i class="ph-fill ph-chart-pie-slice text-2xl text-rose-400 mb-1"></i>
+                        <h4 class="font-bold text-sm">Peso por Categoría</h4>
+                        <p class="text-xs text-slate-300 mt-1">Participación de cada sección de gasto en el mes seleccionado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: AJUSTES & BACKUP -->
+    <div id="modal-settings" class="modal-wrap">
+        <div class="modal-box modal-sm">
+            <button onclick="smartClose('modal-settings')" class="absolute top-5 right-5 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-11 h-11 rounded-2xl bg-slate-500/10 text-slate-500 flex items-center justify-center"><i class="ph-bold ph-gear text-2xl"></i></div>
+                <div>
+                    <h3 class="text-xl font-extrabold">Ajustes & Datos</h3>
+                    <p class="text-xs text-slate-400 font-medium">Gestión de copias de seguridad y limpieza</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="exportBackup()" class="py-3.5 px-4 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold text-xs rounded-xl hover:bg-indigo-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
+                        <i class="ph-bold ph-download-simple text-base"></i> Exportar JSON
+                    </button>
+                    <label class="py-3.5 px-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs rounded-xl hover:bg-emerald-500/20 transition-colors flex items-center justify-center gap-2 btn-pro cursor-pointer">
+                        <i class="ph-bold ph-upload-simple text-base"></i> Importar JSON
+                        <input type="file" accept=".json" class="hidden" onchange="importBackup(event)">
+                    </label>
+                </div>
+                <hr class="border-slate-200 dark:border-slate-800 my-2">
+                <button onclick="clearMonth()" class="w-full py-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-sm rounded-xl hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
+                    <i class="ph-bold ph-eraser text-lg"></i> Poner en S/ 0.00 el Mes Actual
+                </button>
+                <button onclick="resetCfoData()" class="w-full py-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-sm rounded-xl hover:bg-rose-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
+                    <i class="ph-bold ph-trash text-lg"></i> Restablecer de Fábrica
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CLONAR MES -->
+    <div id="modal-clone" class="modal-wrap">
+        <div class="modal-box modal-sm">
+            <button onclick="smartClose('modal-clone')" class="absolute top-5 right-5 btn-icon"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><i class="ph-bold ph-copy text-2xl"></i></div>
+                <div>
+                    <h3 class="text-xl font-extrabold">Duplicar Mes</h3>
+                    <p class="text-xs text-slate-400 font-medium">Lleva tu plantilla o montos a otro mes</p>
+                </div>
+            </div>
+            <label class="block text-xs font-extrabold text-slate-400 uppercase mb-2">Mes de Destino</label>
+            <select id="clone-target" class="w-full p-3.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold mb-4 outline-none"></select>
+            
+            <label class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 mb-5 cursor-pointer">
+                <input type="checkbox" id="clone-with-amounts" checked class="w-4 h-4 accent-indigo-600 rounded">
+                <span class="text-xs font-bold">Copiar también los montos (S/) actuales</span>
+            </label>
+
+            <button onclick="executeClone()" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl shadow-lg shadow-indigo-500/30 btn-pro">
+                Confirmar Duplicación
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Firebase handles cloud persistence in this test branch; legacy JSONBin credentials are not embedded here.
+        // Configura esta URL solo cuando el Worker seguro ya esté desplegado y probado.
+        const AI_DIAGNOSIS_ENDPOINT = "https://finanzas-personales-ai.somerssc02.workers.dev";
+        const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const PALETTE = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#ec4899', '#14b8a6', '#8b5cf6', '#06b6d4'];
+        const BASE = [
+            {id:'i', title:'Ingresos', type:'income', items:['Sueldo'], collapsed:false},
+            {id:'f', title:'Gastos Fijos', type:'expense', items:['Alquiler'], collapsed:false},
+            {id:'s', title:'Ahorros', type:'savings', items:['Fondo'], collapsed:false}
+        ];
+        
+        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+        let charts = {};
+        let calMonth = new Date().getMonth();
+        let calYear = 2026;
+        let selectedDay = null;
+        let editingGoalIndex = null;
+        let newSecType = 'expense';
+        let modalStack = [];
+
+        // --- NOTIFICACIONES TOAST ---
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icons = {
+                success: '<i class="ph-fill ph-check-circle text-emerald-400 text-lg"></i>',
+                info: '<i class="ph-fill ph-info text-indigo-400 text-lg"></i>',
+                error: '<i class="ph-fill ph-warning-circle text-rose-400 text-lg"></i>'
+            };
+            toast.className = "pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-navy-900/95 text-white text-xs font-bold shadow-xl border border-white/10 backdrop-blur-md animate-slide-up";
+            toast.innerHTML = `${icons[type] || icons.success} <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.25s ease';
+                setTimeout(() => toast.remove(), 250);
+            }, 2600);
+        }
+
+        // --- TEMA OSCURO / CLARO ---
+        function updateThemeIcon() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.className = isDark ? 'ph-fill ph-sun text-xl text-amber-300' : 'ph-fill ph-moon text-xl text-indigo-200';
+        }
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('cfo_theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+            renderStats();
+        };
+
+
+        let keyboardHandlerAttached = false;
+
+        function makeInitialState() {
+            return {
+                month: new Date().getMonth(),
+                struct: genYear(),
+                data: {},
+                events: [
+                    {name:'San Valentín', d:14, m:2, type:'other'},
+                    {name:'Navidad', d:25, m:12, type:'bday'}
+                ],
+                goals: [{name:'Fondo Emergencia', target:5000, priority:1}]
+            };
+        }
+
+        function isValidCfoState(candidate) {
+            return !!candidate &&
+                Array.isArray(candidate.struct) &&
+                candidate.struct.length === 12 &&
+                candidate.struct.every(month => Array.isArray(month)) &&
+                typeof candidate.data === 'object' &&
+                candidate.data !== null;
+        }
+
+        function normalizeCfoState(candidate) {
+            if (!isValidCfoState(candidate)) {
+                throw new Error('El archivo no contiene una copia válida de Finanzas Personales.');
+            }
+            const normalized = Object.assign({}, candidate);
+            normalized.month = Number.isInteger(normalized.month) && normalized.month >= 0 && normalized.month < 12
+                ? normalized.month : new Date().getMonth();
+            normalized.data = normalized.data || {};
+            normalized.events = Array.isArray(normalized.events) ? normalized.events : [];
+            normalized.goals = Array.isArray(normalized.goals) ? normalized.goals : [];
+            return normalized;
+        }
+
+        function setSyncState(mode, label) {
+            const indicator = document.getElementById('sync-indicator');
+            const text = document.getElementById('sync-text');
+            if (indicator) indicator.className = 'sync-light ' + mode;
+            if (text) text.innerText = label;
+        }
+
+        async function init() {
+            updateThemeIcon();
+            if (!keyboardHandlerAttached) {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (modalStack.length > 0) {
+                            const last = modalStack.pop();
+                            const modal = document.getElementById(last);
+                            if (modal) modal.classList.remove('active');
+                        } else if (document.body.classList.contains('sb-open') && window.innerWidth < 768) {
+                            toggleSidebar();
+                        }
+                    }
+                });
+                keyboardHandlerAttached = true;
+            }
+            render();
+        }
+
+        async function sync(pull = false) {
+            const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
+            if (!currentUser) {
+                setSyncState('error', 'Inicia sesión');
+                return false;
+            }
+            setSyncState('working', pull ? 'Cargando...' : 'Guardando...');
+            try {
+                if (pull) {
+                    const remoteState = await window.cfoFirebase.loadState();
+                    if (!remoteState) return false;
+                    state = normalizeCfoState(remoteState);
+                } else {
+                    await window.cfoFirebase.saveState(state);
+                }
+                localStorage.setItem('cfo_v120_cache_' + currentUser.uid, JSON.stringify(state));
+                setSyncState('ok', 'Firebase sincronizado');
+                return true;
+            } catch (error) {
+                window.cfoLastSyncError = error;
+                console.error('Error de sincronización con Firebase:', error);
+                setSyncState('error', 'Error de sincronización');
+                showToast('No se pudo guardar en Firebase. Revisa el detalle en la pantalla.', 'error');
+                return false;
+            }
+        }
+
+        function hasValidLegacyLocalBackup() {
+            try {
+                return isValidCfoState(JSON.parse(localStorage.getItem('cfo_v110_arch') || 'null'));
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function showMigrationGate(message) {
+            const gate = document.getElementById('migration-gate');
+            const error = document.getElementById('migration-error');
+            const localButton = document.getElementById('btn-use-local-backup');
+            gate.classList.remove('hidden');
+            error.textContent = message || '';
+            localButton.classList.toggle('hidden', !hasValidLegacyLocalBackup());
+        }
+
+        async function finishFirstRunWithState(candidate) {
+            try {
+                state = normalizeCfoState(candidate);
+                const ok = await sync(false);
+                if (!ok) {
+                    const detail = window.cfoLastSyncError;
+                    const detailText = detail ? ((detail.code ? detail.code + ': ' : '') + (detail.message || 'Error desconocido')) : 'No se recibió detalle técnico.';
+                    document.getElementById('migration-error').textContent =
+                        'No se pudo guardar en Firestore. Tus datos importados siguen en esta pantalla; no cierres la pestaña. Detalle: ' + detailText;
+                    return;
+                }
+                document.getElementById('migration-gate').classList.add('hidden');
+                await init();
+                showToast('Datos guardados en Firestore correctamente');
+            } catch (error) {
+                document.getElementById('migration-error').textContent = error.message || 'No se pudo importar la copia.';
+            }
+        }
+
+        window.importInitialBackup = async function() {
+            const input = document.getElementById('initial-backup-file');
+            const file = input.files && input.files[0];
+            if (!file) {
+                document.getElementById('migration-error').textContent = 'Selecciona primero el archivo JSON de respaldo.';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    await finishFirstRunWithState(imported);
+                    input.value = '';
+                } catch (error) {
+                    document.getElementById('migration-error').textContent = 'El archivo no es un JSON válido.';
+                }
+            };
+            reader.onerror = function() {
+                document.getElementById('migration-error').textContent = 'No se pudo leer el archivo seleccionado.';
+            };
+            reader.readAsText(file);
+        };
+
+        window.importLocalBackupToCloud = async function() {
+            if (!hasValidLegacyLocalBackup()) {
+                document.getElementById('migration-error').textContent = 'No se encontró una copia local válida en este navegador.';
+                return;
+            }
+            if (!confirm('Se importará la copia local anterior a Firestore. Si tienes una copia JSON más reciente, utiliza preferentemente ese archivo. ¿Continuar?')) return;
+            try {
+                const imported = JSON.parse(localStorage.getItem('cfo_v110_arch'));
+                await finishFirstRunWithState(imported);
+            } catch (error) {
+                document.getElementById('migration-error').textContent = 'No se pudo importar la copia local.';
+            }
+        };
+
+        window.startFreshCloudData = async function() {
+            if (!confirm('Todavía no hay registros de Finanzas Personales en Firestore para esta cuenta. ¿Quieres empezar con una estructura vacía?')) return;
+            state = makeInitialState();
+            const ok = await sync(false);
+            if (!ok) {
+                document.getElementById('migration-error').textContent = 'No se pudo crear el documento en Firestore. No cierres esta pantalla; revisa las reglas y vuelve a intentarlo.';
+                return;
+            }
+            document.getElementById('migration-gate').classList.add('hidden');
+            await init();
+            showToast('Finanzas Personales está conectado a Firestore');
+        };
+
+        window.handleCfoAuthState = async function(user) {
+            const authGate = document.getElementById('auth-gate');
+            const migrationGate = document.getElementById('migration-gate');
+            const logoutButton = document.getElementById('btn-cfo-logout');
+            const authError = document.getElementById('auth-error');
+            const migrationError = document.getElementById('migration-error');
+            const migrationActions = document.getElementById('migration-actions');
+
+            if (!user) {
+                authGate.classList.remove('hidden');
+                migrationGate.classList.add('hidden');
+                logoutButton.classList.add('hidden');
+                authError.textContent = '';
+                migrationError.textContent = '';
+                migrationActions.classList.remove('hidden');
+                state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+                setSyncState('error', 'Inicia sesión');
+                return;
+            }
+
+            authError.textContent = '';
+            authGate.classList.add('hidden');
+            logoutButton.classList.remove('hidden');
+            document.getElementById('migration-account-email').textContent = 'Cuenta: ' + (user.email || 'autenticada');
+
+            try {
+                const remoteState = await window.cfoFirebase.loadState();
+                if (remoteState) {
+                    state = normalizeCfoState(remoteState);
+                    migrationGate.classList.add('hidden');
+                    migrationActions.classList.remove('hidden');
+                    await init();
+                    setSyncState('ok', 'Firebase sincronizado');
+                } else {
+                    state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+                    showMigrationGate('');
+                }
+            } catch (error) {
+                console.error('No se pudo consultar Firestore:', error);
+                showMigrationGate('No se pudo consultar Firestore. No importes ni crees datos todavía; revisa las reglas de seguridad y vuelve a cargar la página.');
+                migrationActions.classList.add('hidden');
+            }
+        };
+
+        window.signInCfo = async function() {
+            const email = document.getElementById('cfo-login-email').value.trim();
+            const password = document.getElementById('cfo-login-password').value;
+            const button = document.getElementById('btn-cfo-login');
+            const errorBox = document.getElementById('auth-error');
+            errorBox.textContent = '';
+            button.disabled = true;
+            button.textContent = 'Ingresando...';
+            try {
+                await window.cfoFirebase.signIn(email, password);
+                document.getElementById('cfo-login-password').value = '';
+            } catch (error) {
+                const messages = {
+                    'auth/invalid-credential': 'El correo o la contraseña no son correctos.',
+                    'auth/user-not-found': 'No existe una cuenta con ese correo.',
+                    'auth/wrong-password': 'La contraseña no es correcta.',
+                    'auth/too-many-requests': 'Hubo demasiados intentos. Espera un momento y vuelve a intentarlo.',
+                    'auth/invalid-email': 'Escribe una dirección de correo válida.'
+                };
+                errorBox.textContent = messages[error.code] || 'No se pudo iniciar sesión. Verifica los datos e inténtalo de nuevo.';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Entrar de forma segura';
+            }
+        };
+
+        window.signOutCfo = async function() {
+            if (!confirm('¿Cerrar la sesión de Finanzas Personales?')) return;
+            try {
+                await window.cfoFirebase.signOut();
+            } catch (error) {
+                showToast('No se pudo cerrar la sesión.', 'error');
+            }
+        };
+
+        window.resetCfoData = async function() {
+            if (!confirm('Esto reemplazará los datos financieros guardados en Firestore por una estructura vacía. Exporta una copia antes de continuar. ¿Deseas seguir?')) return;
+            state = makeInitialState();
+            const ok = await sync(false);
+            if (ok) {
+                closeModals();
+                await init();
+                showToast('Datos reiniciados en Firestore', 'info');
+            }
+        };
+
+        // --- STACK MODAL LOGIC ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            if(!modalStack.includes(id)) modalStack.push(id);
+        }
+        window.smartClose = function(id) {
+            document.getElementById(id).classList.remove('active');
+            const idx = modalStack.indexOf(id);
+            if(idx > -1) modalStack.splice(idx, 1);
+        };
+        function closeModals() {
+            document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active'));
+            modalStack = [];
+        }
+
+        function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
+        function save() { render(); sync(false); }
+
+        function render() {
+            renderSidebar();
+            document.getElementById('month-title').innerText = MONTHS[state.month];
+            renderLedger();
+            renderStats();
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('month-nav');
+            nav.innerHTML = '';
+            MONTHS.forEach((m, i) => {
+                const active = i === state.month;
+                const t = getTotals(i);
+                const hasData = (t.i > 0 || t.e > 0 || t.s > 0);
+                nav.innerHTML += `
+                <button onclick="setMonth(${i})" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold flex justify-between items-center transition-all ${active ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/60'} btn-pro">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2 h-2 rounded-full ${active ? 'bg-white' : (hasData ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700')}"></span>
+                        <span>${m}</span>
+                    </div>
+                    ${active ? '<i class="ph-bold ph-caret-right"></i>' : (hasData ? `<span class="text-[10px] font-extrabold opacity-75">${fmtShort(t.b)}</span>` : '')}
+                </button>`;
+            });
+        }
+
+        function renderLedger() {
+            const con = document.getElementById('ledger');
+            con.innerHTML = '';
+            const st = state.struct[state.month];
+            const monthTotals = getTotals(state.month);
+
+            st.forEach((sec, sIdx) => {
+                let total = 0;
+                sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
+                
+                const card = document.createElement('div');
+                card.className = "card";
+                
+                // Ícono y estilo según tipo de sección
+                const badgeConfig = {
+                    income: { icon: 'ph-trend-up', color: 'text-emerald-500 bg-emerald-500/10', label: 'Ingreso' },
+                    expense: { icon: 'ph-receipt', color: 'text-indigo-500 bg-indigo-500/10', label: 'Gasto' },
+                    debt: { icon: 'ph-credit-card', color: 'text-rose-500 bg-rose-500/10', label: 'Deuda' },
+                    savings: { icon: 'ph-piggy-bank', color: 'text-violet-500 bg-violet-500/10', label: 'Ahorro' }
+                }[sec.type] || { icon: 'ph-folder', color: 'text-slate-500 bg-slate-500/10', label: 'General' };
+
+                // Porcentaje respecto al total de gastos (si aplica)
+                let weightBar = '';
+                if ((sec.type === 'expense' || sec.type === 'debt') && monthTotals.e > 0) {
+                    const pct = Math.min(100, (total / monthTotals.e) * 100);
+                    weightBar = `
+                    <div class="mt-3 flex items-center gap-3">
+                        <div class="flex-1 bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="${sec.type==='debt'?'bg-rose-500':'bg-indigo-500'} h-full rounded-full transition-all duration-500" style="width:${pct}%"></div>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-400 w-12 text-right">${pct.toFixed(0)}% out</span>
+                    </div>`;
+                }
+
+                // VISUALIZACIÓN DE DEUDA
+                let debtHTML = '';
+                if(sec.type === 'debt') {
+                    const principal = sec.debtTotal || 0;
+                    const rate = sec.debtRate || 0;
+                    const monthlyInterest = principal * (rate / 100);
+                    let capitalPaid = 0;
+                    let interestPaid = 0;
+                    let msg = "Registra la cuota del mes para calcular amortización de capital.";
+                    
+                    if(total > 0) {
+                        if(total <= monthlyInterest) {
+                            interestPaid = total;
+                            msg = `⚠️ El pago solo cubre intereses (Faltan <b>${fmt(monthlyInterest - total)}</b> para cubrir el interés del mes).`;
+                        } else {
+                            interestPaid = monthlyInterest;
+                            capitalPaid = total - monthlyInterest;
+                            msg = `✅ Cubres interés (<b>${fmt(interestPaid)}</b>) y amortizas <b class="text-emerald-600 dark:text-emerald-400">${fmt(capitalPaid)}</b> directo al capital.`;
+                        }
+                    }
+                    const newPrincipal = Math.max(0, principal - capitalPaid);
+                    
+                    debtHTML = `
+                    <div class="mt-4 bg-rose-500/5 dark:bg-rose-500/10 rounded-2xl p-4 border border-rose-500/20" onclick="event.stopPropagation()">
+                        <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
+                            <div class="text-xs font-extrabold text-rose-600 dark:text-rose-400">
+                                Capital: ${fmt(principal)} <span class="px-2 py-0.5 rounded-md bg-rose-500/15 text-[10px] ml-1">${rate}% TEM</span>
+                            </div>
+                            <div class="text-xs font-bold text-rose-500">Interés Mes: ${fmt(monthlyInterest)}</div>
+                        </div>
+                        <div class="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-rose-500/10 text-xs text-slate-700 dark:text-slate-300 mb-2">
+                            ${msg}
+                        </div>
+                        <div class="flex justify-between items-center text-xs font-extrabold text-rose-700 dark:text-rose-300">
+                            <span>Saldo Deuda Proyectado:</span>
+                            <span class="text-sm">${fmt(newPrincipal)}</span>
+                        </div>
+                    </div>`;
+                }
+
+                card.innerHTML = `
+                <div class="p-5 md:p-6 cursor-pointer select-none group" onclick="toggleSec(${sIdx})">
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="w-10 h-10 rounded-xl ${badgeConfig.color} flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
+                                <i class="ph-bold ${badgeConfig.icon} text-xl"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <input class="font-extrabold text-base md:text-lg bg-transparent border-none outline-none truncate input-row !p-0" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
+                                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${badgeConfig.color} hidden sm:inline-block">${badgeConfig.label}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="font-extrabold text-lg md:text-xl ${sec.type==='income'?'text-emerald-600 dark:text-emerald-400':(sec.type==='debt'?'text-rose-500':(sec.type==='savings'?'text-indigo-500':''))}">${fmt(total)}</span>
+                            <button onclick="event.stopPropagation();if(confirm('¿Eliminar la sección ${sec.title}?'))delSec(${sIdx})" class="btn-icon !w-8 !h-8" title="Eliminar Sección">
+                                <i class="ph-bold ph-trash text-sm"></i>
+                            </button>
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400">
+                                <i class="ph-bold ph-caret-down transition-transform duration-300 ${sec.collapsed ? '-rotate-90' : ''}"></i>
+                            </div>
+                        </div>
+                    </div>
+                    ${weightBar}
+                    ${debtHTML}
+                </div>
+                <div class="section-content ${sec.collapsed ? 'collapsed' : 'expanded'} px-5 md:px-6 pb-6 space-y-2 border-t border-slate-100 dark:border-slate-800/60 pt-4">
+                    ${sec.type === 'savings' 
+                    ? `<div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <i class="ph-fill ph-sparkle text-indigo-500 text-xl"></i>
+                                <span class="font-extrabold text-sm text-indigo-950 dark:text-indigo-200">Aporte de Ahorro del Mes</span>
+                            </div>
+                            <input type="text" inputmode="decimal" placeholder="0.00" class="text-right bg-white dark:bg-slate-900 font-extrabold text-xl text-indigo-600 dark:text-indigo-400 outline-none w-36 px-3 py-1.5 rounded-xl border border-indigo-500/30" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+                       </div>`
+                    : sec.items.map((it, i) => {
+                        const val = state.data[`${state.month}-${sec.id}-${i}`] || 0;
+                        return `
+                        <div class="flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group">
+                            <button onclick="delItem(${sIdx},${i})" class="btn-icon !w-7 !h-7 opacity-60 group-hover:opacity-100 shrink-0" title="Borrar fila">
+                                <i class="ph-bold ph-x text-xs"></i>
+                            </button>
+                            <input class="input-row flex-1" value="${it}" onchange="renItem(${sIdx},${i},this.value)">
+                            <div class="flex items-center bg-slate-100/80 dark:bg-slate-800/70 rounded-lg px-2.5 py-1 border border-transparent focus-within:border-indigo-500 transition-colors">
+                                <span class="text-xs font-bold text-slate-400 mr-1">S/</span>
+                                <input type="text" inputmode="decimal" placeholder="0.00" class="text-right font-extrabold outline-none bg-transparent w-24 text-sm" value="${val===0?'':val}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+                            </div>
+                        </div>`;
+                    }).join('') + `
+                        <div class="flash-row">
+                            <i class="ph-bold ph-plus text-indigo-500"></i>
+                            <input id="flash-name-${sIdx}" class="flash-input" placeholder="Nuevo concepto..." onkeydown="if(event.key==='Enter')quickAdd(${sIdx})">
+                            <input id="flash-amt-${sIdx}" class="flash-input text-right w-24" placeholder="Monto S/" type="number" step="0.01" onkeydown="if(event.key==='Enter')quickAdd(${sIdx})">
+                            <button onclick="quickAdd(${sIdx})" class="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shrink-0 shadow-sm btn-pro" title="Agregar fila">
+                                <i class="ph-bold ph-arrow-elbow-down-left text-sm"></i>
+                            </button>
+                        </div>
+                    `}
+                </div>`;
+                con.appendChild(card);
+            });
+        }
+
+        // --- OPERACIONES CON REINDEXACIÓN SEGURA ---
+        window.quickAdd = function(sIdx) {
+            const nameInput = document.getElementById(`flash-name-${sIdx}`);
+            const amtInput = document.getElementById(`flash-amt-${sIdx}`);
+            const name = nameInput ? nameInput.value.trim() : '';
+            const amt = amtInput ? amtInput.value : '';
+            if(name) {
+                const sec = state.struct[state.month][sIdx];
+                sec.items.push(name);
+                const newIdx = sec.items.length - 1;
+                if(amt) state.data[`${state.month}-${sec.id}-${newIdx}`] = parseFloat(amt) || 0;
+                save();
+                showToast(`"${name}" agregado`);
+            }
+        };
+
+        // FIX CRÍTICO: Reindexación de state.data al eliminar un ítem intermedio
+        window.delItem = function(sIdx, itemIdx) {
+            const m = state.month;
+            const sec = state.struct[m][sIdx];
+            const oldLen = sec.items.length;
+            sec.items.splice(itemIdx, 1);
+
+            for (let k = itemIdx; k < oldLen - 1; k++) {
+                const nextVal = state.data[`${m}-${sec.id}-${k + 1}`];
+                if (nextVal !== undefined) {
+                    state.data[`${m}-${sec.id}-${k}`] = nextVal;
+                } else {
+                    delete state.data[`${m}-${sec.id}-${k}`];
+                }
+            }
+            delete state.data[`${m}-${sec.id}-${oldLen - 1}`];
+            save();
+            showToast('Concepto eliminado', 'info');
+        };
+
+        window.delSec = function(sIdx) {
+            const m = state.month;
+            const sec = state.struct[m][sIdx];
+            // Limpiar llaves asociadas a esa sección en el mes actual
+            Object.keys(state.data).forEach(k => {
+                if (k.startsWith(`${m}-${sec.id}-`)) delete state.data[k];
+            });
+            state.struct[m].splice(sIdx, 1);
+            save();
+            showToast('Sección eliminada', 'info');
+        };
+
+        window.openNewSectionModal = function() {
+            openModal('modal-new-section');
+            document.getElementById('sec-name-input').value = '';
+            document.getElementById('sec-debt-total').value = '';
+            document.getElementById('sec-debt-rate').value = '';
+            selectSecType('expense');
+        };
+
+        window.selectSecType = function(t) { 
+            newSecType = t; 
+            const btns = {expense:'btn-type-expense', income:'btn-type-income', debt:'btn-type-debt'};
+            const activeStyles = {
+                expense: 'border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300',
+                income: 'border-emerald-500 bg-emerald-500/15 text-emerald-600 dark:text-emerald-300',
+                debt: 'border-rose-500 bg-rose-500/15 text-rose-600 dark:text-rose-300'
+            };
+            Object.keys(btns).forEach(k => {
+                const b = document.getElementById(btns[k]);
+                if(k === t) b.className = `py-3 rounded-xl border-2 font-extrabold text-xs transition-all ${activeStyles[k]}`;
+                else b.className = "py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all";
+            });
+            if(t === 'debt') document.getElementById('debt-fields').classList.remove('hidden');
+            else document.getElementById('debt-fields').classList.add('hidden');
+        };
+
+        window.createSection = function() { 
+            const n = document.getElementById('sec-name-input').value.trim(); 
+            const debtTotal = parseFloat(document.getElementById('sec-debt-total').value) || 0;
+            const debtRate = parseFloat(document.getElementById('sec-debt-rate').value) || 0;
+            if(n) { 
+                state.struct[state.month].push({
+                    id: 'u' + Date.now(),
+                    title: n,
+                    type: newSecType,
+                    items: ['Pago Mes'],
+                    debtTotal: debtTotal,
+                    debtRate: debtRate,
+                    collapsed: false
+                }); 
+                save();
+                smartClose('modal-new-section');
+                showToast(`Sección "${n}" creada`);
+            } 
+        };
+        
+        function toggleSidebar() {
+            const isClosed = document.body.classList.contains('sb-closed');
+            if(isClosed) {
+                document.body.classList.remove('sb-closed');
+                document.body.classList.add('sb-open');
+                localStorage.setItem('cfo_sidebar_state', 'open');
+            } else {
+                document.body.classList.remove('sb-open');
+                document.body.classList.add('sb-closed');
+                localStorage.setItem('cfo_sidebar_state', 'closed');
+            }
+        }
+        function setMonth(i) { state.month = i; render(); if(window.innerWidth < 768) toggleSidebar(); }
+        function changeMonth(d) { let n = state.month + d; if(n >= 0 && n <= 11) { state.month = n; render(); } }
+        function saveVal(k, v) {
+            const parsed = parseFloat(String(v).replace(/,/g, '')) || 0;
+            state.data[k] = parsed;
+            save();
+        }
+        function renItem(s, i, v) { state.struct[state.month][s].items[i] = v; save(); }
+        function toggleSec(s) { state.struct[state.month][s].collapsed = !state.struct[state.month][s].collapsed; save(); }
+        function updSec(s, v) { state.struct[state.month][s].title = v; save(); }
+        
+        function clearMonth() {
+            if(confirm(`¿Limpiar todos los montos de ${MONTHS[state.month]} a S/ 0.00?`)) {
+                const m = state.month;
+                Object.keys(state.data).forEach(k => { if(k.startsWith(`${m}-`)) state.data[k] = 0; });
+                save();
+                closeModals();
+                showToast('Montos del mes reiniciados', 'info');
+            }
+        }
+
+        function getTotals(m) {
+            let i = 0, e = 0, s = 0;
+            if(!state.struct[m]) return {i:0, e:0, s:0, b:0};
+            state.struct[m].forEach(sec => {
+                let sum = 0;
+                sec.items.forEach((_, x) => sum += (state.data[`${m}-${sec.id}-${x}`] || 0));
+                if(sec.type === 'income') i += sum;
+                else if(sec.type === 'savings') s += sum;
+                else e += sum;
+            });
+            return { i, e, s, b: i - e - s };
+        }
+
+        function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+        function fmtShort(n) {
+            const abs = Math.abs(n);
+            const sign = n < 0 ? '-' : '';
+            if(abs >= 1000) return `${sign}S/${(abs/1000).toFixed(1)}k`;
+            return `${sign}S/${abs.toFixed(0)}`;
+        }
+
+        // --- CONSEJERO CFO MEJORADO ---
+        window.openAdvisor = function() { runAdvisorAnalysis(); updateAIDiagnosisContext(); openModal('modal-advisor'); };
+        window.runAdvisorAnalysis = function() {
+            const t = getTotals(state.month);
+            const runway = t.e > 0 ? (t.s / t.e).toFixed(1) : '∞';
+            const savingsRate = t.i > 0 ? ((t.s / t.i) * 100) : 0;
+            const expenseRate = t.i > 0 ? ((t.e / t.i) * 100) : 0;
+
+            document.getElementById('adv-health').innerHTML = `
+                <p>Tu <b>Flujo Neto Disponible</b> en ${MONTHS[state.month]} es de <span class="font-extrabold ${t.b >= 0 ? 'text-emerald-500' : 'text-rose-500'}">${fmt(t.b)}</span>.</p>
+                <p>${t.b >= 0 ? 'Operas con superávit luego de cubrir gastos y separar tus ahorros.' : '⚠️ Atención: Estás asignando más dinero entre gastos y ahorros de lo que ingresa este mes.'}</p>
+                <div class="text-xs font-bold bg-white/80 dark:bg-slate-900/80 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700 mt-2">
+                    Runway del mes: <b>${runway} meses</b> de gastos cubiertos con el ahorro actual.
+                </div>
+            `;
+            document.getElementById('adv-savings').innerHTML = `
+                <p>Tu <b>Tasa de Ahorro</b> actual es del <b class="text-indigo-500">${savingsRate.toFixed(1)}%</b> (${fmt(t.s)}).</p>
+                <p>${savingsRate >= 20 ? 'Excelente disciplina: superas el estándar recomendado del 20% (Regla 50/30/20).' : 'Intenta escalar gradualmente hacia el 20% de tus ingresos netos.'}</p>
+            `;
+            document.getElementById('adv-struct').innerHTML = `
+                <p>Tus <b>Salidas Operativas y Deudas</b> absorben el <b class="text-amber-500">${expenseRate.toFixed(1)}%</b> de tus ingresos.</p>
+                <p>${expenseRate <= 70 ? 'Estructura saludable que te otorga flexibilidad ante imprevistos.' : 'Estructura pesada (>70%). Evalúa renegociar fijos o amortizar deudas caras.'}</p>
+            `;
+            document.getElementById('adv-action').innerHTML = `
+                <ul class="list-disc pl-4 space-y-1.5 text-xs font-semibold">
+                    <li>${t.b > 0 ? `Tienes <b>${fmt(t.b)}</b> sin asignar: considera enviarlo a la Cascada de Ahorro o amortizar capital.` : 'Ajusta gastos variables para eliminar el déficit de caja.'}</li>
+                    <li>Usa la función <b>Duplicar Mes</b> para proyectar tus costos fijos en el mes siguiente.</li>
+                </ul>
+            `;
+        };
+
+        // --- EVALUACIÓN CON IA DEL MES SELECCIONADO ---
+        function buildMonthlyAIPayload() {
+            const monthIndex = state.month;
+            const monthSections = Array.isArray(state.struct[monthIndex]) ? state.struct[monthIndex] : [];
+            const sections = monthSections.map(function(section) {
+                const items = (Array.isArray(section.items) ? section.items : []).map(function(concept, index) {
+                    const rawAmount = Number(state.data[monthIndex + '-' + section.id + '-' + index] || 0);
+                    return { concept: String(concept || 'Concepto sin nombre').slice(0, 100), amount: Number.isFinite(rawAmount) ? rawAmount : 0 };
+                });
+                const debt = section.type === 'debt' ? { principal: Number(section.debtTotal || 0), monthlyRatePercent: Number(section.debtRate || 0) } : null;
+                return { name: String(section.title || 'Sección sin nombre').slice(0, 100), type: ['income', 'expense', 'debt', 'savings'].includes(section.type) ? section.type : 'expense', items: items, debt: debt };
+            });
+            const events = (Array.isArray(state.events) ? state.events : []).filter(function(event) { return Number(event.m) === monthIndex + 1; }).slice(0, 60).map(function(event) {
+                return { day: Number(event.d) || null, name: String(event.name || 'Evento sin nombre').slice(0, 100), category: String(event.type || event.category || 'General').slice(0, 50) };
+            });
+            const goals = (Array.isArray(state.goals) ? state.goals : []).slice(0, 40).map(function(goal) {
+                return { name: String(goal.name || 'Meta sin nombre').slice(0, 100), target: Number(goal.target || 0), priority: Number(goal.priority || 99) };
+            });
+            return { month: MONTHS[monthIndex], year: 2026, capturedAt: new Date().toISOString(), currency: 'PEN', sections: sections, events: events, goals: goals };
+        }
+
+        function updateAIDiagnosisContext() {
+            const meta = document.getElementById('ai-diagnosis-meta');
+            const status = document.getElementById('ai-diagnosis-status');
+            if (meta) meta.textContent = 'Mes seleccionado: ' + MONTHS[state.month] + ' de 2026. La instantánea se tomará al pulsar el botón.';
+            if (status) { status.className = 'cfo-ai-status ' + (AI_DIAGNOSIS_ENDPOINT ? 'ok' : 'error'); status.textContent = AI_DIAGNOSIS_ENDPOINT ? 'Servicio IA configurado' : 'Falta configurar el servicio IA'; }
+        }
+
+        window.generateAIDiagnosis = async function() {
+            const button = document.getElementById('btn-ai-diagnosis');
+            const output = document.getElementById('ai-diagnosis-output');
+            const status = document.getElementById('ai-diagnosis-status');
+            const meta = document.getElementById('ai-diagnosis-meta');
+            if (!AI_DIAGNOSIS_ENDPOINT) {
+                status.className = 'cfo-ai-status error'; status.textContent = 'Falta configurar el servicio IA';
+                output.classList.remove('hidden');
+                output.textContent = 'La interfaz está preparada, pero falta desplegar el servicio seguro de IA y configurar su URL. No se ha enviado ningún dato financiero.';
+                return;
+            }
+            const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
+            if (!currentUser) { showToast('Inicia sesión para generar la evaluación.', 'error'); return; }
+            const snapshot = buildMonthlyAIPayload();
+            const confirmation = 'Se enviará a OpenAI una instantánea de ' + snapshot.month + ' de ' + snapshot.year + ': conceptos e importes de ese mes, deudas, metas y eventos del mes. No se enviarán tus credenciales ni los datos de otros meses. ¿Deseas generar la evaluación?';
+            if (!confirm(confirmation)) return;
+            button.disabled = true; button.classList.add('opacity-60', 'cursor-not-allowed');
+            button.innerHTML = '<i class="ph-bold ph-spinner-gap animate-spin text-base"></i> Analizando el mes...';
+            status.className = 'cfo-ai-status loading'; status.textContent = 'Generando evaluación';
+            output.classList.remove('hidden');
+            output.textContent = 'La IA está revisando la información registrada en ' + snapshot.month + ' de ' + snapshot.year + '. Espera un momento...';
+            meta.textContent = 'Datos capturados el ' + new Date(snapshot.capturedAt).toLocaleString('es-PE') + '. La evaluación se calculará con esta instantánea.';
+            try {
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch(AI_DIAGNOSIS_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken }, body: JSON.stringify({ snapshot: snapshot }) });
+                let result = {}; try { result = await response.json(); } catch (parseError) { result = {}; }
+                if (!response.ok) throw new Error(result.error || ('El servicio IA respondió con el código ' + response.status + '.'));
+                if (typeof result.text !== 'string' || !result.text.trim()) throw new Error('La IA no devolvió una evaluación legible. Inténtalo nuevamente.');
+                output.textContent = result.text;
+                status.className = 'cfo-ai-status ok'; status.textContent = 'Evaluación completada';
+                const usage = result.usage ? ' · tokens de entrada: ' + (result.usage.input_tokens || 0) + ' · salida: ' + (result.usage.output_tokens || 0) : '';
+                meta.textContent = 'Evaluación de ' + snapshot.month + ' de ' + snapshot.year + ' · generada el ' + new Date(result.generatedAt || Date.now()).toLocaleString('es-PE') + ' · modelo: ' + (result.model || 'OpenAI') + usage;
+            } catch (error) {
+                console.error('Error al generar la evaluación con IA:', error);
+                status.className = 'cfo-ai-status error'; status.textContent = 'No se pudo generar la evaluación';
+                output.textContent = (error && error.message) ? error.message : 'Error de conexión. Comprueba el servicio IA e inténtalo nuevamente.';
+            } finally {
+                button.disabled = false; button.classList.remove('opacity-60', 'cursor-not-allowed');
+                button.innerHTML = '<i class="ph-bold ph-sparkle text-base"></i> Generar evaluación con IA';
+            }
+        };
+
+        // --- BACKUP EXPORT / IMPORT ---
+        window.openSettings = function() { openModal('modal-settings'); };
+        window.exportBackup = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `CFO_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('Copia de seguridad descargada');
+        };
+        window.importBackup = function(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if(imported && imported.struct) {
+                        state = imported;
+                        save();
+                        closeModals();
+                        showToast('Datos restaurados con éxito');
+                    } else {
+                        showToast('Archivo JSON inválido', 'error');
+                    }
+                } catch(err) {
+                    showToast('Error al leer el archivo', 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        // --- METAS Y CASCADA DE AHORRO ---
+        window.changeNewGoalPrio = function(d) {
+            const inp = document.getElementById('new-goal-priority');
+            let v = parseInt(inp.value) + d;
+            if(v < 1) v = 1;
+            inp.value = v;
+        };
+        window.openSavings = function() {
+            const l = document.getElementById('goals-list');
+            l.innerHTML = '';
+            const t = getTotals(state.month);
+            let remainingSavings = t.s;
+            const sortedGoals = [...state.goals].sort((a,b) => (a.priority || 99) - (b.priority || 99));
+            document.getElementById('savings-subtitle').innerText = `Ahorro del Mes Disponible: ${fmt(t.s)}`;
+            editingGoalIndex = null;
+            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-plus text-lg"></i>';
+            
+            if(sortedGoals.length === 0) {
+                l.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm font-bold">Aún no has configurado metas de ahorro.</div>`;
+            }
+
+            sortedGoals.forEach((g) => {
+                const originalIndex = state.goals.findIndex(x => x === g);
+                let allocated = Math.min(g.target, remainingSavings);
+                if(allocated < 0) allocated = 0;
+                remainingSavings -= allocated;
+                let pct = g.target > 0 ? (allocated / g.target) * 100 : 0;
+                let col = allocated >= g.target ? 'bg-emerald-500' : 'bg-indigo-600';
+                
+                l.innerHTML += `
+                <div class="border border-slate-200/80 dark:border-slate-700/70 rounded-2xl p-5 bg-white/70 dark:bg-slate-900/60 relative overflow-hidden group">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-500 font-extrabold text-xs flex items-center justify-center">#${g.priority || '-'}</span>
+                            <div>
+                                <h4 class="font-extrabold text-base">${g.name}</h4>
+                                <span class="text-[11px] font-bold text-slate-400 uppercase">Meta: ${fmt(g.target)}</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-extrabold text-lg text-indigo-500 block">${fmt(allocated)}</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Cubierto</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden mb-3">
+                        <div class="h-full ${col} transition-all duration-700 ease-out" style="width:${Math.min(pct, 100)}%"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[11px] font-extrabold text-slate-500">${pct.toFixed(1)}% Completado</span>
+                        <div class="flex gap-2">
+                            <button onclick="editGoal(${originalIndex})" class="btn-icon edit !w-8 !h-8"><i class="ph-bold ph-pencil-simple"></i></button>
+                            <button onclick="state.goals.splice(${originalIndex},1);save();openSavings()" class="btn-icon !w-8 !h-8"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            openModal('modal-savings');
+        };
+        window.editGoal = function(i) {
+            editingGoalIndex = i;
+            document.getElementById('new-goal-name').value = state.goals[i].name;
+            document.getElementById('new-goal-target').value = state.goals[i].target;
+            document.getElementById('new-goal-priority').value = state.goals[i].priority || 1;
+            document.getElementById('btn-add-goal').innerHTML = '<i class="ph-bold ph-check text-lg"></i>';
+        };
+        window.addGoal = function() {
+            const n = document.getElementById('new-goal-name').value.trim();
+            const t = parseFloat(document.getElementById('new-goal-target').value);
+            const p = parseInt(document.getElementById('new-goal-priority').value) || 99;
+            if(n && t > 0) {
+                if(editingGoalIndex !== null) {
+                    state.goals[editingGoalIndex] = {name: n, target: t, priority: p};
+                    editingGoalIndex = null;
+                    showToast('Meta actualizada');
+                } else {
+                    state.goals.push({name: n, target: t, priority: p});
+                    showToast('Nueva meta añadida');
+                }
+                save();
+                openSavings();
+                document.getElementById('new-goal-name').value = '';
+                document.getElementById('new-goal-target').value = '';
+                document.getElementById('new-goal-priority').value = 1;
+            }
+        };
+
+        // --- CALENDARIO ---
+        function openCalendar() { calMonth = state.month; calYear = 2026; renderCal(); openModal('modal-calendar'); }
+        function calChangeMonth(d) { calMonth += d; if(calMonth > 11){calMonth = 0; calYear++;} if(calMonth < 0){calMonth = 11; calYear--;} renderCal(); }
+        function renderCal() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            document.getElementById('cal-title').innerText = `${MONTHS[calMonth]} ${calYear}`;
+            const first = new Date(calYear, calMonth, 1).getDay();
+            const days = new Date(calYear, calMonth + 1, 0).getDate();
+            const now = new Date();
+            for(let i = 0; i < first; i++) grid.innerHTML += `<div></div>`;
+            for(let d = 1; d <= days; d++) {
+                const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1));
+                const isToday = (d === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear());
+                const dots = evs.map(e => `<div class="event-dot" style="background:${getColor(e.type || e.category)}"></div>`).join('');
+                grid.innerHTML += `
+                <div class="cal-cell ${isToday ? 'today' : ''} ${evs.length > 0 ? 'has-event' : ''}" onclick="openDayDetails(${d})">
+                    <span class="z-10">${d}</span>
+                    <div class="flex gap-1 absolute bottom-1.5">${dots}</div>
+                </div>`;
+            }
+        }
+        function getColor(s) {
+            if(!s) return '#6366f1';
+            let hash = 0;
+            for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
+            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+            return '#' + "00000".substring(0, 6 - c.length) + c;
+        }
+        function openDayDetails(d) {
+            selectedDay = d;
+            document.getElementById('day-detail-title').innerText = `${d} de ${MONTHS[calMonth]}`;
+            const l = document.getElementById('day-events-list');
+            l.innerHTML = '';
+            const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1));
+            if(evs.length === 0) {
+                l.innerHTML = '<p class="text-slate-400 text-xs font-bold py-6 text-center">No hay eventos programados para este día.</p>';
+            } else {
+                evs.forEach(e => {
+                    const idx = state.events.findIndex(x => x === e);
+                    const bg = getColor(e.type || e.category);
+                    l.innerHTML += `
+                    <div class="flex justify-between items-center bg-white/80 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700 p-3.5 rounded-2xl shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="w-3 h-3 rounded-full shrink-0" style="background:${bg}"></span>
+                            <div>
+                                <p class="font-extrabold text-sm">${e.name}</p>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">${e.type || e.category || 'General'}</p>
+                            </div>
+                        </div>
+                        <button onclick="deleteEvent(${idx})" class="btn-icon !w-8 !h-8"><i class="ph-bold ph-trash"></i></button>
+                    </div>`;
+                });
+            }
+            openModal('modal-day-details');
+        }
+        window.addEventFromModal = function() {
+            const n = document.getElementById('new-event-input').value.trim();
+            const cat = document.getElementById('new-event-cat').value.trim();
+            if(n) {
+                state.events.push({name: n, d: selectedDay, m: calMonth + 1, category: cat});
+                save();
+                document.getElementById('new-event-input').value = '';
+                document.getElementById('new-event-cat').value = '';
+                openDayDetails(selectedDay);
+                renderCal();
+                showToast('Evento agendado');
+            }
+        };
+        window.deleteEvent = function(idx) {
+            state.events.splice(idx, 1);
+            save();
+            openDayDetails(selectedDay);
+            renderCal();
+        };
+
+        // --- TABLERO ANUAL (SIN CONTAMINAR CHART.DEFAULTS) ---
+        window.openAnnual = function() {
+            openModal('modal-annual');
+            let flow = [], wealth = [], accW = 0, incs = [], exps = [];
+            for(let m = 0; m < 12; m++) {
+                let res = getTotals(m);
+                accW += (res.b + res.s);
+                flow.push(res.b);
+                wealth.push(accW);
+                incs.push(res.i);
+                exps.push(res.e);
+            }
+            const darkScales = {
+                x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.12)' } }
+            };
+
+            if(charts.ch1) charts.ch1.destroy();
+            charts.ch1 = new Chart(document.getElementById('ch1'), {
+                type: 'bar',
+                data: {
+                    labels: ['E','F','M','A','M','J','J','A','S','O','N','D'],
+                    datasets: [{ label: 'Flujo Neto', data: flow, backgroundColor: flow.map(v => v >= 0 ? '#10b981' : '#f43f5e'), borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: darkScales }
+            });
+
+            if(charts.ch2) charts.ch2.destroy();
+            charts.ch2 = new Chart(document.getElementById('ch2'), {
+                type: 'line',
+                data: {
+                    labels: ['E','F','M','A','M','J','J','A','S','O','N','D'],
+                    datasets: [{ label: 'Patrimonio Acumulado', data: wealth, borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.15)', fill: true, tension: 0.4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: darkScales }
+            });
+
+            if(charts.ch3) charts.ch3.destroy();
+            charts.ch3 = new Chart(document.getElementById('ch3'), {
+                type: 'line',
+                data: {
+                    labels: ['E','F','M','A','M','J','J','A','S','O','N','D'],
+                    datasets: [
+                        { label: 'Ingresos', data: incs, borderColor: '#10b981', tension: 0.3 },
+                        { label: 'Gastos', data: exps, borderColor: '#f43f5e', tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#cbd5e1' } } },
+                    scales: darkScales
+                }
+            });
+
+            let catL = [], catD = [];
+            state.struct[state.month].forEach(sec => {
+                if(sec.type !== 'income' && sec.type !== 'savings') {
+                    let s = 0;
+                    sec.items.forEach((_, x) => s += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
+                    if(s > 0) { catL.push(sec.title); catD.push(s); }
+                }
+            });
+            if(charts.ch4) charts.ch4.destroy();
+            charts.ch4 = new Chart(document.getElementById('ch4'), {
+                type: 'doughnut',
+                data: {
+                    labels: catL.length ? catL : ['Sin Gastos'],
+                    datasets: [{ data: catD.length ? catD : [1], backgroundColor: catD.length ? PALETTE : ['#334155'], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { color: '#e2e8f0', boxWidth: 10, padding: 15 } } }
+                }
+            });
+        };
+
+        // --- CLONACIÓN INTELIGENTE DE MES ---
+        function openCloneModal() {
+            const s = document.getElementById('clone-target');
+            s.innerHTML = '';
+            MONTHS.forEach((m, i) => {
+                if(i !== state.month) s.innerHTML += `<option value="${i}">${m}</option>`;
+            });
+            openModal('modal-clone');
+        }
+        function executeClone() {
+            const targetMonth = parseInt(document.getElementById('clone-target').value);
+            const includeAmounts = document.getElementById('clone-with-amounts').checked;
+            const sourceMonth = state.month;
+
+            // Limpiar montos previos del mes destino
+            Object.keys(state.data).forEach(k => {
+                if(k.startsWith(`${targetMonth}-`)) delete state.data[k];
+            });
+
+            // Clonar estructura
+            state.struct[targetMonth] = JSON.parse(JSON.stringify(state.struct[sourceMonth]));
+
+            // Clonar montos si está marcado
+            if(includeAmounts) {
+                state.struct[sourceMonth].forEach(sec => {
+                    sec.items.forEach((_, idx) => {
+                        const val = state.data[`${sourceMonth}-${sec.id}-${idx}`];
+                        if(val !== undefined) {
+                            state.data[`${targetMonth}-${sec.id}-${idx}`] = val;
+                        }
+                    });
+                });
+            }
+
+            save();
+            closeModals();
+            showToast(`Mes duplicado en ${MONTHS[targetMonth]}`);
+        }
+
+        // --- RENDER STATS & DONUT CON BREAKDOWN ---
+        function renderStats() {
+            const t = getTotals(state.month);
+            document.getElementById('kpi-income').innerText = fmt(t.i);
+            document.getElementById('kpi-expenses').innerText = fmt(t.e);
+            document.getElementById('kpi-savings').innerText = fmt(t.s);
+            
+            const balEl = document.getElementById('kpi-balance');
+            balEl.innerText = fmt(t.b);
+            balEl.className = `text-3xl md:text-4xl font-extrabold truncate tracking-tight ${t.b < 0 ? 'text-rose-500' : ''}`;
+
+            // Badges y barras en KPIs
+            const marginPct = t.i > 0 ? ((t.b / t.i) * 100) : 0;
+            const expPct = t.i > 0 ? Math.min(100, (t.e / t.i) * 100) : 0;
+            const savPct = t.i > 0 ? ((t.s / t.i) * 100) : 0;
+
+            const badgeEl = document.getElementById('kpi-balance-badge');
+            badgeEl.innerText = `${marginPct.toFixed(0)}% libre`;
+            badgeEl.className = `text-[11px] font-extrabold px-2 py-0.5 rounded-md ${t.b >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-500'}`;
+
+            document.getElementById('kpi-expense-bar').style.width = `${expPct}%`;
+            document.getElementById('kpi-expense-ratio').innerText = `${expPct.toFixed(1)}% de tus ingresos`;
+            document.getElementById('kpi-savings-rate').innerText = `${savPct.toFixed(1)}% tasa`;
+            document.getElementById('chart-total-center').innerText = fmt(t.e);
+
+            // Datos del gráfico Donut
+            let labels = [], data = [];
+            state.struct[state.month].forEach(sec => {
+                if(sec.type !== 'income' && sec.type !== 'savings') {
+                    let sum = 0;
+                    sec.items.forEach((_, x) => sum += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
+                    if(sum > 0) { labels.push(sec.title); data.push(sum); }
+                }
+            });
+
+            const ctx = document.getElementById('chart-mini');
+            if(charts.mini) charts.mini.destroy();
+            const isDark = document.documentElement.classList.contains('dark');
+            const hasExpenses = data.length > 0;
+
+            charts.mini = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: hasExpenses ? labels : ['Sin gastos registrados'],
+                    datasets: [{
+                        data: hasExpenses ? data : [1],
+                        backgroundColor: hasExpenses ? PALETTE : [isDark ? '#1e293b' : '#e2e8f0'],
+                        borderWidth: 0,
+                        hoverOffset: hasExpenses ? 6 : 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '76%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: hasExpenses }
+                    }
+                }
+            });
+
+            // Lista de desglose debajo del gráfico
+            const breakdownEl = document.getElementById('chart-breakdown');
+            if (!hasExpenses) {
+                breakdownEl.innerHTML = `<p class="text-xs font-bold text-slate-400 text-center py-2">Registra tus gastos para ver la distribución porcentual.</p>`;
+            } else {
+                breakdownEl.innerHTML = labels.map((lbl, idx) => {
+                    const val = data[idx];
+                    const pct = t.e > 0 ? ((val / t.e) * 100).toFixed(1) : 0;
+                    const color = PALETTE[idx % PALETTE.length];
+                    return `
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2.5 truncate pr-2">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
+                            <span class="font-bold truncate">${lbl}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="font-extrabold">${fmt(val)}</span>
+                            <span class="text-[10px] font-extrabold text-slate-400 w-10 text-right">${pct}%</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOHCOm0vGslaMqandhuEsXEd5yKMPpkBQ",
+            authDomain: "finanzas-personales-7aa8b.firebaseapp.com",
+            projectId: "finanzas-personales-7aa8b",
+            storageBucket: "finanzas-personales-7aa8b.firebasestorage.app",
+            messagingSenderId: "1065284897176",
+            appId: "1:1065284897176:web:3f357be3e16f0af99303ed"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.cfoFirebase = {
+            signIn: function(email, password) {
+                return signInWithEmailAndPassword(auth, email, password);
+            },
+            signOut: function() {
+                return signOut(auth);
+            },
+            getCurrentUser: function() {
+                return auth.currentUser;
+            },
+            loadState: async function() {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Debes iniciar sesión antes de consultar Firestore.");
+                const snapshot = await getDoc(doc(db, "users", user.uid));
+                if (!snapshot.exists()) return null;
+                const data = snapshot.data();
+                if (data && typeof data.appStateJson === "string") {
+                    return JSON.parse(data.appStateJson);
+                }
+                // Compatibilidad futura con documentos creados con una versión anterior.
+                return data && data.appState ? data.appState : null;
+            },
+            saveState: async function(appState) {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Debes iniciar sesión antes de guardar en Firestore.");
+                const serialized = JSON.stringify(appState);
+                const byteLength = new TextEncoder().encode(serialized).length;
+                if (byteLength > 800000) {
+                    throw new Error("El respaldo ocupa " + byteLength + " bytes y supera el límite preventivo de 800 KB. No se guardó; conserva el JSON y avísame para dividir los datos en varios documentos.");
+                }
+                // El estado contiene arrays de meses que a su vez contienen arrays de secciones.
+                // Guardarlo como JSON serializado evita arrays anidados no admitidos por Firestore.
+                await setDoc(doc(db, "users", user.uid), {
+                    appStateJson: serialized,
+                    schemaVersion: 2,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            }
+        };
+
+        onAuthStateChanged(auth, function(user) {
+            if (typeof window.handleCfoAuthState === "function") {
+                window.handleCfoAuthState(user);
+            }
+        });
+    </script>
+
+</body>
+</html>

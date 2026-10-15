@@ -248,9 +248,87 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.6); }
+    
+        /* AUTHENTICATION AND FIRST-RUN MIGRATION GATES */
+        .cfo-gate {
+            position: fixed; inset: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px; overflow-y: auto;
+            background: rgba(7, 11, 20, 0.94);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        }
+        .cfo-gate.hidden { display: none !important; }
+        .cfo-gate-card {
+            width: 100%; max-width: 480px; padding: 28px;
+            border-radius: 24px; border: 1px solid var(--border-card);
+            background: var(--bg-card); color: var(--text-main);
+            box-shadow: 0 25px 70px -12px rgba(0,0,0,.55);
+        }
+        .cfo-gate-input {
+            display:block; width:100%; margin-top:6px; padding:12px 14px;
+            border:1px solid var(--border-card); border-radius:12px;
+            background:rgba(148,163,184,.10); color:inherit; outline:none;
+        }
+        .cfo-gate-input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+        .cfo-gate-error { color:#ef4444; font-size:12px; font-weight:700; min-height:18px; }
+
     </style>
 </head>
 <body class="sb-closed">
+
+    <!-- AUTHENTICATION GATE: sign-in only, no public registration -->
+    <div id="auth-gate" class="cfo-gate">
+        <div class="cfo-gate-card">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg">
+                    <i class="ph-bold ph-trend-up text-2xl"></i>
+                </div>
+                <div>
+                    <p class="font-extrabold text-xl">CFO<span class="text-indigo-500">.</span>Pro</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acceso privado</p>
+                </div>
+            </div>
+            <h1 class="text-2xl font-extrabold mb-2">Inicia sesión</h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Ingresa con la cuenta autorizada para consultar tus finanzas personales.</p>
+            <form id="cfo-login-form" onsubmit="event.preventDefault(); signInCfo();" class="space-y-4">
+                <div>
+                    <label for="cfo-login-email" class="text-xs font-extrabold uppercase text-slate-500">Correo electrónico</label>
+                    <input id="cfo-login-email" type="email" autocomplete="username" required class="cfo-gate-input" placeholder="tu-correo@ejemplo.com">
+                </div>
+                <div>
+                    <label for="cfo-login-password" class="text-xs font-extrabold uppercase text-slate-500">Contraseña</label>
+                    <input id="cfo-login-password" type="password" autocomplete="current-password" required class="cfo-gate-input" placeholder="Tu contraseña">
+                </div>
+                <button id="btn-cfo-login" type="submit" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold shadow-lg shadow-indigo-500/20 transition-all">Entrar de forma segura</button>
+                <p id="auth-error" class="cfo-gate-error" role="alert"></p>
+            </form>
+            <p class="text-[11px] text-slate-400 mt-4">El registro público está deshabilitado. Las cuentas se administran desde Firebase Authentication.</p>
+        </div>
+    </div>
+
+    <!-- FIRST-RUN DATA MIGRATION GATE -->
+    <div id="migration-gate" class="cfo-gate hidden">
+        <div class="cfo-gate-card">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-5">
+                <i class="ph-bold ph-database text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold mb-2">Configurar tus datos</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">Has iniciado sesión, pero todavía no hay datos guardados en Firestore para esta cuenta.</p>
+            <p class="text-xs text-slate-400 mb-5">Para conservar tus registros, exporta un JSON desde la versión publicada anterior (Ajustes y Datos → Exportar JSON) y cárgalo aquí. También puedes empezar sin datos previos.</p>
+            <div id="migration-actions" class="space-y-3">
+                <div>
+                    <label for="initial-backup-file" class="text-xs font-extrabold uppercase text-slate-500">Copia de seguridad (.json)</label>
+                    <input id="initial-backup-file" type="file" accept=".json,application/json" class="cfo-gate-input">
+                </div>
+                <button onclick="importInitialBackup()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold transition-all">Importar respaldo a Firestore</button>
+                <button id="btn-use-local-backup" onclick="importLocalBackupToCloud()" class="w-full py-3 rounded-xl border border-indigo-500/40 text-indigo-600 dark:text-indigo-300 font-bold transition-all hidden">Usar copia local de este navegador</button>
+                <button onclick="startFreshCloudData()" class="w-full py-3 rounded-xl border border-slate-300 dark:border-slate-700 font-bold transition-all">Empezar sin datos previos</button>
+            </div>
+            <p id="migration-error" class="cfo-gate-error mt-4" role="alert"></p>
+            <p id="migration-account-email" class="text-[11px] text-slate-400 mt-2"></p>
+        </div>
+    </div>
+
 
     <script>
         (function() {
@@ -337,6 +415,9 @@
                 </button>
                 <button onclick="openSettings()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Configuración y Respaldo">
                     <i class="ph-bold ph-gear text-xl"></i>
+                </button>
+                <button id="btn-cfo-logout" onclick="signOutCfo()" class="hidden p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-rose-300" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <i class="ph-bold ph-sign-out text-xl"></i>
                 </button>
             </div>
         </header>
@@ -701,7 +782,7 @@
                 <button onclick="clearMonth()" class="w-full py-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-sm rounded-xl hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
                     <i class="ph-bold ph-eraser text-lg"></i> Poner en S/ 0.00 el Mes Actual
                 </button>
-                <button onclick="if(confirm('¿Reiniciar absolutamente TODOS los datos locales?')){localStorage.removeItem('cfo_v110_arch');location.reload()}" class="w-full py-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-sm rounded-xl hover:bg-rose-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
+                <button onclick="resetCfoData()" class="w-full py-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-sm rounded-xl hover:bg-rose-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
                     <i class="ph-bold ph-trash text-lg"></i> Restablecer de Fábrica
                 </button>
             </div>
@@ -734,7 +815,7 @@
     </div>
 
     <script>
-        const CONFIG = { apiKey: "$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm", binId: "698a256fd0ea881f40adab7d" };
+        // Firebase handles cloud persistence in this test branch; legacy JSONBin credentials are not embedded here.
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const PALETTE = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#ec4899', '#14b8a6', '#8b5cf6', '#06b6d4'];
         const BASE = [
@@ -787,59 +868,269 @@
             renderStats();
         };
 
+
+        let keyboardHandlerAttached = false;
+
+        function makeInitialState() {
+            return {
+                month: new Date().getMonth(),
+                struct: genYear(),
+                data: {},
+                events: [
+                    {name:'San Valentín', d:14, m:2, type:'other'},
+                    {name:'Navidad', d:25, m:12, type:'bday'}
+                ],
+                goals: [{name:'Fondo Emergencia', target:5000, priority:1}]
+            };
+        }
+
+        function isValidCfoState(candidate) {
+            return !!candidate &&
+                Array.isArray(candidate.struct) &&
+                candidate.struct.length === 12 &&
+                candidate.struct.every(month => Array.isArray(month)) &&
+                typeof candidate.data === 'object' &&
+                candidate.data !== null;
+        }
+
+        function normalizeCfoState(candidate) {
+            if (!isValidCfoState(candidate)) {
+                throw new Error('El archivo no contiene una copia válida de Finanzas Personales.');
+            }
+            const normalized = Object.assign({}, candidate);
+            normalized.month = Number.isInteger(normalized.month) && normalized.month >= 0 && normalized.month < 12
+                ? normalized.month : new Date().getMonth();
+            normalized.data = normalized.data || {};
+            normalized.events = Array.isArray(normalized.events) ? normalized.events : [];
+            normalized.goals = Array.isArray(normalized.goals) ? normalized.goals : [];
+            return normalized;
+        }
+
+        function setSyncState(mode, label) {
+            const indicator = document.getElementById('sync-indicator');
+            const text = document.getElementById('sync-text');
+            if (indicator) indicator.className = 'sync-light ' + mode;
+            if (text) text.innerText = label;
+        }
+
         async function init() {
             updateThemeIcon();
-            await sync(true);
-            if(!state.struct || state.struct.length === 0) {
-                const local = localStorage.getItem('cfo_v110_arch');
-                if(local) state = JSON.parse(local);
-                else {
-                    state.struct = genYear();
-                    state.events = [{name:'San Valentín', d:14, m:2, type:'other'}, {name:'Navidad', d:25, m:12, type:'bday'}];
-                    state.goals = [{name:'Fondo Emergencia', target:5000, priority:1}];
-                    await sync(false);
-                }
-            }
-            
-            document.addEventListener('keydown', (e) => { 
-                if(e.key === 'Escape') {
-                    if(modalStack.length > 0) {
-                        const last = modalStack.pop();
-                        document.getElementById(last).classList.remove('active');
-                    } else if(document.body.classList.contains('sb-open') && window.innerWidth < 768) {
-                        toggleSidebar();
+            if (!keyboardHandlerAttached) {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        if (modalStack.length > 0) {
+                            const last = modalStack.pop();
+                            const modal = document.getElementById(last);
+                            if (modal) modal.classList.remove('active');
+                        } else if (document.body.classList.contains('sb-open') && window.innerWidth < 768) {
+                            toggleSidebar();
+                        }
                     }
-                }
-            });
+                });
+                keyboardHandlerAttached = true;
+            }
             render();
         }
 
-        async function sync(pull) {
-            const ind = document.getElementById('sync-indicator');
-            const txt = document.getElementById('sync-text');
-            ind.className = 'sync-light working';
-            if(txt) txt.innerText = pull ? 'Cargando...' : 'Guardando...';
+        async function sync(pull = false) {
+            const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
+            if (!currentUser) {
+                setSyncState('error', 'Inicia sesión');
+                return false;
+            }
+            setSyncState('working', pull ? 'Cargando...' : 'Guardando...');
             try {
-                if(pull) {
-                    const r = await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}/latest`, { headers: { 'X-Master-Key': CONFIG.apiKey } });
-                    const j = await r.json();
-                    if(j.record && j.record.struct) state = j.record;
+                if (pull) {
+                    const remoteState = await window.cfoFirebase.loadState();
+                    if (!remoteState) return false;
+                    state = normalizeCfoState(remoteState);
                 } else {
-                    await fetch(`https://api.jsonbin.io/v3/b/${CONFIG.binId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': CONFIG.apiKey },
-                        body: JSON.stringify(state)
-                    });
+                    await window.cfoFirebase.saveState(state);
                 }
-                localStorage.setItem('cfo_v110_arch', JSON.stringify(state));
-                ind.className = 'sync-light ok';
-                if(txt) txt.innerText = 'Sincronizado';
-            } catch(e) {
-                console.error(e);
-                ind.className = 'sync-light error';
-                if(txt) txt.innerText = 'Modo Local';
+                localStorage.setItem('cfo_v120_cache_' + currentUser.uid, JSON.stringify(state));
+                setSyncState('ok', 'Firebase sincronizado');
+                return true;
+            } catch (error) {
+                console.error('Error de sincronización con Firebase:', error);
+                setSyncState('error', 'Error de sincronización');
+                showToast('No se pudo guardar en Firebase. Revisa tu conexión.', 'error');
+                return false;
             }
         }
+
+        function hasValidLegacyLocalBackup() {
+            try {
+                return isValidCfoState(JSON.parse(localStorage.getItem('cfo_v110_arch') || 'null'));
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function showMigrationGate(message) {
+            const gate = document.getElementById('migration-gate');
+            const error = document.getElementById('migration-error');
+            const localButton = document.getElementById('btn-use-local-backup');
+            gate.classList.remove('hidden');
+            error.textContent = message || '';
+            localButton.classList.toggle('hidden', !hasValidLegacyLocalBackup());
+        }
+
+        async function finishFirstRunWithState(candidate) {
+            try {
+                state = normalizeCfoState(candidate);
+                const ok = await sync(false);
+                if (!ok) {
+                    document.getElementById('migration-error').textContent =
+                        'No se pudo guardar en Firestore. Tus datos importados siguen en esta pantalla; verifica la conexión y vuelve a intentarlo.';
+                    return;
+                }
+                document.getElementById('migration-gate').classList.add('hidden');
+                await init();
+                showToast('Datos guardados en Firestore correctamente');
+            } catch (error) {
+                document.getElementById('migration-error').textContent = error.message || 'No se pudo importar la copia.';
+            }
+        }
+
+        window.importInitialBackup = async function() {
+            const input = document.getElementById('initial-backup-file');
+            const file = input.files && input.files[0];
+            if (!file) {
+                document.getElementById('migration-error').textContent = 'Selecciona primero el archivo JSON de respaldo.';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async function(event) {
+                try {
+                    const imported = JSON.parse(event.target.result);
+                    await finishFirstRunWithState(imported);
+                    input.value = '';
+                } catch (error) {
+                    document.getElementById('migration-error').textContent = 'El archivo no es un JSON válido.';
+                }
+            };
+            reader.onerror = function() {
+                document.getElementById('migration-error').textContent = 'No se pudo leer el archivo seleccionado.';
+            };
+            reader.readAsText(file);
+        };
+
+        window.importLocalBackupToCloud = async function() {
+            if (!hasValidLegacyLocalBackup()) {
+                document.getElementById('migration-error').textContent = 'No se encontró una copia local válida en este navegador.';
+                return;
+            }
+            if (!confirm('Se importará la copia local anterior a Firestore. Si tienes una copia JSON más reciente, utiliza preferentemente ese archivo. ¿Continuar?')) return;
+            try {
+                const imported = JSON.parse(localStorage.getItem('cfo_v110_arch'));
+                await finishFirstRunWithState(imported);
+            } catch (error) {
+                document.getElementById('migration-error').textContent = 'No se pudo importar la copia local.';
+            }
+        };
+
+        window.startFreshCloudData = async function() {
+            if (!confirm('Todavía no hay registros de Finanzas Personales en Firestore para esta cuenta. ¿Quieres empezar con una estructura vacía?')) return;
+            state = makeInitialState();
+            const ok = await sync(false);
+            if (!ok) {
+                document.getElementById('migration-error').textContent = 'No se pudo crear el documento en Firestore. No cierres esta pantalla; revisa las reglas y vuelve a intentarlo.';
+                return;
+            }
+            document.getElementById('migration-gate').classList.add('hidden');
+            await init();
+            showToast('Finanzas Personales está conectado a Firestore');
+        };
+
+        window.handleCfoAuthState = async function(user) {
+            const authGate = document.getElementById('auth-gate');
+            const migrationGate = document.getElementById('migration-gate');
+            const logoutButton = document.getElementById('btn-cfo-logout');
+            const authError = document.getElementById('auth-error');
+            const migrationError = document.getElementById('migration-error');
+            const migrationActions = document.getElementById('migration-actions');
+
+            if (!user) {
+                authGate.classList.remove('hidden');
+                migrationGate.classList.add('hidden');
+                logoutButton.classList.add('hidden');
+                authError.textContent = '';
+                migrationError.textContent = '';
+                migrationActions.classList.remove('hidden');
+                state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+                setSyncState('error', 'Inicia sesión');
+                return;
+            }
+
+            authError.textContent = '';
+            authGate.classList.add('hidden');
+            logoutButton.classList.remove('hidden');
+            document.getElementById('migration-account-email').textContent = 'Cuenta: ' + (user.email || 'autenticada');
+
+            try {
+                const remoteState = await window.cfoFirebase.loadState();
+                if (remoteState) {
+                    state = normalizeCfoState(remoteState);
+                    migrationGate.classList.add('hidden');
+                    migrationActions.classList.remove('hidden');
+                    await init();
+                    setSyncState('ok', 'Firebase sincronizado');
+                } else {
+                    state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+                    showMigrationGate('');
+                }
+            } catch (error) {
+                console.error('No se pudo consultar Firestore:', error);
+                showMigrationGate('No se pudo consultar Firestore. No importes ni crees datos todavía; revisa las reglas de seguridad y vuelve a cargar la página.');
+                migrationActions.classList.add('hidden');
+            }
+        };
+
+        window.signInCfo = async function() {
+            const email = document.getElementById('cfo-login-email').value.trim();
+            const password = document.getElementById('cfo-login-password').value;
+            const button = document.getElementById('btn-cfo-login');
+            const errorBox = document.getElementById('auth-error');
+            errorBox.textContent = '';
+            button.disabled = true;
+            button.textContent = 'Ingresando...';
+            try {
+                await window.cfoFirebase.signIn(email, password);
+                document.getElementById('cfo-login-password').value = '';
+            } catch (error) {
+                const messages = {
+                    'auth/invalid-credential': 'El correo o la contraseña no son correctos.',
+                    'auth/user-not-found': 'No existe una cuenta con ese correo.',
+                    'auth/wrong-password': 'La contraseña no es correcta.',
+                    'auth/too-many-requests': 'Hubo demasiados intentos. Espera un momento y vuelve a intentarlo.',
+                    'auth/invalid-email': 'Escribe una dirección de correo válida.'
+                };
+                errorBox.textContent = messages[error.code] || 'No se pudo iniciar sesión. Verifica los datos e inténtalo de nuevo.';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Entrar de forma segura';
+            }
+        };
+
+        window.signOutCfo = async function() {
+            if (!confirm('¿Cerrar la sesión de Finanzas Personales?')) return;
+            try {
+                await window.cfoFirebase.signOut();
+            } catch (error) {
+                showToast('No se pudo cerrar la sesión.', 'error');
+            }
+        };
+
+        window.resetCfoData = async function() {
+            if (!confirm('Esto reemplazará los datos financieros guardados en Firestore por una estructura vacía. Exporta una copia antes de continuar. ¿Deseas seguir?')) return;
+            state = makeInitialState();
+            const ok = await sync(false);
+            if (ok) {
+                closeModals();
+                await init();
+                showToast('Datos reiniciados en Firestore', 'info');
+            }
+        };
 
         // --- STACK MODAL LOGIC ---
         function openModal(id) {
@@ -857,7 +1148,7 @@
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { localStorage.setItem('cfo_v110_arch', JSON.stringify(state)); render(); sync(false); }
+        function save() { render(); sync(false); }
 
         function render() {
             renderSidebar();
@@ -1597,7 +1888,65 @@
             }
         }
 
-        init();
     </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOHCOm0vGslaMqandhuEsXEd5yKMPpkBQ",
+            authDomain: "finanzas-personales-7aa8b.firebaseapp.com",
+            projectId: "finanzas-personales-7aa8b",
+            storageBucket: "finanzas-personales-7aa8b.firebasestorage.app",
+            messagingSenderId: "1065284897176",
+            appId: "1:1065284897176:web:3f357be3e16f0af99303ed"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.cfoFirebase = {
+            signIn: function(email, password) {
+                return signInWithEmailAndPassword(auth, email, password);
+            },
+            signOut: function() {
+                return signOut(auth);
+            },
+            getCurrentUser: function() {
+                return auth.currentUser;
+            },
+            loadState: async function() {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Debes iniciar sesión antes de consultar Firestore.");
+                const snapshot = await getDoc(doc(db, "users", user.uid));
+                if (!snapshot.exists()) return null;
+                const data = snapshot.data();
+                return data && data.appState ? data.appState : null;
+            },
+            saveState: async function(appState) {
+                const user = auth.currentUser;
+                if (!user) throw new Error("Debes iniciar sesión antes de guardar en Firestore.");
+                const serialized = JSON.stringify(appState);
+                if (serialized.length > 850000) {
+                    throw new Error("Los datos superan el tamaño recomendado para un documento de Firestore. Se necesita dividirlos en varios documentos.");
+                }
+                await setDoc(doc(db, "users", user.uid), {
+                    appState: appState,
+                    schemaVersion: 1,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+            }
+        };
+
+        onAuthStateChanged(auth, function(user) {
+            if (typeof window.handleCfoAuthState === "function") {
+                window.handleCfoAuthState(user);
+            }
+        });
+    </script>
+
 </body>
 </html>

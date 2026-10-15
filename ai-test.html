@@ -844,7 +844,7 @@
     <script>
         // Firebase handles cloud persistence in this test branch; legacy JSONBin credentials are not embedded here.
         // Configura esta URL solo cuando el Worker seguro ya esté desplegado y probado.
-        const AI_DIAGNOSIS_ENDPOINT = "https://finanzas-personales-ai.somerssc02.workers.dev";
+        const AI_DIAGNOSIS_ENDPOINT = "";
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const PALETTE = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#ec4899', '#14b8a6', '#8b5cf6', '#06b6d4'];
         const BASE = [
@@ -1559,7 +1559,7 @@
             if (!AI_DIAGNOSIS_ENDPOINT) {
                 status.className = 'cfo-ai-status error'; status.textContent = 'Falta configurar el servicio IA';
                 output.classList.remove('hidden');
-                output.textContent = 'La interfaz está preparada, pero falta desplegar el servicio seguro de IA y configurar su URL. No se ha enviado ningún dato financiero.';
+                output.textContent = 'La evaluación con IA está pausada para evitar gastos. No se enviará ningún dato financiero a OpenAI hasta que decidas activar el servicio.';
                 return;
             }
             const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();

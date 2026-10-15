@@ -272,6 +272,12 @@
         .cfo-gate-input:focus { border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
         .cfo-gate-error { color:#ef4444; font-size:12px; font-weight:700; min-height:18px; }
 
+            .cfo-ai-panel { background: linear-gradient(135deg, rgba(79,70,229,.08), rgba(16,185,129,.05)); border: 1px solid rgba(99,102,241,.22); border-radius: 20px; }
+        .cfo-ai-output { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+        .cfo-ai-status { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+        .cfo-ai-status.ok { color: #059669; }
+        .cfo-ai-status.loading { color: #d97706; }
+        .cfo-ai-status.error { color: #e11d48; }
     </style>
 </head>
 <body class="sb-closed">
@@ -635,13 +641,33 @@
                     </div>
                     <div>
                         <h3 class="text-2xl font-extrabold">Diagnóstico CFO</h3>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Auditoría algorítmica del mes actual</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Análisis automático e IA del mes seleccionado</p>
                     </div>
                 </div>
                 <button onclick="runAdvisorAnalysis(); showToast('Diagnóstico actualizado', 'info')" class="btn-icon refresh" title="Recargar Análisis">
                     <i class="ph-bold ph-arrows-clockwise text-lg"></i>
                 </button>
             </div>
+            <section class="cfo-ai-panel p-5 md:p-6 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="ph-fill ph-sparkle text-indigo-500 text-xl"></i>
+                            <h4 class="font-extrabold text-sm uppercase tracking-wider">Evaluación financiera con IA</h4>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Analiza solo el mes seleccionado y los datos registrados hasta el momento de generar la evaluación. La IA no recibe los demás meses ni tu correo o credenciales.</p>
+                        <p class="text-[10px] text-slate-400 mt-2">Al generar, se enviará a OpenAI un resumen de importes, conceptos, deudas, metas y eventos del mes seleccionado.</p>
+                    </div>
+                    <div class="sm:w-64 shrink-0">
+                        <button id="btn-ai-diagnosis" onclick="generateAIDiagnosis()" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20">
+                            <i class="ph-bold ph-sparkle text-base"></i> Generar evaluación con IA
+                        </button>
+                        <p id="ai-diagnosis-status" class="cfo-ai-status mt-3 text-slate-400">IA pendiente de configurar</p>
+                    </div>
+                </div>
+                <div id="ai-diagnosis-meta" class="text-[10px] text-slate-400 mt-3"></div>
+                <div id="ai-diagnosis-output" class="cfo-ai-output hidden mt-4 p-4 md:p-5 rounded-2xl bg-white/80 dark:bg-slate-950/50 border border-slate-200/70 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200" role="status" aria-live="polite"></div>
+            </section>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="p-6 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border-l-4 border-emerald-500">
                     <h4 class="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs uppercase mb-3 tracking-widest flex items-center gap-2">
@@ -816,6 +842,8 @@
 
     <script>
         // Firebase handles cloud persistence in this test branch; legacy JSONBin credentials are not embedded here.
+        // Configura esta URL solo cuando el Worker seguro ya esté desplegado y probado.
+        const AI_DIAGNOSIS_ENDPOINT = "";
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const PALETTE = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#ec4899', '#14b8a6', '#8b5cf6', '#06b6d4'];
         const BASE = [
@@ -1464,7 +1492,7 @@
         }
 
         // --- CONSEJERO CFO MEJORADO ---
-        window.openAdvisor = function() { runAdvisorAnalysis(); openModal('modal-advisor'); };
+        window.openAdvisor = function() { runAdvisorAnalysis(); updateAIDiagnosisContext(); openModal('modal-advisor'); };
         window.runAdvisorAnalysis = function() {
             const t = getTotals(state.month);
             const runway = t.e > 0 ? (t.s / t.e).toFixed(1) : '∞';
@@ -1492,6 +1520,76 @@
                     <li>Usa la función <b>Duplicar Mes</b> para proyectar tus costos fijos en el mes siguiente.</li>
                 </ul>
             `;
+        };
+
+        // --- EVALUACIÓN CON IA DEL MES SELECCIONADO ---
+        function buildMonthlyAIPayload() {
+            const monthIndex = state.month;
+            const monthSections = Array.isArray(state.struct[monthIndex]) ? state.struct[monthIndex] : [];
+            const sections = monthSections.map(function(section) {
+                const items = (Array.isArray(section.items) ? section.items : []).map(function(concept, index) {
+                    const rawAmount = Number(state.data[monthIndex + '-' + section.id + '-' + index] || 0);
+                    return { concept: String(concept || 'Concepto sin nombre').slice(0, 100), amount: Number.isFinite(rawAmount) ? rawAmount : 0 };
+                });
+                const debt = section.type === 'debt' ? { principal: Number(section.debtTotal || 0), monthlyRatePercent: Number(section.debtRate || 0) } : null;
+                return { name: String(section.title || 'Sección sin nombre').slice(0, 100), type: ['income', 'expense', 'debt', 'savings'].includes(section.type) ? section.type : 'expense', items: items, debt: debt };
+            });
+            const events = (Array.isArray(state.events) ? state.events : []).filter(function(event) { return Number(event.m) === monthIndex + 1; }).slice(0, 60).map(function(event) {
+                return { day: Number(event.d) || null, name: String(event.name || 'Evento sin nombre').slice(0, 100), category: String(event.type || event.category || 'General').slice(0, 50) };
+            });
+            const goals = (Array.isArray(state.goals) ? state.goals : []).slice(0, 40).map(function(goal) {
+                return { name: String(goal.name || 'Meta sin nombre').slice(0, 100), target: Number(goal.target || 0), priority: Number(goal.priority || 99) };
+            });
+            return { month: MONTHS[monthIndex], year: 2026, capturedAt: new Date().toISOString(), currency: 'PEN', sections: sections, events: events, goals: goals };
+        }
+
+        function updateAIDiagnosisContext() {
+            const meta = document.getElementById('ai-diagnosis-meta');
+            const status = document.getElementById('ai-diagnosis-status');
+            if (meta) meta.textContent = 'Mes seleccionado: ' + MONTHS[state.month] + ' de 2026. La instantánea se tomará al pulsar el botón.';
+            if (status) { status.className = 'cfo-ai-status ' + (AI_DIAGNOSIS_ENDPOINT ? 'ok' : 'error'); status.textContent = AI_DIAGNOSIS_ENDPOINT ? 'Servicio IA configurado' : 'Falta configurar el servicio IA'; }
+        }
+
+        window.generateAIDiagnosis = async function() {
+            const button = document.getElementById('btn-ai-diagnosis');
+            const output = document.getElementById('ai-diagnosis-output');
+            const status = document.getElementById('ai-diagnosis-status');
+            const meta = document.getElementById('ai-diagnosis-meta');
+            if (!AI_DIAGNOSIS_ENDPOINT) {
+                status.className = 'cfo-ai-status error'; status.textContent = 'Falta configurar el servicio IA';
+                output.classList.remove('hidden');
+                output.textContent = 'La interfaz está preparada, pero falta desplegar el servicio seguro de IA y configurar su URL. No se ha enviado ningún dato financiero.';
+                return;
+            }
+            const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
+            if (!currentUser) { showToast('Inicia sesión para generar la evaluación.', 'error'); return; }
+            const snapshot = buildMonthlyAIPayload();
+            const confirmation = 'Se enviará a OpenAI una instantánea de ' + snapshot.month + ' de ' + snapshot.year + ': conceptos e importes de ese mes, deudas, metas y eventos del mes. No se enviarán tus credenciales ni los datos de otros meses. ¿Deseas generar la evaluación?';
+            if (!confirm(confirmation)) return;
+            button.disabled = true; button.classList.add('opacity-60', 'cursor-not-allowed');
+            button.innerHTML = '<i class="ph-bold ph-spinner-gap animate-spin text-base"></i> Analizando el mes...';
+            status.className = 'cfo-ai-status loading'; status.textContent = 'Generando evaluación';
+            output.classList.remove('hidden');
+            output.textContent = 'La IA está revisando la información registrada en ' + snapshot.month + ' de ' + snapshot.year + '. Espera un momento...';
+            meta.textContent = 'Datos capturados el ' + new Date(snapshot.capturedAt).toLocaleString('es-PE') + '. La evaluación se calculará con esta instantánea.';
+            try {
+                const idToken = await currentUser.getIdToken();
+                const response = await fetch(AI_DIAGNOSIS_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken }, body: JSON.stringify({ snapshot: snapshot }) });
+                let result = {}; try { result = await response.json(); } catch (parseError) { result = {}; }
+                if (!response.ok) throw new Error(result.error || ('El servicio IA respondió con el código ' + response.status + '.'));
+                if (typeof result.text !== 'string' || !result.text.trim()) throw new Error('La IA no devolvió una evaluación legible. Inténtalo nuevamente.');
+                output.textContent = result.text;
+                status.className = 'cfo-ai-status ok'; status.textContent = 'Evaluación completada';
+                const usage = result.usage ? ' · tokens de entrada: ' + (result.usage.input_tokens || 0) + ' · salida: ' + (result.usage.output_tokens || 0) : '';
+                meta.textContent = 'Evaluación de ' + snapshot.month + ' de ' + snapshot.year + ' · generada el ' + new Date(result.generatedAt || Date.now()).toLocaleString('es-PE') + ' · modelo: ' + (result.model || 'OpenAI') + usage;
+            } catch (error) {
+                console.error('Error al generar la evaluación con IA:', error);
+                status.className = 'cfo-ai-status error'; status.textContent = 'No se pudo generar la evaluación';
+                output.textContent = (error && error.message) ? error.message : 'Error de conexión. Comprueba el servicio IA e inténtalo nuevamente.';
+            } finally {
+                button.disabled = false; button.classList.remove('opacity-60', 'cursor-not-allowed');
+                button.innerHTML = '<i class="ph-bold ph-sparkle text-base"></i> Generar evaluación con IA';
+            }
         };
 
         // --- BACKUP EXPORT / IMPORT ---

@@ -2551,6 +2551,26 @@
             if (meta) refreshPaymentDateEvents(key, v, state.data[key] || 0, meta);
             save();
         }
+        function saveSectionTitleWithoutRerender() {
+            const nextSnapshot = JSON.stringify(state);
+            if (!historyReplayInProgress && lastCommittedStateSnapshot && nextSnapshot !== lastCommittedStateSnapshot) {
+                undoHistory.push(lastCommittedStateSnapshot);
+                if (undoHistory.length > MAX_UNDO_HISTORY) undoHistory.shift();
+                redoHistory = [];
+            }
+            lastCommittedStateSnapshot = nextSnapshot;
+            sync(false);
+        }
+
+        function createSectionTitleDisplay(sIdx, title) {
+            const display = document.createElement('span');
+            display.className = 'section-title-display font-extrabold text-base md:text-lg truncate cursor-text';
+            display.title = 'Clic para editar el nombre';
+            display.textContent = title || '';
+            display.onclick = event => window.startEditSectionTitle(sIdx, display, event);
+            return display;
+        }
+
         window.startEditSectionTitle = function(sIdx, displayEl, event) {
             if (event) event.stopPropagation();
             const monthSections = state.struct[state.month];
@@ -2560,7 +2580,7 @@
             const input = document.createElement('input');
             input.type = 'text';
             input.value = section.title || '';
-            input.className = 'font-extrabold text-base md:text-lg bg-transparent border-b border-indigo-400 outline-none input-row !p-0 w-full min-w-0';
+            input.className = 'section-title-edit font-extrabold text-base md:text-lg bg-transparent border-b border-indigo-400 outline-none input-row !p-0 w-full min-w-0';
             input.setAttribute('aria-label', 'Nombre de la casilla');
             input.title = 'Escribe el nombre y presiona Enter';
             input.onclick = e => e.stopPropagation();
@@ -2580,11 +2600,12 @@
             };
             input.onblur = () => {
                 const nextTitle = input.value.trim();
-                if (!cancelled && nextTitle) {
-                    if (nextTitle !== section.title) section.title = nextTitle;
-                    save();
+                if (!cancelled && nextTitle && nextTitle !== section.title) {
+                    section.title = nextTitle;
+                    input.replaceWith(createSectionTitleDisplay(sIdx, nextTitle));
+                    saveSectionTitleWithoutRerender();
                 } else {
-                    render();
+                    input.replaceWith(createSectionTitleDisplay(sIdx, section.title || ''));
                 }
             };
             displayEl.replaceWith(input);

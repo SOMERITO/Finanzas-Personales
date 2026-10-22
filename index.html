@@ -321,8 +321,11 @@
             </div>
             
             <div class="flex items-center gap-2 md:gap-4">
-                <!-- INDICADOR DE SINCRONIZACIÓN MINIMALISTA -->
-                <span id="sync-indicator" class="sync-light working" role="status" aria-label="Cargando datos" title="Cargando datos"></span>
+                <!-- ESTADO DE SINCRONIZACIÓN: TEXTO Y CÍRCULO, SIN PASTILLA -->
+                <span id="sync-status" class="inline-flex items-center gap-2 whitespace-nowrap text-[11px] font-bold text-slate-300" role="status" aria-live="polite" title="Cargando datos">
+                    <span id="sync-indicator" class="sync-light working" aria-hidden="true"></span>
+                    <span id="sync-text">Sincronizando...</span>
+                </span>
                 
                 <button onclick="openCalendar()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Calendario Financiero">
                     <i class="ph-bold ph-calendar-blank text-xl"></i>
@@ -828,11 +831,20 @@
 
         function setSyncState(mode, label) {
             const indicator = document.getElementById('sync-indicator');
-            if (indicator) {
-                indicator.className = 'sync-light ' + mode;
-                indicator.setAttribute('aria-label', label);
-                indicator.title = label;
+            const text = document.getElementById('sync-text');
+            const status = document.getElementById('sync-status');
+
+            if (indicator) indicator.className = 'sync-light ' + mode;
+
+            if (text) {
+                const compactLabels = {
+                    'Firebase sincronizado': 'Sincronizado',
+                    'Guardado en este dispositivo': 'Guardado localmente'
+                };
+                text.textContent = compactLabels[label] || label;
             }
+
+            if (status) status.title = label;
         }
 
         async function init() {

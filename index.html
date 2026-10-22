@@ -701,6 +701,17 @@
                         <input type="file" accept=".json" class="hidden" onchange="importBackup(event)">
                     </label>
                 </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="undoCfo()" class="py-3 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Deshacer última acción (Ctrl+Z)">
+                        <i class="ph-bold ph-arrow-counter-clockwise"></i> Deshacer <kbd class="text-[10px] opacity-70">Ctrl+Z</kbd>
+                    </button>
+                    <button onclick="redoCfo()" class="py-3 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Rehacer acción (Ctrl+Y)">
+                        <i class="ph-bold ph-arrow-clockwise"></i> Rehacer <kbd class="text-[10px] opacity-70">Ctrl+Y</kbd>
+                    </button>
+                </div>
+                <button onclick="openShortcuts()" class="w-full py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold text-sm flex items-center justify-center gap-2 hover:bg-indigo-500/15 transition-colors">
+                    <i class="ph-bold ph-keyboard"></i> Atajos de teclado <kbd class="text-xs opacity-70">?</kbd>
+                </button>
                 <hr class="border-slate-200 dark:border-slate-800 my-2">
                 <button onclick="clearMonth()" class="w-full py-3.5 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-sm rounded-xl hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-2 btn-pro">
                     <i class="ph-bold ph-eraser text-lg"></i> Poner en S/ 0.00 el Mes Actual
@@ -709,6 +720,31 @@
                     <i class="ph-bold ph-trash text-lg"></i> Restablecer de Fábrica
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ATAJOS DE TECLADO -->
+    <div id="modal-shortcuts" class="modal-wrap">
+        <div class="modal-box modal-sm">
+            <button onclick="smartClose('modal-shortcuts')" class="absolute top-5 right-5 btn-icon" aria-label="Cerrar atajos"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-5 pr-8">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><i class="ph-bold ph-keyboard text-2xl"></i></div>
+                <div>
+                    <h3 class="text-xl font-extrabold">Atajos de teclado</h3>
+                    <p class="text-xs text-slate-400 font-medium">Comandos rápidos de Finanzas Personales</p>
+                </div>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-center justify-between gap-3"><span>Deshacer última modificación</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">Ctrl + Z</kbd></div>
+                <div class="flex items-center justify-between gap-3"><span>Rehacer modificación</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">Ctrl + Y</kbd></div>
+                <div class="flex items-center justify-between gap-3"><span>Rehacer alternativa</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">Ctrl + Shift + Z</kbd></div>
+                <div class="flex items-center justify-between gap-3"><span>Guardar y sincronizar ahora</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">Ctrl + S</kbd></div>
+                <div class="flex items-center justify-between gap-3"><span>Mes anterior / siguiente</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">Alt + ← / →</kbd></div>
+                <div class="flex items-center justify-between gap-3"><span>Abrir esta ayuda</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">?</kbd></div>
+                <div class="flex items-center justify-between gap-3"><span>Cerrar ventana o menú móvil</span><kbd class="shrink-0 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 font-extrabold text-xs">Esc</kbd></div>
+            </div>
+            <p class="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 text-xs leading-relaxed text-slate-500 dark:text-slate-400">El historial de deshacer y rehacer se mantiene durante esta sesión del navegador, hasta 50 modificaciones. Los cambios se guardan normalmente al deshacer o rehacer.</p>
+            <button onclick="smartClose('modal-shortcuts')" class="w-full mt-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold">Entendido</button>
         </div>
     </div>
 
@@ -755,6 +791,11 @@
         let editingGoalIndex = null;
         let newSecType = 'expense';
         let modalStack = [];
+        const MAX_UNDO_HISTORY = 50;
+        let undoHistory = [];
+        let redoHistory = [];
+        let lastCommittedStateSnapshot = null;
+        let historyReplayInProgress = false;
 
         // --- NOTIFICACIONES TOAST ---
         function showToast(msg, type = 'success') {
@@ -851,6 +892,47 @@
             updateThemeIcon();
             if (!keyboardHandlerAttached) {
                 document.addEventListener('keydown', (e) => {
+                    const editingText = isTextEditingTarget(e.target);
+                    const modifier = e.ctrlKey || e.metaKey;
+                    const key = String(e.key || '').toLowerCase();
+
+                    if (modifier && key === 's') {
+                        e.preventDefault();
+                        window.saveCfoNow();
+                        return;
+                    }
+
+                    // Let the browser keep native text undo/redo when an editable field has focus.
+                    if (modifier && !editingText && key === 'z') {
+                        e.preventDefault();
+                        if (e.shiftKey) window.redoCfo();
+                        else window.undoCfo();
+                        return;
+                    }
+                    if (modifier && !editingText && key === 'y') {
+                        e.preventDefault();
+                        window.redoCfo();
+                        return;
+                    }
+
+                    // Alt + arrow navigates months without adding a data edit to the undo history.
+                    if (e.altKey && !modifier && !editingText && e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        changeMonth(-1);
+                        return;
+                    }
+                    if (e.altKey && !modifier && !editingText && e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        changeMonth(1);
+                        return;
+                    }
+
+                    if (!editingText && !modifier && e.key === '?') {
+                        e.preventDefault();
+                        window.openShortcuts();
+                        return;
+                    }
+
                     if (e.key === 'Escape') {
                         if (modalStack.length > 0) {
                             const last = modalStack.pop();
@@ -864,6 +946,7 @@
                 keyboardHandlerAttached = true;
             }
             render();
+            lastCommittedStateSnapshot = JSON.stringify(state);
         }
 
         const LOCAL_STATE_KEY = 'cfo_v120_local_state';
@@ -1153,6 +1236,105 @@
             return true;
         }
 
+        function applyFiorellaAndDeduplicateOctober2026() {
+            const marker = 'fiorellaLoanAndDuplicateCleanup2026_v1';
+            if (state[marker] === true) return false;
+            if (!Array.isArray(state.struct) || !Array.isArray(state.struct[9])) {
+                throw new Error('No se pudo corregir octubre: no se encontró su estructura mensual.');
+            }
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+            const monthIndex = 9;
+            const monthSections = state.struct[monthIndex];
+
+            function removeSection(section) {
+                const sectionIndex = monthSections.indexOf(section);
+                if (sectionIndex < 0) return;
+                const prefix = monthIndex + '-' + section.id + '-';
+                Object.keys(state.data).forEach(key => {
+                    if (key.startsWith(prefix)) delete state.data[key];
+                });
+                monthSections.splice(sectionIndex, 1);
+            }
+
+            function removeItemAndReindex(section, itemIndex) {
+                const oldLength = section.items.length;
+                section.items.splice(itemIndex, 1);
+                for (let index = itemIndex; index < oldLength - 1; index++) {
+                    const nextValue = state.data[monthIndex + '-' + section.id + '-' + (index + 1)];
+                    const currentKey = monthIndex + '-' + section.id + '-' + index;
+                    if (nextValue !== undefined) state.data[currentKey] = nextValue;
+                    else delete state.data[currentKey];
+                }
+                delete state.data[monthIndex + '-' + section.id + '-' + (oldLength - 1)];
+            }
+
+            // Keep the original "Gastos hormigas" records; remove only the duplicate category created by the earlier import.
+            const duplicateSubscriptions = monthSections.find(section =>
+                section && section.cfoSeedId === 'planned-regular-expenses-oct-2026'
+            );
+            if (duplicateSubscriptions) removeSection(duplicateSubscriptions);
+
+            // If the Fiorella loan had been placed in an expense category, move it out so it is not counted twice.
+            monthSections.forEach(section => {
+                if (!section || section.type === 'debt' || !Array.isArray(section.items)) return;
+                for (let index = section.items.length - 1; index >= 0; index--) {
+                    const label = String(section.items[index]).toLowerCase();
+                    if (label.includes('fiorella') && label.includes('préstamo')) {
+                        removeItemAndReindex(section, index);
+                    }
+                }
+            });
+
+            let loanSection = monthSections.find(section =>
+                section && section.cfoSeedId === 'planned-loan-repayments-oct-2026'
+            );
+            if (!loanSection) {
+                loanSection = monthSections.find(section =>
+                    section && section.type === 'debt' &&
+                    /devolución de préstamos sin intereses/i.test(String(section.title || ''))
+                );
+            }
+            if (!loanSection) {
+                loanSection = {
+                    id: 'planned-loan-repayments-oct-2026',
+                    cfoSeedId: 'planned-loan-repayments-oct-2026',
+                    title: 'Devolución de préstamos sin intereses',
+                    type: 'debt',
+                    debtTotal: 650,
+                    debtRate: 0,
+                    items: [],
+                    collapsed: false
+                };
+                monthSections.push(loanSection);
+            }
+            if (!Array.isArray(loanSection.items)) loanSection.items = [];
+
+            const fiorellaIndexes = [];
+            loanSection.items.forEach((label, index) => {
+                const normalized = String(label).toLowerCase();
+                if (normalized.includes('fiorella') && normalized.includes('préstamo')) fiorellaIndexes.push(index);
+            });
+
+            let fiorellaIndex;
+            if (fiorellaIndexes.length === 0) {
+                fiorellaIndex = loanSection.items.length;
+                loanSection.items.push('Préstamo hermana Fiorella — vence 23/10');
+            } else {
+                fiorellaIndex = fiorellaIndexes[0];
+                // If duplicate copies exist, retain one and remove only its extra occurrences.
+                fiorellaIndexes.slice(1).sort((a, b) => b - a).forEach(index => {
+                    removeItemAndReindex(loanSection, index);
+                });
+                loanSection.items[fiorellaIndex] = 'Préstamo hermana Fiorella — vence 23/10';
+            }
+            state.data[monthIndex + '-' + loanSection.id + '-' + fiorellaIndex] = 50;
+            if (loanSection.debtTotal === undefined) loanSection.debtTotal = 650;
+            if (loanSection.debtRate === undefined) loanSection.debtRate = 0;
+
+            state[marker] = true;
+            return true;
+        }
+
         function escapeHtmlText(value) {
             return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
@@ -1220,12 +1402,14 @@
                         const payrollHistoryApplied = applyPayrollHistory2026();
                         const commitmentsApplied = applyOctoberNovemberCommitments2026();
                         const criticalLoansApplied = applyCriticalLoanPayments2026();
+                        const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied) {
+                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied) {
                             await sync(false);
-                            if (criticalLoansApplied) showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
+                            if (cleanupApplied) showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
+                            else if (criticalLoansApplied) showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
                             else if (commitmentsApplied) showToast('Compromisos de octubre y noviembre registrados.', 'success');
                             else showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
                         } else {
@@ -1239,9 +1423,12 @@
                     const payrollHistoryApplied = applyPayrollHistory2026();
                     const commitmentsApplied = applyOctoberNovemberCommitments2026();
                     const criticalLoansApplied = applyCriticalLoanPayments2026();
+                    const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && criticalLoansApplied) {
+                    if (saved && cleanupApplied) {
+                        showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
+                    } else if (saved && criticalLoansApplied) {
                         showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
                     } else if (saved && commitmentsApplied) {
                         showToast('Compromisos de octubre y noviembre registrados.', 'success');
@@ -1258,6 +1445,7 @@
                     applyPayrollHistory2026();
                     applyOctoberNovemberCommitments2026();
                     applyCriticalLoanPayments2026();
+                    applyFiorellaAndDeduplicateOctober2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -1271,9 +1459,12 @@
             const payrollHistoryApplied = applyPayrollHistory2026();
             const commitmentsApplied = applyOctoberNovemberCommitments2026();
             const criticalLoansApplied = applyCriticalLoanPayments2026();
+            const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
             await init();
             const saved = await sync(false);
-            if (saved && criticalLoansApplied) {
+            if (saved && cleanupApplied) {
+                showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
+            } else if (saved && criticalLoansApplied) {
                 showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
             } else if (saved && commitmentsApplied) {
                 showToast('Compromisos de octubre y noviembre registrados.', 'success');
@@ -1289,6 +1480,7 @@
             state[PAYROLL_HISTORY_MARKER] = true;
             state[OCT_NOV_COMMITMENTS_MARKER] = true;
             state.criticalLoanPayments2026_v1 = true;
+            state.fiorellaLoanAndDuplicateCleanup2026_v1 = true;
             const ok = await sync(false);
             if (ok) {
                 closeModals();
@@ -1314,7 +1506,75 @@
         }
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
-        function save() { render(); sync(false); }
+
+        function save() {
+            const nextSnapshot = JSON.stringify(state);
+            if (!historyReplayInProgress && lastCommittedStateSnapshot && nextSnapshot !== lastCommittedStateSnapshot) {
+                undoHistory.push(lastCommittedStateSnapshot);
+                if (undoHistory.length > MAX_UNDO_HISTORY) undoHistory.shift();
+                redoHistory = [];
+            }
+            lastCommittedStateSnapshot = nextSnapshot;
+            render();
+            sync(false);
+        }
+
+        window.undoCfo = async function() {
+            if (!undoHistory.length) {
+                showToast('No hay acciones recientes para deshacer.', 'info');
+                return;
+            }
+            const previousSnapshot = undoHistory.pop();
+            redoHistory.push(JSON.stringify(state));
+            if (redoHistory.length > MAX_UNDO_HISTORY) redoHistory.shift();
+            try {
+                state = normalizeCfoState(JSON.parse(previousSnapshot));
+                lastCommittedStateSnapshot = JSON.stringify(state);
+                historyReplayInProgress = true;
+                render();
+                historyReplayInProgress = false;
+                const saved = await sync(false);
+                showToast(saved ? 'Última acción deshecha.' : 'Acción deshecha; revisa la sincronización.', saved ? 'info' : 'error');
+            } catch (error) {
+                historyReplayInProgress = false;
+                showToast('No se pudo deshacer la acción.', 'error');
+                console.error('Error al deshacer:', error);
+            }
+        };
+
+        window.redoCfo = async function() {
+            if (!redoHistory.length) {
+                showToast('No hay acciones para rehacer.', 'info');
+                return;
+            }
+            const nextSnapshot = redoHistory.pop();
+            undoHistory.push(JSON.stringify(state));
+            if (undoHistory.length > MAX_UNDO_HISTORY) undoHistory.shift();
+            try {
+                state = normalizeCfoState(JSON.parse(nextSnapshot));
+                lastCommittedStateSnapshot = JSON.stringify(state);
+                historyReplayInProgress = true;
+                render();
+                historyReplayInProgress = false;
+                const saved = await sync(false);
+                showToast(saved ? 'Acción rehecha.' : 'Acción rehecha; revisa la sincronización.', saved ? 'info' : 'error');
+            } catch (error) {
+                historyReplayInProgress = false;
+                showToast('No se pudo rehacer la acción.', 'error');
+                console.error('Error al rehacer:', error);
+            }
+        };
+
+        window.saveCfoNow = async function() {
+            const saved = await sync(false);
+            showToast(saved ? 'Datos guardados.' : 'No se pudo guardar; revisa la sincronización.', saved ? 'success' : 'error');
+        };
+
+        window.openShortcuts = function() { openModal('modal-shortcuts'); };
+
+        function isTextEditingTarget(target) {
+            return !!(target && target.closest && target.closest('input, textarea, select, [contenteditable="true"]'));
+        }
 
         function render() {
             renderSidebar();
@@ -1604,8 +1864,20 @@
                 localStorage.setItem('cfo_sidebar_state', 'closed');
             }
         }
-        function setMonth(i) { state.month = i; render(); if(window.innerWidth < 768) toggleSidebar(); }
-        function changeMonth(d) { let n = state.month + d; if(n >= 0 && n <= 11) { state.month = n; render(); } }
+        function setMonth(i) {
+            state.month = i;
+            render();
+            lastCommittedStateSnapshot = JSON.stringify(state);
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+        function changeMonth(d) {
+            let n = state.month + d;
+            if(n >= 0 && n <= 11) {
+                state.month = n;
+                render();
+                lastCommittedStateSnapshot = JSON.stringify(state);
+            }
+        }
         function saveVal(k, v) {
             const parsed = parseFloat(String(v).replace(/,/g, '')) || 0;
             state.data[k] = parsed;

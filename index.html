@@ -167,10 +167,10 @@
         }
         @keyframes financeHoldProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         .finance-drag-active {
+            position: relative; z-index: 40;
             opacity: .48; transform: none !important;
             box-shadow: none !important;
             border-color: #818cf8 !important; cursor: grabbing !important;
-            pointer-events: none !important;
         }
         .finance-drop-ghost.finance-item-row { min-height: 48px; }
         .section-header-toggle-zone.finance-drag-charging {

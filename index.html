@@ -2603,6 +2603,27 @@
             return { i, e, s, b: i - e - s };
         }
 
+        function getExpenseBreakdownForMonth(targetMonth) {
+            const categories = new Map();
+            if (!Array.isArray(state.struct)) return [];
+            state.struct.forEach((sections, registeredMonth) => {
+                if (!Array.isArray(sections)) return;
+                sections.forEach(section => {
+                    if (!section || (section.type !== 'expense' && section.type !== 'debt') || !Array.isArray(section.items)) return;
+                    let sum = 0;
+                    section.items.forEach((_, itemIndex) => {
+                        if (getRowCashflowMonth(registeredMonth, section, itemIndex) !== targetMonth) return;
+                        const key = registeredMonth + '-' + section.id + '-' + itemIndex;
+                        sum += Number(state.data[key]) || 0;
+                    });
+                    if (sum <= 0) return;
+                    const title = String(section.title || 'Gastos');
+                    categories.set(title, (categories.get(title) || 0) + sum);
+                });
+            });
+            return Array.from(categories, ([label, amount]) => ({label, amount}));
+        }
+
         function fmt(n) { return "S/ " + n.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
         function fmtShort(n) {
             const abs = Math.abs(n);
@@ -2895,14 +2916,9 @@
                 }
             });
 
-            let catL = [], catD = [];
-            state.struct[state.month].forEach(sec => {
-                if(sec.type !== 'income' && sec.type !== 'savings') {
-                    let s = 0;
-                    sec.items.forEach((_, x) => s += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
-                    if(s > 0) { catL.push(sec.title); catD.push(s); }
-                }
-            });
+            const expenseBreakdown = getExpenseBreakdownForMonth(state.month);
+            let catL = expenseBreakdown.map(item => item.label);
+            let catD = expenseBreakdown.map(item => item.amount);
             if(charts.ch4) charts.ch4.destroy();
             charts.ch4 = new Chart(document.getElementById('ch4'), {
                 type: 'doughnut',
@@ -2995,15 +3011,9 @@
             document.getElementById('chart-total-center').innerText = fmt(t.e);
 
             // Datos del gráfico Donut
-            let labels = [], data = [];
-            state.struct[state.month].forEach(sec => {
-                if(sec.type !== 'income' && sec.type !== 'savings') {
-                    let sum = 0;
-                    sec.items.forEach((_, x) => sum += (state.data[`${state.month}-${sec.id}-${x}`] || 0));
-                    if(sum > 0) { labels.push(sec.title); data.push(sum); }
-                }
-            });
-
+            const expenseBreakdown = getExpenseBreakdownForMonth(state.month);
+            let labels = expenseBreakdown.map(item => item.label);
+            let data = expenseBreakdown.map(item => item.amount);
             const ctx = document.getElementById('chart-mini');
             if(charts.mini) charts.mini.destroy();
             const isDark = document.documentElement.classList.contains('dark');

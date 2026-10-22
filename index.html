@@ -572,6 +572,10 @@
                             <option value="confirmed">Plan confirmado</option>
                         </select>
                     </div>
+                    <div>
+                        <label for="payment-planning-note" class="block text-xs font-bold text-slate-500 mb-1.5">Nota de planificación (opcional)</label>
+                        <textarea id="payment-planning-note" rows="2" class="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-indigo-500" placeholder="Ej. Pagar cuando llegue la CTS, entre el 8 y el 15 de noviembre."></textarea>
+                    </div>
                 </div>
 
                 <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -1600,6 +1604,7 @@
                     'Fecha de pago ' + (meta.plannedStatus === 'confirmed' ? 'confirmada' : 'tentativa') +
                     ': ' + displayISODate(meta.plannedDate) + '. Importe de referencia: ' + amountText +
                     (sameAsDue ? '. Esta fecha también coincide con el vencimiento' : '') +
+                    (meta.planningNote ? '. Nota: ' + meta.planningNote : '') +
                     '. El recordatorio no marca el pago como realizado.');
             }
         }
@@ -1635,6 +1640,7 @@
             document.getElementById('payment-due-day').value = meta.dueDay || '';
             document.getElementById('payment-planned-date').value = meta.plannedDate || '';
             document.getElementById('payment-planned-status').value = meta.plannedStatus || 'tentative';
+            document.getElementById('payment-planning-note').value = meta.planningNote || '';
             document.getElementById('payment-dates-reminders').checked = meta.reminders !== false;
             togglePaymentDueMode();
             openModal('modal-payment-dates');
@@ -1656,6 +1662,7 @@
             const plannedDate = document.getElementById('payment-planned-date').value;
             const plannedStatus = document.getElementById('payment-planned-status').value;
             const reminders = document.getElementById('payment-dates-reminders').checked;
+            const planningNote = document.getElementById('payment-planning-note').value.trim();
 
             if (dueMode === 'specific' && !parseISODate(dueDate)) {
                 showToast('Selecciona una fecha de vencimiento válida.', 'error');
@@ -1671,7 +1678,7 @@
             }
 
             const hasDue = dueMode === 'specific' ? !!dueDate : dueMode === 'monthly' ? !!dueDayRaw : false;
-            if (!hasDue && !plannedDate) {
+            if (!hasDue && !plannedDate && !planningNote) {
                 delete state.paymentDates[key];
                 refreshPaymentDateEvents(key, section.items[itemIndex], state.data[key] || 0, null);
             } else {
@@ -1681,6 +1688,7 @@
                     dueDay: dueMode === 'monthly' ? dueDay : null,
                     plannedDate: plannedDate || '',
                     plannedStatus: plannedStatus === 'confirmed' ? 'confirmed' : 'tentative',
+                    planningNote,
                     reminders
                 };
                 if (!state.paymentDates || typeof state.paymentDates !== 'object') state.paymentDates = {};
@@ -1725,12 +1733,153 @@
                     dueMode: 'monthly',
                     dueDate: '',
                     dueDay: 8,
-                    plannedDate: '2026-11-08',
+                    plannedDate: '2026-11-15',
                     plannedStatus: 'tentative',
+                    planningNote: 'La CTS puede llegar el 8 o el 15 de noviembre como máximo. Esta suscripción se pagará en noviembre; si la CTS llega el día 8, puedo pagarla antes del 15.',
                     reminders: true
                 };
             }
             refreshPaymentDateEvents(key, found.section.items[found.index], state.data[key] || 23, state.paymentDates[key]);
+            state[marker] = true;
+            return true;
+        }
+
+        function applyChatGPTBudgetMonthShift2026() {
+            const marker = 'chatGPTBudgetMovedToNovember2026_v1';
+            if (state[marker] === true) return false;
+            if (!Array.isArray(state.struct) || !Array.isArray(state.struct[9]) || !Array.isArray(state.struct[10])) return false;
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+            if (!state.paymentDates || typeof state.paymentDates !== 'object') state.paymentDates = {};
+            if (!Array.isArray(state.events)) state.events = [];
+
+            function rowKey(monthIndex, section, itemIndex) {
+                return monthIndex + '-' + section.id + '-' + itemIndex;
+            }
+            function removeItemAndReindex(monthIndex, section, itemIndex) {
+                const oldLength = section.items.length;
+                section.items.splice(itemIndex, 1);
+                for (let index = itemIndex; index < oldLength - 1; index++) {
+                    const oldNextKey = rowKey(monthIndex, section, index + 1);
+                    const newKey = rowKey(monthIndex, section, index);
+                    if (state.data[oldNextKey] !== undefined) state.data[newKey] = state.data[oldNextKey];
+                    else delete state.data[newKey];
+                    if (state.paymentDates[oldNextKey] !== undefined) state.paymentDates[newKey] = state.paymentDates[oldNextKey];
+                    else delete state.paymentDates[newKey];
+                }
+                const lastKey = rowKey(monthIndex, section, oldLength - 1);
+                delete state.data[lastKey];
+                delete state.paymentDates[lastKey];
+            }
+
+            const octoberRows = [];
+            state.struct[9].forEach(section => {
+                if (!section || section.type !== 'expense' || !Array.isArray(section.items)) return;
+                section.items.forEach((label, index) => {
+                    if (String(label).trim().toLowerCase() === 'chatgpt') {
+                        const key = rowKey(9, section, index);
+                        octoberRows.push({
+                            section, index, key,
+                            amount: Number(state.data[key]) || 23,
+                            meta: state.paymentDates[key] ? Object.assign({}, state.paymentDates[key]) : null
+                        });
+                    }
+                });
+            });
+
+            const novemberRows = [];
+            state.struct[10].forEach(section => {
+                if (!section || section.type !== 'expense' || !Array.isArray(section.items)) return;
+                section.items.forEach((label, index) => {
+                    if (String(label).trim().toLowerCase() === 'chatgpt') {
+                        const key = rowKey(10, section, index);
+                        novemberRows.push({ section, index, key, amount: Number(state.data[key]) || 23, meta: state.paymentDates[key] || null });
+                    }
+                });
+            });
+
+            if (!octoberRows.length && !novemberRows.length) return false;
+            const source = octoberRows[0] || null;
+            const sourceAmount = source ? source.amount : novemberRows[0].amount;
+            const sourceMeta = source && source.meta ? source.meta : (novemberRows[0] && novemberRows[0].meta ? novemberRows[0].meta : {});
+
+            let targetSection = novemberRows.length ? novemberRows[0].section : null;
+            if (!targetSection && source) {
+                targetSection = state.struct[10].find(section =>
+                    section && section.type === 'expense' &&
+                    String(section.title || '').trim().toLowerCase() === String(source.section.title || '').trim().toLowerCase()
+                );
+            }
+            if (!targetSection) targetSection = state.struct[10].find(section => section && section.type === 'expense');
+            if (!targetSection) {
+                targetSection = {
+                    id: 'planned-chatgpt-nov-2026',
+                    title: source ? source.section.title : 'Gastos habituales',
+                    type: 'expense',
+                    items: [],
+                    collapsed: false
+                };
+                state.struct[10].push(targetSection);
+            }
+            if (!Array.isArray(targetSection.items)) targetSection.items = [];
+
+            // Remove every November copy first, then append one canonical row to the chosen section.
+            const novemberSectionsWithChatGPT = new Set(novemberRows.map(row => row.section));
+            novemberRows.forEach(row => {
+                state.events = state.events.filter(event => event.paymentDateKey !== row.key);
+            });
+            novemberRows.slice().sort((a,b) =>
+                state.struct[10].indexOf(b.section) - state.struct[10].indexOf(a.section) || b.index - a.index
+            ).forEach(row => {
+                const currentIndex = row.section.items.findIndex(item => String(item).trim().toLowerCase() === 'chatgpt');
+                if (currentIndex >= 0) removeItemAndReindex(10, row.section, currentIndex);
+            });
+
+            targetSection.items.push('ChatGPT');
+            const targetIndex = targetSection.items.length - 1;
+            const targetKey = rowKey(10, targetSection, targetIndex);
+            state.data[targetKey] = sourceAmount;
+
+            // Keep the monthly due date (8th) distinct from the uncertain planned payment window (Nov 8-15).
+            const paymentMeta = Object.assign({}, sourceMeta);
+            paymentMeta.dueMode = 'monthly';
+            paymentMeta.dueDate = '';
+            paymentMeta.dueDay = 8;
+            paymentMeta.plannedDate = '2026-11-15';
+            paymentMeta.plannedStatus = 'tentative';
+            paymentMeta.planningNote = 'La CTS puede llegar el 8 o el 15 de noviembre como máximo. Esta suscripción se pagará en noviembre; si la CTS llega el día 8, puedo pagarla antes del 15.';
+            paymentMeta.reminders = true;
+            state.paymentDates[targetKey] = paymentMeta;
+
+            // Remove all October copies; preserve other rows' amounts and date metadata as they reindex.
+            const octoberSectionsWithChatGPT = new Set(octoberRows.map(row => row.section));
+            octoberRows
+                .slice()
+                .sort((a,b) => state.struct[9].indexOf(b.section) - state.struct[9].indexOf(a.section) || b.index - a.index)
+                .forEach(row => {
+                    const currentIndex = row.section.items.findIndex(item => String(item).trim().toLowerCase() === 'chatgpt');
+                    if (currentIndex >= 0) {
+                        state.events = state.events.filter(event => event.paymentDateKey !== rowKey(9, row.section, currentIndex));
+                        removeItemAndReindex(9, row.section, currentIndex);
+                    }
+                });
+
+            octoberSectionsWithChatGPT.forEach(section => refreshSectionPaymentDateEvents(9, section));
+            novemberSectionsWithChatGPT.forEach(section => refreshSectionPaymentDateEvents(10, section));
+            refreshSectionPaymentDateEvents(10, targetSection);
+
+            upsertPlannedEvent({
+                cfoSeedId: 'cts-estimated-2026-11-08',
+                name: 'CTS posible — primera fecha estimada',
+                d: 8, m: 11, year: 2026, type: 'reminder',
+                notes: 'La CTS podría llegar el 8 de noviembre. Si se deposita ese día, puedes pagar ChatGPT ese mismo día. La fecha aún no está confirmada.'
+            });
+            upsertPlannedEvent({
+                cfoSeedId: 'cts-estimated-2026-11-15',
+                name: 'CTS — última fecha estimada',
+                d: 15, m: 11, year: 2026, type: 'reminder',
+                notes: 'El 15 de noviembre es la fecha máxima estimada para recibir la CTS. El pago de ChatGPT se planifica dentro de noviembre, no en octubre. Fecha por confirmar.'
+            });
+
             state[marker] = true;
             return true;
         }
@@ -1800,12 +1949,14 @@
                         const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
                         const lopezMoved = applyLopezLoanMove2026();
                         const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
+                        const chatGptMonthShiftApplied = applyChatGPTBudgetMonthShift2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved || chatGptDatesApplied) {
+                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved || chatGptDatesApplied || chatGptMonthShiftApplied) {
                             await sync(false);
-                            if (chatGptDatesApplied) showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
+                            if (chatGptMonthShiftApplied) showToast('ChatGPT pasó a la proyección de noviembre; su pago queda tentativo hasta la CTS.', 'success');
+                            else if (chatGptDatesApplied) showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
                             else if (lopezMoved) showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
                             else if (cleanupApplied) showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
                             else if (criticalLoansApplied) showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
@@ -1825,9 +1976,12 @@
                     const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
                     const lopezMoved = applyLopezLoanMove2026();
                     const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
+                    const chatGptMonthShiftApplied = applyChatGPTBudgetMonthShift2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && chatGptDatesApplied) {
+                    if (saved && chatGptMonthShiftApplied) {
+                        showToast('ChatGPT pasó a la proyección de noviembre; su pago queda tentativo hasta la CTS.', 'success');
+                    } else if (saved && chatGptDatesApplied) {
                         showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
                     } else if (saved && lopezMoved) {
                         showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
@@ -1853,6 +2007,7 @@
                     applyFiorellaAndDeduplicateOctober2026();
                     applyLopezLoanMove2026();
                     applyChatGPTPaymentDateExample2026();
+                    applyChatGPTBudgetMonthShift2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -1869,9 +2024,12 @@
             const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
             const lopezMoved = applyLopezLoanMove2026();
             const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
+            const chatGptMonthShiftApplied = applyChatGPTBudgetMonthShift2026();
             await init();
             const saved = await sync(false);
-            if (saved && chatGptDatesApplied) {
+            if (saved && chatGptMonthShiftApplied) {
+                showToast('ChatGPT pasó a la proyección de noviembre; su pago queda tentativo hasta la CTS.', 'success');
+            } else if (saved && chatGptDatesApplied) {
                 showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
             } else if (saved && lopezMoved) {
                 showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
@@ -1903,6 +2061,7 @@
             state.fiorellaLoanAndDuplicateCleanup2026_v1 = true;
             state.lopezLoanMovedToNovember2026_v1 = true;
             state.chatGPTDueDayAndTentativeNovemberPayment2026_v1 = true;
+            state.chatGPTBudgetMovedToNovember2026_v1 = true;
             lastCommittedStateSnapshot = JSON.stringify(state);
 
             const ok = await sync(false);
@@ -2168,6 +2327,7 @@
                             <div class="flex-1 min-w-0">
                                 <input class="input-row" value="${escapeHtmlText(it)}" onchange="renItem(${sIdx},${i},this.value)">
                                 ${dateSummary ? `<span class="block px-1 text-[9px] font-bold text-indigo-500 dark:text-indigo-300 leading-tight">${dateSummary}</span>` : ''}
+                    ${dateMeta && dateMeta.planningNote ? `<span class="block px-1 text-[9px] text-slate-400 leading-tight">${escapeHtmlText(dateMeta.planningNote)}</span>` : ''}
                             </div>
                             <button onclick="openPaymentDatesModal(${state.month},${sIdx},${i})" class="btn-icon !w-7 !h-7 shrink-0 ${dateMeta ? 'text-indigo-500 !bg-indigo-500/10' : 'opacity-60 group-hover:opacity-100'}" title="Configurar vencimiento y fecha de pago">
                                 <i class="ph-bold ph-calendar-dots text-sm"></i>

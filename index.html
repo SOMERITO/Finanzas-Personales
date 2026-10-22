@@ -878,6 +878,73 @@
             localStorage.setItem(LOCAL_STATE_KEY, JSON.stringify(state));
         }
 
+        // Historial real de netos a pagar según las boletas UPC de enero a septiembre de 2026.
+        // Se aplica una sola vez por conjunto de datos y conserva los otros conceptos de ingresos.
+        const PAYROLL_HISTORY_MARKER = 'upcPayrollNetHistory2026_v1';
+        const PAYROLL_NET_HISTORY_2026 = [
+            { month: 0, amount: 1713.14 }, // Enero
+            { month: 1, amount: 1788.33 }, // Febrero
+            { month: 2, amount: 8083.35 }, // Marzo: incluye utilidades
+            { month: 3, amount: 2139.22 }, // Abril
+            { month: 4, amount: 1722.36 }, // Mayo
+            { month: 5, amount: 1709.99 }, // Junio
+            { month: 6, amount: 1730.17 }, // Julio: incluye gratificación y remuneración vacacional
+            { month: 7, amount: 1708.86 }, // Agosto
+            { month: 8, amount: 1854.87 }  // Septiembre
+        ];
+
+        function applyPayrollHistory2026() {
+            if (state[PAYROLL_HISTORY_MARKER] === true) return false;
+            if (!Array.isArray(state.struct) || state.struct.length !== 12) {
+                throw new Error('No se pudo registrar el historial de boletas: la estructura mensual no es válida.');
+            }
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+
+            PAYROLL_NET_HISTORY_2026.forEach(entry => {
+                const monthSections = state.struct[entry.month];
+                if (!Array.isArray(monthSections)) return;
+
+                let incomeSection = monthSections.find(section => section && section.type === 'income');
+                if (!incomeSection) {
+                    let sectionId = 'income-upc';
+                    let suffix = 2;
+                    while (monthSections.some(section => section && section.id === sectionId)) {
+                        sectionId = 'income-upc-' + suffix++;
+                    }
+                    incomeSection = {
+                        id: sectionId,
+                        title: 'Ingresos',
+                        type: 'income',
+                        items: [],
+                        collapsed: false
+                    };
+                    monthSections.unshift(incomeSection);
+                }
+                if (!Array.isArray(incomeSection.items)) incomeSection.items = [];
+
+                // Reutiliza la fila histórica de sueldo cuando exista; evita crear una fila duplicada.
+                let itemIndex = incomeSection.items.findIndex(item =>
+                    String(item).trim().toLowerCase() === 'neto a pagar (boleta upc)'
+                );
+                if (itemIndex < 0) {
+                    itemIndex = incomeSection.items.findIndex(item =>
+                        String(item).trim().toLowerCase() === 'sueldo'
+                    );
+                }
+                if (itemIndex < 0) {
+                    itemIndex = incomeSection.items.length;
+                    incomeSection.items.push('Neto a pagar (boleta UPC)');
+                } else if (String(incomeSection.items[itemIndex]).trim().toLowerCase() === 'sueldo') {
+                    incomeSection.items[itemIndex] = 'Neto a pagar (boleta UPC)';
+                }
+
+                state.data[entry.month + '-' + incomeSection.id + '-' + itemIndex] = entry.amount;
+            });
+
+            state[PAYROLL_HISTORY_MARKER] = true;
+            return true;
+        }
+
         async function sync(pull = false) {
             const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
 
@@ -937,23 +1004,35 @@
                     const remoteState = await window.cfoFirebase.loadState();
                     if (remoteState) {
                         state = normalizeCfoState(remoteState);
+                        const payrollHistoryApplied = applyPayrollHistory2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        setSyncState('ok', 'Firebase sincronizado');
+                        if (payrollHistoryApplied) {
+                            await sync(false);
+                            showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
+                        } else {
+                            setSyncState('ok', 'Firebase sincronizado');
+                        }
                         return;
                     }
 
                     // No remote document exists yet. Recover local data if available; otherwise initialize a new book.
                     state = localState || makeInitialState();
+                    const payrollHistoryApplied = applyPayrollHistory2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && localState) showToast('Se recuperaron tus datos locales y se sincronizaron.', 'info');
+                    if (saved && payrollHistoryApplied) {
+                        showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
+                    } else if (saved && localState) {
+                        showToast('Se recuperaron tus datos locales y se sincronizaron.', 'info');
+                    }
                     return;
                 } catch (error) {
                     console.error('No se pudo consultar Firestore; se usará el almacenamiento local:', error);
                     cfoCloudUnavailable = true;
                     state = localState || makeInitialState();
+                    applyPayrollHistory2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -964,13 +1043,19 @@
             }
 
             state = localState || makeInitialState();
+            const payrollHistoryApplied = applyPayrollHistory2026();
             await init();
-            await sync(false);
+            const saved = await sync(false);
+            if (saved && payrollHistoryApplied) {
+                showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
+            }
         };
 
         window.resetCfoData = async function() {
             if (!confirm('Esto reemplazará tus datos financieros guardados por una estructura vacía. Exporta una copia antes de continuar. ¿Deseas seguir?')) return;
             state = makeInitialState();
+            // Un reinicio solicitado por el usuario debe respetarse y no reimportar estas boletas.
+            state[PAYROLL_HISTORY_MARKER] = true;
             const ok = await sync(false);
             if (ok) {
                 closeModals();

@@ -989,6 +989,7 @@
             section.collapsed = false;
             if (config.debtTotal !== undefined) section.debtTotal = config.debtTotal;
             if (config.debtRate !== undefined) section.debtRate = config.debtRate;
+            if (Array.isArray(config.overdueItems)) section.overdueItems = config.overdueItems.map(item => Object.assign({}, item));
 
             const prefix = monthIndex + '-' + section.id + '-';
             Object.keys(state.data).forEach(key => {
@@ -1098,6 +1099,60 @@
             return true;
         }
 
+        function applyCriticalLoanPayments2026() {
+            const marker = 'criticalLoanPayments2026_v1';
+            if (state[marker] === true) return false;
+            if (!Array.isArray(state.struct) || state.struct.length !== 12) {
+                throw new Error('No se pudieron registrar los préstamos críticos: la estructura mensual no es válida.');
+            }
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+            if (!Array.isArray(state.events)) state.events = [];
+
+            // Solo se suman al presupuesto los importes que se prevé desembolsar el 23/10.
+            // Las cuotas anteriores aparecen abajo como saldo vencido informativo, sin duplicar el flujo de caja.
+            upsertPlannedSection(9, {
+                id: 'planned-critical-cristina-oct-2026',
+                seedId: 'planned-critical-cristina-oct-2026',
+                title: 'Pago crítico — Sra. Cristina',
+                type: 'debt',
+                debtTotal: 3600,
+                debtRate: 10,
+                items: ['Cuota de octubre — pago acordado para 23/10'],
+                amounts: [360],
+                overdueItems: [
+                    { label: 'Cuota vencida de agosto', amount: 360 },
+                    { label: 'Cuota vencida de septiembre', amount: 360 }
+                ]
+            });
+
+            upsertPlannedSection(9, {
+                id: 'planned-critical-miguel-oct-2026',
+                seedId: 'planned-critical-miguel-oct-2026',
+                title: 'Pago crítico — Sr. Miguel',
+                type: 'debt',
+                debtTotal: 3000,
+                debtRate: 10,
+                items: ['Abono mínimo de una cuota atrasada — previsto 23/10'],
+                amounts: [300],
+                overdueItems: [
+                    { label: 'Cuota vencida de julio', amount: 300 },
+                    { label: 'Cuota vencida de agosto', amount: 300 },
+                    { label: 'Cuota vencida de septiembre', amount: 300 },
+                    { label: 'Cuota vencida de octubre', amount: 300 }
+                ]
+            });
+
+            upsertPlannedEvent({
+                cfoSeedId: 'payday-and-october-commitments-2026',
+                name: 'Día de pago y compromisos — S/ 1,846',
+                d: 23, m: 10, year: 2026, type: 'payment',
+                notes: 'Pago previsto para el viernes 23/10. Gastos habituales: S/ 408. Impresiones ESBAS: S/ 28. Devolución de préstamos sin intereses: S/ 650. Interés de tía Milagros: S/ 100. Cuota de octubre de Cristina: S/ 360 (acuerdo de pago el 23/10); siguen vencidas las cuotas de agosto y septiembre por S/ 720, no incluidas en este desembolso. Abono mínimo al préstamo de Miguel: S/ 300; tiene cuatro cuotas de intereses vencidas (julio a octubre) por S/ 1,200. Si el abono se aplica a la cuota más antigua, quedarían S/ 900 de intereses vencidos. Total de desembolsos previstos para el 23/10: S/ 1,846. Los atrasos se muestran por separado y no se suman otra vez al total previsto.'
+            });
+
+            state[marker] = true;
+            return true;
+        }
+
         function escapeHtmlText(value) {
             return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
@@ -1164,12 +1219,14 @@
                         state = normalizeCfoState(remoteState);
                         const payrollHistoryApplied = applyPayrollHistory2026();
                         const commitmentsApplied = applyOctoberNovemberCommitments2026();
+                        const criticalLoansApplied = applyCriticalLoanPayments2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied || commitmentsApplied) {
+                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied) {
                             await sync(false);
-                            if (commitmentsApplied) showToast('Compromisos de octubre y noviembre registrados.', 'success');
+                            if (criticalLoansApplied) showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
+                            else if (commitmentsApplied) showToast('Compromisos de octubre y noviembre registrados.', 'success');
                             else showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
                         } else {
                             setSyncState('ok', 'Firebase sincronizado');
@@ -1181,9 +1238,12 @@
                     state = localState || makeInitialState();
                     const payrollHistoryApplied = applyPayrollHistory2026();
                     const commitmentsApplied = applyOctoberNovemberCommitments2026();
+                    const criticalLoansApplied = applyCriticalLoanPayments2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && commitmentsApplied) {
+                    if (saved && criticalLoansApplied) {
+                        showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
+                    } else if (saved && commitmentsApplied) {
                         showToast('Compromisos de octubre y noviembre registrados.', 'success');
                     } else if (saved && payrollHistoryApplied) {
                         showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
@@ -1197,6 +1257,7 @@
                     state = localState || makeInitialState();
                     applyPayrollHistory2026();
                     applyOctoberNovemberCommitments2026();
+                    applyCriticalLoanPayments2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -1209,9 +1270,12 @@
             state = localState || makeInitialState();
             const payrollHistoryApplied = applyPayrollHistory2026();
             const commitmentsApplied = applyOctoberNovemberCommitments2026();
+            const criticalLoansApplied = applyCriticalLoanPayments2026();
             await init();
             const saved = await sync(false);
-            if (saved && commitmentsApplied) {
+            if (saved && criticalLoansApplied) {
+                showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
+            } else if (saved && commitmentsApplied) {
                 showToast('Compromisos de octubre y noviembre registrados.', 'success');
             } else if (saved && payrollHistoryApplied) {
                 showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
@@ -1224,6 +1288,7 @@
             // Un reinicio solicitado por el usuario debe respetarse y no reimportar estas boletas.
             state[PAYROLL_HISTORY_MARKER] = true;
             state[OCT_NOV_COMMITMENTS_MARKER] = true;
+            state.criticalLoanPayments2026_v1 = true;
             const ok = await sync(false);
             if (ok) {
                 closeModals();
@@ -1323,17 +1388,34 @@
                     if(total > 0) {
                         if(total < monthlyInterest) {
                             interestPaid = total;
-                            msg = `⚠️ El pago solo cubre intereses (Faltan <b>${fmt(monthlyInterest - total)}</b> para cubrir el interés del mes).`;
+                            msg = `⚠️ El importe registrado cubriría solo parte de los intereses (faltan <b>${fmt(monthlyInterest - total)}</b> para completar el mes).`;
                         } else {
                             interestPaid = monthlyInterest;
                             capitalPaid = total - monthlyInterest;
                             msg = capitalPaid > 0
-                                ? `✅ Cubres interés (<b>${fmt(interestPaid)}</b>) y amortizas <b class="text-emerald-600 dark:text-emerald-400">${fmt(capitalPaid)}</b> directo al capital.`
-                                : `✅ Cubres el interés del mes (${fmt(interestPaid)}). El capital pendiente permanece en <b>${fmt(principal)}</b>.`;
+                                ? `ℹ️ Si se realiza este pago, cubriría el interés (<b>${fmt(interestPaid)}</b>) y amortizaría <b class="text-emerald-600 dark:text-emerald-400">${fmt(capitalPaid)}</b> del capital.`
+                                : `ℹ️ El importe registrado cubriría el interés del mes (${fmt(interestPaid)}). El capital seguiría en <b>${fmt(principal)}</b>.`;
                         }
                     }
                     const newPrincipal = Math.max(0, principal - capitalPaid);
                     
+                    const overdueItems = Array.isArray(sec.overdueItems) ? sec.overdueItems : [];
+                    const overdueTotal = overdueItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+                    const overdueHTML = overdueItems.length ? `
+                        <div class="mt-3 rounded-xl border border-rose-500/15 bg-rose-500/5 p-3">
+                            <p class="text-[10px] font-extrabold uppercase tracking-wider text-rose-500 mb-2">Cuotas vencidas (saldo pendiente)</p>
+                            ${overdueItems.map(item => `
+                                <div class="flex justify-between gap-3 py-1 text-xs">
+                                    <span class="text-slate-600 dark:text-slate-300">${escapeHtmlText(item.label)}</span>
+                                    <span class="font-bold text-rose-500 shrink-0">${fmt(Number(item.amount) || 0)}</span>
+                                </div>
+                            `).join('')}
+                            <div class="mt-2 pt-2 border-t border-rose-500/20 flex justify-between gap-3 text-xs font-extrabold">
+                                <span>Total de intereses vencidos</span>
+                                <span class="text-rose-500">${fmt(overdueTotal)}</span>
+                            </div>
+                        </div>` : '';
+
                     debtHTML = `
                     <div class="mt-4 bg-rose-500/5 dark:bg-rose-500/10 rounded-2xl p-4 border border-rose-500/20" onclick="event.stopPropagation()">
                         <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
@@ -1346,9 +1428,10 @@
                             ${msg}
                         </div>
                         <div class="flex justify-between items-center text-xs font-extrabold text-rose-700 dark:text-rose-300">
-                            <span>Saldo Deuda Proyectado:</span>
+                            <span>Capital pendiente:</span>
                             <span class="text-sm">${fmt(newPrincipal)}</span>
                         </div>
+                        ${overdueHTML}
                     </div>`;
                 }
 

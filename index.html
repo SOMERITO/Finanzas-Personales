@@ -167,10 +167,12 @@
         }
         @keyframes financeHoldProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         .finance-drag-active {
-            opacity: .92; transform: scale(1.008) translateY(-2px) !important;
-            box-shadow: 0 18px 40px rgba(99,102,241,.2) !important;
-            border-color: #818cf8 !important; z-index: 40; cursor: grabbing !important;
+            opacity: .48; transform: none !important;
+            box-shadow: none !important;
+            border-color: #818cf8 !important; cursor: grabbing !important;
+            pointer-events: none !important;
         }
+        .finance-drop-ghost.finance-item-row { min-height: 48px; }
         .section-header-toggle-zone.finance-drag-charging {
             position: relative;
         }
@@ -243,6 +245,70 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.4);
         }
         .chart-container:hover .glass-tooltip { opacity: 1; transform: translateY(0); }
+
+        /* Accesos flotantes inspirados en Tasky */
+        .finance-fab-wrapper {
+            position: fixed;
+            right: 24px;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            z-index: 65;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .finance-fab-primary, .finance-fab-secondary {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: opacity .24s ease, visibility .24s ease, transform .28s cubic-bezier(.22,1,.36,1), box-shadow .2s ease, border-color .2s ease;
+        }
+        .finance-fab-primary {
+            border: none;
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: #fff;
+            box-shadow: 0 14px 32px rgba(37,99,235,.36);
+        }
+        .finance-fab-primary:hover {
+            transform: scale(1.08);
+            box-shadow: 0 18px 38px rgba(37,99,235,.44);
+        }
+        .finance-fab-secondary {
+            border: 1px solid var(--border-card);
+            background: var(--bg-card);
+            color: var(--text-main);
+            box-shadow: 0 6px 18px rgba(15,23,42,.12);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(12px) scale(.84);
+        }
+        .finance-fab-secondary.is-visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+        .finance-fab-secondary.is-visible:hover {
+            color: #4f46e5;
+            border-color: #818cf8;
+            transform: translateY(-3px) scale(1.06);
+        }
+        @media (max-width: 640px) {
+            .finance-fab-wrapper {
+                right: 14px;
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            }
+            .finance-fab-primary, .finance-fab-secondary {
+                width: 50px;
+                height: 50px;
+            }
+        }
 
         /* MODALS */
         .modal-wrap {
@@ -474,6 +540,16 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Accesos rápidos flotantes estilo Tasky -->
+    <div id="finance-fab-wrapper" class="finance-fab-wrapper" aria-label="Acciones rápidas">
+        <button type="button" id="finance-scroll-top" class="finance-fab-secondary" aria-label="Subir al inicio" title="Subir al inicio">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+        </button>
+        <button type="button" id="finance-add-section-fab" class="finance-fab-primary" aria-label="Añadir sección financiera" title="Añadir nueva sección financiera" onclick="openNewSectionModal()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
     </div>
 
     <!-- MODAL: NUEVA SECCIÓN -->
@@ -2447,6 +2523,14 @@
                 return;
             }
 
+            // Tasky-style guard: the dragged source remains in the layout while its ghost moves.
+            // If hit-testing lands on that source row, keep the current slot instead of falling back to
+            // the end of the section; that fallback is what caused the up/down flicker.
+            const overActiveRow = hitElements.map(element =>
+                element && element.closest ? element.closest('.finance-item-row') : null
+            ).find(row => row && row === financeDrag.activeEl);
+            if (overActiveRow) return;
+
             const overRow = hitElements.map(element =>
                 element && element.closest ? element.closest('.finance-item-row') : null
             ).find(row => row && row !== financeDrag.activeEl && !row.classList.contains('finance-drop-ghost'));
@@ -2679,6 +2763,22 @@
         window.addEventListener('pointermove', handleFinanceGlobalPointerMove, { passive: true });
         window.addEventListener('pointerup', finishFinanceDrag);
         window.addEventListener('pointercancel', cancelFinanceDrag);
+
+        // El botón de subir aparece solo después de desplazarse, como en Tasky.
+        (function initFinanceFloatingButtons() {
+            const topButton = document.getElementById('finance-scroll-top');
+            if (!topButton) return;
+            const refreshVisibility = () => {
+                const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+                topButton.classList.toggle('is-visible', scrollY > 160);
+            };
+            window.addEventListener('scroll', refreshVisibility, { passive: true });
+            topButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            refreshVisibility();
+        })();
+
 
         function renderLedger() {
             const con = document.getElementById('ledger');

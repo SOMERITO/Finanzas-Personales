@@ -2283,8 +2283,8 @@
                 }
 
                 card.innerHTML = `
-                <div class="p-5 md:p-6 cursor-default select-none group" onclick="if (event.target.closest('.section-header-toggle-zone') && !event.target.closest('input,button,.section-title-display')) toggleSec(${sIdx});">
-                    <div class="flex justify-between items-center gap-2 section-header-toggle-zone cursor-pointer" title="Clic en el espacio vacío para plegar o desplegar">
+                <div class="p-5 md:p-6 cursor-default select-none group" ondblclick="if (event.target.closest('.section-header-toggle-zone') && !event.target.closest('input,button,.section-title-display')) { event.preventDefault(); toggleSec(${sIdx}); }">
+                    <div class="flex justify-between items-center gap-2 section-header-toggle-zone cursor-pointer" title="Doble clic en el espacio vacío para plegar o desplegar">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <div class="w-10 h-10 rounded-xl ${badgeConfig.color} flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
                                 <i class="ph-bold ${badgeConfig.icon} text-xl"></i>

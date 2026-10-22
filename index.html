@@ -958,6 +958,151 @@
             return true;
         }
 
+        // Compromisos confirmados/planificados para octubre y noviembre de 2026.
+        const OCT_NOV_COMMITMENTS_MARKER = 'octNovCommitments2026_v1';
+
+        function upsertPlannedSection(monthIndex, config) {
+            const monthSections = state.struct[monthIndex];
+            let section = monthSections.find(item => item && item.cfoSeedId === config.seedId);
+
+            if (!section) {
+                let id = config.id;
+                let suffix = 2;
+                while (monthSections.some(item => item && item.id === id)) {
+                    id = config.id + '-' + suffix++;
+                }
+                section = {
+                    id,
+                    title: config.title,
+                    type: config.type,
+                    items: [],
+                    collapsed: false,
+                    cfoSeedId: config.seedId
+                };
+                monthSections.push(section);
+            }
+
+            // This section belongs to this one-time import; rebuild only its own seeded rows.
+            section.title = config.title;
+            section.type = config.type;
+            section.items = config.items.slice();
+            section.collapsed = false;
+            if (config.debtTotal !== undefined) section.debtTotal = config.debtTotal;
+            if (config.debtRate !== undefined) section.debtRate = config.debtRate;
+
+            const prefix = monthIndex + '-' + section.id + '-';
+            Object.keys(state.data).forEach(key => {
+                if (key.startsWith(prefix)) delete state.data[key];
+            });
+            config.amounts.forEach((amount, index) => {
+                state.data[monthIndex + '-' + section.id + '-' + index] = amount;
+            });
+        }
+
+        function upsertPlannedEvent(event) {
+            const existing = state.events.find(item => item && item.cfoSeedId === event.cfoSeedId);
+            if (existing) Object.assign(existing, event);
+            else state.events.push(event);
+        }
+
+        function applyOctoberNovemberCommitments2026() {
+            if (state[OCT_NOV_COMMITMENTS_MARKER] === true) return false;
+            if (!Array.isArray(state.struct) || state.struct.length !== 12) {
+                throw new Error('No se pudieron registrar los compromisos: la estructura mensual no es válida.');
+            }
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+            if (!Array.isArray(state.events)) state.events = [];
+
+            upsertPlannedSection(9, {
+                id: 'planned-regular-expenses-oct-2026',
+                seedId: 'planned-regular-expenses-oct-2026',
+                title: 'Gastos habituales',
+                type: 'expense',
+                items: [
+                    'Google Play Pass', 'Entel', 'Google Instagram', 'Google One',
+                    'Netflix', 'YouTube Music', 'ChatGPT', 'Spotify', 'Win'
+                ],
+                amounts: [11, 120, 8, 42, 15, 27, 23, 12, 150]
+            });
+
+            upsertPlannedSection(9, {
+                id: 'planned-esbas-printing-oct-2026',
+                seedId: 'planned-esbas-printing-oct-2026',
+                title: 'Estudio y formación',
+                type: 'expense',
+                items: ['Impresiones ESBAS (3 libros) — vence 23/10'],
+                amounts: [28]
+            });
+
+            upsertPlannedSection(9, {
+                id: 'planned-interest-milagros-oct-2026',
+                seedId: 'planned-interest-milagros-oct-2026',
+                title: 'Préstamo tía Milagros',
+                type: 'debt',
+                debtTotal: 1000,
+                debtRate: 10,
+                items: ['Interés mensual (10% de S/ 1,000) — vence 23/10'],
+                amounts: [100]
+            });
+
+            upsertPlannedSection(9, {
+                id: 'planned-loan-repayments-oct-2026',
+                seedId: 'planned-loan-repayments-oct-2026',
+                title: 'Devolución de préstamos sin intereses',
+                type: 'debt',
+                debtTotal: 650,
+                debtRate: 0,
+                items: [
+                    'Préstamo hermana Fiorella — vence 23/10',
+                    'Préstamo papá — vence 23/10',
+                    'Préstamo tía Malena — vence 23/10',
+                    'Préstamo amigo López — vence 23/10'
+                ],
+                amounts: [50, 50, 400, 150]
+            });
+
+            upsertPlannedSection(10, {
+                id: 'planned-loan-repayments-nov-2026',
+                seedId: 'planned-loan-repayments-nov-2026',
+                title: 'Devolución de préstamos sin intereses',
+                type: 'debt',
+                debtTotal: 388,
+                debtRate: 0,
+                items: [
+                    'Préstamo amiga Claudia — vence 15/11',
+                    'Préstamo amiga Carolina — vence 15/11'
+                ],
+                amounts: [288, 100]
+            });
+
+            upsertPlannedEvent({
+                cfoSeedId: 'payday-and-october-commitments-2026',
+                name: 'Día de pago y compromisos — S/ 1,186',
+                d: 23, m: 10, year: 2026, type: 'payment',
+                notes: 'Pago previsto por adelantamiento del día 25, que cae domingo. Gastos habituales: S/ 408. Impresiones ESBAS: S/ 28. Devolución de préstamos sin intereses: S/ 650. Interés de tía Milagros: S/ 100. Total planificado: S/ 1,186; no significa que los pagos ya se hayan realizado.'
+            });
+            upsertPlannedEvent({
+                cfoSeedId: 'cts-estimated-2026-11-08',
+                name: 'CTS estimada — por confirmar',
+                d: 8, m: 11, year: 2026, type: 'reminder',
+                notes: 'Fecha estimada de recepción de CTS, todavía no confirmada. No se ha registrado un monto. Se prevé usarla para planificar los pagos a Claudia y Carolina por S/ 388.'
+            });
+            upsertPlannedEvent({
+                cfoSeedId: 'loans-claudia-carolina-due-2026-11-15',
+                name: 'Vencen préstamos Claudia y Carolina — S/ 388',
+                d: 15, m: 11, year: 2026, type: 'payment',
+                notes: 'Claudia: S/ 288. Carolina: S/ 100. Total previsto: S/ 388. Planificado con la CTS estimada del 8 de noviembre.'
+            });
+
+            state[OCT_NOV_COMMITMENTS_MARKER] = true;
+            return true;
+        }
+
+        function escapeHtmlText(value) {
+            return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+        }
+
         async function sync(pull = false) {
             const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
 
@@ -1018,12 +1163,14 @@
                     if (remoteState) {
                         state = normalizeCfoState(remoteState);
                         const payrollHistoryApplied = applyPayrollHistory2026();
+                        const commitmentsApplied = applyOctoberNovemberCommitments2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied) {
+                        if (payrollHistoryApplied || commitmentsApplied) {
                             await sync(false);
-                            showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
+                            if (commitmentsApplied) showToast('Compromisos de octubre y noviembre registrados.', 'success');
+                            else showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
                         } else {
                             setSyncState('ok', 'Firebase sincronizado');
                         }
@@ -1033,9 +1180,12 @@
                     // No remote document exists yet. Recover local data if available; otherwise initialize a new book.
                     state = localState || makeInitialState();
                     const payrollHistoryApplied = applyPayrollHistory2026();
+                    const commitmentsApplied = applyOctoberNovemberCommitments2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && payrollHistoryApplied) {
+                    if (saved && commitmentsApplied) {
+                        showToast('Compromisos de octubre y noviembre registrados.', 'success');
+                    } else if (saved && payrollHistoryApplied) {
                         showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
                     } else if (saved && localState) {
                         showToast('Se recuperaron tus datos locales y se sincronizaron.', 'info');
@@ -1046,6 +1196,7 @@
                     cfoCloudUnavailable = true;
                     state = localState || makeInitialState();
                     applyPayrollHistory2026();
+                    applyOctoberNovemberCommitments2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -1057,9 +1208,12 @@
 
             state = localState || makeInitialState();
             const payrollHistoryApplied = applyPayrollHistory2026();
+            const commitmentsApplied = applyOctoberNovemberCommitments2026();
             await init();
             const saved = await sync(false);
-            if (saved && payrollHistoryApplied) {
+            if (saved && commitmentsApplied) {
+                showToast('Compromisos de octubre y noviembre registrados.', 'success');
+            } else if (saved && payrollHistoryApplied) {
                 showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
             }
         };
@@ -1069,6 +1223,7 @@
             state = makeInitialState();
             // Un reinicio solicitado por el usuario debe respetarse y no reimportar estas boletas.
             state[PAYROLL_HISTORY_MARKER] = true;
+            state[OCT_NOV_COMMITMENTS_MARKER] = true;
             const ok = await sync(false);
             if (ok) {
                 closeModals();
@@ -1166,13 +1321,15 @@
                     let msg = "Registra la cuota del mes para calcular amortización de capital.";
                     
                     if(total > 0) {
-                        if(total <= monthlyInterest) {
+                        if(total < monthlyInterest) {
                             interestPaid = total;
                             msg = `⚠️ El pago solo cubre intereses (Faltan <b>${fmt(monthlyInterest - total)}</b> para cubrir el interés del mes).`;
                         } else {
                             interestPaid = monthlyInterest;
                             capitalPaid = total - monthlyInterest;
-                            msg = `✅ Cubres interés (<b>${fmt(interestPaid)}</b>) y amortizas <b class="text-emerald-600 dark:text-emerald-400">${fmt(capitalPaid)}</b> directo al capital.`;
+                            msg = capitalPaid > 0
+                                ? `✅ Cubres interés (<b>${fmt(interestPaid)}</b>) y amortizas <b class="text-emerald-600 dark:text-emerald-400">${fmt(capitalPaid)}</b> directo al capital.`
+                                : `✅ Cubres el interés del mes (${fmt(interestPaid)}). El capital pendiente permanece en <b>${fmt(principal)}</b>.`;
                         }
                     }
                     const newPrincipal = Math.max(0, principal - capitalPaid);
@@ -1569,7 +1726,7 @@
             const now = new Date();
             for(let i = 0; i < first; i++) grid.innerHTML += `<div></div>`;
             for(let d = 1; d <= days; d++) {
-                const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1));
+                const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1) && (!Number.isInteger(e.year) || e.year === calYear));
                 const isToday = (d === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear());
                 const dots = evs.map(e => `<div class="event-dot" style="background:${getColor(e.type || e.category)}"></div>`).join('');
                 grid.innerHTML += `
@@ -1591,7 +1748,7 @@
             document.getElementById('day-detail-title').innerText = `${d} de ${MONTHS[calMonth]}`;
             const l = document.getElementById('day-events-list');
             l.innerHTML = '';
-            const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1));
+            const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1) && (!Number.isInteger(e.year) || e.year === calYear));
             if(evs.length === 0) {
                 l.innerHTML = '<p class="text-slate-400 text-xs font-bold py-6 text-center">No hay eventos programados para este día.</p>';
             } else {
@@ -1605,6 +1762,7 @@
                             <div>
                                 <p class="font-extrabold text-sm">${e.name}</p>
                                 <p class="text-[10px] font-bold text-slate-400 uppercase">${e.type || e.category || 'General'}</p>
+                                ${e.notes ? '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">' + escapeHtmlText(e.notes) + '</p>' : ''}
                             </div>
                         </div>
                         <button onclick="deleteEvent(${idx})" class="btn-icon !w-8 !h-8"><i class="ph-bold ph-trash"></i></button>

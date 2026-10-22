@@ -2283,7 +2283,7 @@
                 }
 
                 card.innerHTML = `
-                <div class="p-5 md:p-6 cursor-pointer select-none group" onclick="toggleSec(${sIdx})">
+                <div class="p-5 md:p-6 cursor-default select-none group" ondblclick="if (!event.target.closest('input,button')) { event.preventDefault(); toggleSec(${sIdx}); }" title="Doble clic en el espacio vacío para plegar o desplegar la casilla">
                     <div class="flex justify-between items-center gap-2">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
                             <div class="w-10 h-10 rounded-xl ${badgeConfig.color} flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
@@ -2291,7 +2291,7 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
-                                    <input class="font-extrabold text-base md:text-lg bg-transparent border-none outline-none truncate input-row !p-0" value="${sec.title}" onclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
+                                    <input class="font-extrabold text-base md:text-lg bg-transparent border-none outline-none truncate input-row !p-0" value="${escapeHtmlText(sec.title)}" title="Clic para editar el nombre" aria-label="Nombre de la casilla" onclick="event.stopPropagation(); this.select()" ondblclick="event.stopPropagation()" onchange="updSec(${sIdx},this.value)">
                                     <span class="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md ${badgeConfig.color} hidden sm:inline-block">${badgeConfig.label}</span>
                                 </div>
                             </div>

@@ -1886,6 +1886,120 @@
             return true;
         }
 
+        function applySubscriptionsCategory2026() {
+            const marker = 'subscriptionsCategoryOrganized2026_v1';
+            if (state[marker] === true) return false;
+            if (!Array.isArray(state.struct) || state.struct.length !== 12) return false;
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+            if (!state.paymentDates || typeof state.paymentDates !== 'object') state.paymentDates = {};
+            if (!Array.isArray(state.events)) state.events = [];
+
+            const subscriptionLabels = new Set([
+                'google play pass', 'google instagram', 'google one',
+                'netflix', 'youtube music', 'chatgpt', 'spotify'
+            ]);
+            const rowKey = (monthIndex, section, itemIndex) => monthIndex + '-' + section.id + '-' + itemIndex;
+            const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+            const touchedSourceSections = [];
+            const subscriptionsByMonth = [];
+
+            // Create a reusable Suscripciones section for each month; keep empty months collapsed to save space.
+            for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+                const sections = state.struct[monthIndex];
+                let target = sections.find(section => section && section.type === 'expense' &&
+                    String(section.title || '').trim().toLowerCase() === 'suscripciones');
+                if (!target) {
+                    const sourceIndex = sections.findIndex(section => section && section.type === 'expense' &&
+                        String(section.title || '').trim().toLowerCase() === 'gastos habituales');
+                    let id = 'subscriptions-' + monthIndex;
+                    let suffix = 2;
+                    while (sections.some(section => section && section.id === id)) id = 'subscriptions-' + monthIndex + '-' + suffix++;
+                    target = { id, title: 'Suscripciones', type: 'expense', items: [], collapsed: monthIndex !== 9 };
+                    const insertAt = sourceIndex >= 0 ? sourceIndex + 1 : sections.length;
+                    sections.splice(insertAt, 0, target);
+                }
+                if (!Array.isArray(target.items)) target.items = [];
+                if (monthIndex !== 9 && target.items.length === 0) target.collapsed = true;
+                subscriptionsByMonth[monthIndex] = target;
+            }
+
+            // Move app/streaming subscriptions already registered for October without losing values or reminders.
+            const monthIndex = 9;
+            const target = subscriptionsByMonth[monthIndex];
+            const rowsToMove = [];
+            state.struct[monthIndex].forEach((section, sectionOrder) => {
+                if (!section || section === target || section.type !== 'expense' || !Array.isArray(section.items)) return;
+                section.items.forEach((label, itemIndex) => {
+                    const normalized = String(label).trim().toLowerCase();
+                    if (!subscriptionLabels.has(normalized)) return;
+                    const key = rowKey(monthIndex, section, itemIndex);
+                    rowsToMove.push({
+                        label: String(label), normalized, section, sectionOrder, itemIndex, key,
+                        hasAmount: hasOwn(state.data, key), amount: state.data[key],
+                        meta: state.paymentDates[key] ? Object.assign({}, state.paymentDates[key]) : null
+                    });
+                });
+            });
+            rowsToMove.sort((a, b) => a.sectionOrder - b.sectionOrder || a.itemIndex - b.itemIndex);
+
+            function removeAndReindex(section, itemIndex) {
+                const oldLength = section.items.length;
+                section.items.splice(itemIndex, 1);
+                for (let index = itemIndex; index < oldLength - 1; index++) {
+                    const oldKey = rowKey(monthIndex, section, index + 1);
+                    const newKey = rowKey(monthIndex, section, index);
+                    if (hasOwn(state.data, oldKey)) state.data[newKey] = state.data[oldKey];
+                    else delete state.data[newKey];
+                    if (hasOwn(state.paymentDates, oldKey)) state.paymentDates[newKey] = state.paymentDates[oldKey];
+                    else delete state.paymentDates[newKey];
+                }
+                delete state.data[rowKey(monthIndex, section, oldLength - 1)];
+                delete state.paymentDates[rowKey(monthIndex, section, oldLength - 1)];
+            }
+
+            const groupedRows = new Map();
+            rowsToMove.forEach(row => {
+                if (!groupedRows.has(row.section)) groupedRows.set(row.section, []);
+                groupedRows.get(row.section).push(row);
+            });
+            groupedRows.forEach((rows, section) => {
+                rows.slice().sort((a, b) => b.itemIndex - a.itemIndex).forEach(row => removeAndReindex(section, row.itemIndex));
+                touchedSourceSections.push(section);
+            });
+
+            rowsToMove.forEach(row => {
+                let targetIndex = target.items.findIndex(item => String(item).trim().toLowerCase() === row.normalized);
+                if (targetIndex < 0) {
+                    target.items.push(row.label);
+                    targetIndex = target.items.length - 1;
+                    const newKey = rowKey(monthIndex, target, targetIndex);
+                    if (row.hasAmount) state.data[newKey] = row.amount;
+                    if (row.meta) state.paymentDates[newKey] = Object.assign({}, row.meta);
+                } else {
+                    // If a matching subscription was already placed in this section, avoid duplicating it.
+                    const existingKey = rowKey(monthIndex, target, targetIndex);
+                    if ((!hasOwn(state.data, existingKey) || (Number(state.data[existingKey]) === 0 && Number(row.amount) !== 0)) && row.hasAmount) {
+                        state.data[existingKey] = row.amount;
+                    }
+                    if (row.meta && !state.paymentDates[existingKey]) state.paymentDates[existingKey] = Object.assign({}, row.meta);
+                }
+            });
+
+            touchedSourceSections.forEach(section => refreshSectionPaymentDateEvents(monthIndex, section));
+            refreshSectionPaymentDateEvents(monthIndex, target);
+
+            // ChatGPT remains registered in October, but its S/ 23 cash outflow is assigned to November.
+            upsertPlannedEvent({
+                cfoSeedId: 'payday-and-october-commitments-2026',
+                name: 'Día de pago y compromisos — S/ 1,673',
+                d: 23, m: 10, year: 2026, type: 'payment',
+                notes: 'Pago previsto para el viernes 23/10. Gastos y servicios previstos para octubre, excluyendo ChatGPT (S/ 23), cuyo pago está planificado para noviembre: S/ 385. Impresiones ESBAS: S/ 28. Devolución de préstamos sin intereses: S/ 500. Interés de tía Milagros: S/ 100. Cuota de octubre de Cristina: S/ 360; siguen vencidas las cuotas de agosto y septiembre por S/ 720, no incluidas en este desembolso. Abono mínimo a Miguel: S/ 300; tiene cuatro cuotas de intereses vencidas (julio a octubre) por S/ 1,200. Si el abono se aplica a la cuota más antigua, quedarían S/ 900 de intereses vencidos. Total de desembolsos previstos para el 23/10: S/ 1,673; no significa que los pagos ya se hayan realizado.'
+            });
+
+            state[marker] = true;
+            return true;
+        }
+
         async function sync(pull = false) {
             const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
 
@@ -1952,12 +2066,14 @@
                         const lopezMoved = applyLopezLoanMove2026();
                         const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
                         const chatGptMonthShiftApplied = applyChatGPTBudgetMonthShift2026();
+                        const subscriptionsCategoryApplied = applySubscriptionsCategory2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved || chatGptDatesApplied || chatGptMonthShiftApplied) {
+                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved || chatGptDatesApplied || chatGptMonthShiftApplied || subscriptionsCategoryApplied) {
                             await sync(false);
                             if (chatGptMonthShiftApplied) showToast('ChatGPT pasó a la proyección de noviembre; su pago queda tentativo hasta la CTS.', 'success');
+                            else if (subscriptionsCategoryApplied) showToast('Suscripciones organizadas en su propia categoría.', 'success');
                             else if (chatGptDatesApplied) showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
                             else if (lopezMoved) showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
                             else if (cleanupApplied) showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
@@ -1979,10 +2095,14 @@
                     const lopezMoved = applyLopezLoanMove2026();
                     const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
                     const chatGptMonthShiftApplied = applyChatGPTBudgetMonthShift2026();
+                        const subscriptionsCategoryApplied = applySubscriptionsCategory2026();
                     await init();
                     const saved = await sync(false);
                     if (saved && chatGptMonthShiftApplied) {
                         showToast('ChatGPT pasó a la proyección de noviembre; su pago queda tentativo hasta la CTS.', 'success');
+                    }
+                    else if (saved && subscriptionsCategoryApplied) {
+                        showToast('Suscripciones organizadas en su propia categoría.', 'success');
                     } else if (saved && chatGptDatesApplied) {
                         showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
                     } else if (saved && lopezMoved) {
@@ -2010,6 +2130,7 @@
                     applyLopezLoanMove2026();
                     applyChatGPTPaymentDateExample2026();
                     applyChatGPTBudgetMonthShift2026();
+                    applySubscriptionsCategory2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -2027,11 +2148,15 @@
             const lopezMoved = applyLopezLoanMove2026();
             const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
             const chatGptMonthShiftApplied = applyChatGPTBudgetMonthShift2026();
+                        const subscriptionsCategoryApplied = applySubscriptionsCategory2026();
             await init();
             const saved = await sync(false);
             if (saved && chatGptMonthShiftApplied) {
                 showToast('ChatGPT pasó a la proyección de noviembre; su pago queda tentativo hasta la CTS.', 'success');
-            } else if (saved && chatGptDatesApplied) {
+            }
+                    else if (saved && subscriptionsCategoryApplied) {
+                        showToast('Suscripciones organizadas en su propia categoría.', 'success');
+                    } else if (saved && chatGptDatesApplied) {
                 showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
             } else if (saved && lopezMoved) {
                 showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
@@ -2064,6 +2189,7 @@
             state.lopezLoanMovedToNovember2026_v1 = true;
             state.chatGPTDueDayAndTentativeNovemberPayment2026_v1 = true;
             state.chatGPTBudgetMovedToNovember2026_v1 = true;
+            state.subscriptionsCategoryOrganized2026_v1 = true;
             lastCommittedStateSnapshot = JSON.stringify(state);
 
             const ok = await sync(false);

@@ -1134,15 +1134,14 @@
                 seedId: 'planned-loan-repayments-oct-2026',
                 title: 'Devolución de préstamos sin intereses',
                 type: 'debt',
-                debtTotal: 650,
+                debtTotal: 500,
                 debtRate: 0,
                 items: [
                     'Préstamo hermana Fiorella — vence 23/10',
                     'Préstamo papá — vence 23/10',
-                    'Préstamo tía Malena — vence 23/10',
-                    'Préstamo amigo López — vence 23/10'
+                    'Préstamo tía Malena — vence 23/10'
                 ],
-                amounts: [50, 50, 400, 150]
+                amounts: [50, 50, 400]
             });
 
             upsertPlannedSection(10, {
@@ -1150,20 +1149,21 @@
                 seedId: 'planned-loan-repayments-nov-2026',
                 title: 'Devolución de préstamos sin intereses',
                 type: 'debt',
-                debtTotal: 388,
+                debtTotal: 538,
                 debtRate: 0,
                 items: [
                     'Préstamo amiga Claudia — vence 15/11',
-                    'Préstamo amiga Carolina — vence 15/11'
+                    'Préstamo amiga Carolina — vence 15/11',
+                    'Préstamo amigo López — vence 15/11'
                 ],
-                amounts: [288, 100]
+                amounts: [288, 100, 150]
             });
 
             upsertPlannedEvent({
                 cfoSeedId: 'payday-and-october-commitments-2026',
-                name: 'Día de pago y compromisos — S/ 1,186',
+                name: 'Día de pago y compromisos — S/ 1,696',
                 d: 23, m: 10, year: 2026, type: 'payment',
-                notes: 'Pago previsto por adelantamiento del día 25, que cae domingo. Gastos habituales: S/ 408. Impresiones ESBAS: S/ 28. Devolución de préstamos sin intereses: S/ 650. Interés de tía Milagros: S/ 100. Total planificado: S/ 1,186; no significa que los pagos ya se hayan realizado.'
+                notes: 'Pago previsto para el viernes 23/10. Gastos habituales: S/ 408. Impresiones ESBAS: S/ 28. Devolución de préstamos sin intereses con vencimiento el 23/10: S/ 500. Interés de tía Milagros: S/ 100. Cuota de octubre de Cristina: S/ 360. Abono mínimo a Miguel: S/ 300. El préstamo de López por S/ 150 se trasladó al 15/11. Total planificado para el 23/10: S/ 1,696; no significa que los pagos ya se hayan realizado.'
             });
             upsertPlannedEvent({
                 cfoSeedId: 'cts-estimated-2026-11-08',
@@ -1173,9 +1173,9 @@
             });
             upsertPlannedEvent({
                 cfoSeedId: 'loans-claudia-carolina-due-2026-11-15',
-                name: 'Vencen préstamos Claudia y Carolina — S/ 388',
+                name: 'Vencen préstamos Claudia, Carolina y López — S/ 538',
                 d: 15, m: 11, year: 2026, type: 'payment',
-                notes: 'Claudia: S/ 288. Carolina: S/ 100. Total previsto: S/ 388. Planificado con la CTS estimada del 8 de noviembre.'
+                notes: 'Claudia: S/ 288. Carolina: S/ 100. López: S/ 150. Total previsto: S/ 538. Planificado con la CTS estimada del 8 de noviembre.'
             });
 
             state[OCT_NOV_COMMITMENTS_MARKER] = true;
@@ -1335,6 +1335,110 @@
             return true;
         }
 
+        function applyLopezLoanMove2026() {
+            const marker = 'lopezLoanMovedToNovember2026_v1';
+            if (state[marker] === true) return false;
+            if (!Array.isArray(state.struct) || !Array.isArray(state.struct[9]) || !Array.isArray(state.struct[10])) {
+                throw new Error('No se pudo reprogramar el préstamo de López: faltan los meses de octubre o noviembre.');
+            }
+            if (!state.data || typeof state.data !== 'object') state.data = {};
+            if (!Array.isArray(state.events)) state.events = [];
+
+            function removeItemAndReindex(monthIndex, section, itemIndex) {
+                const oldLength = section.items.length;
+                section.items.splice(itemIndex, 1);
+                for (let index = itemIndex; index < oldLength - 1; index++) {
+                    const nextValue = state.data[monthIndex + '-' + section.id + '-' + (index + 1)];
+                    const currentKey = monthIndex + '-' + section.id + '-' + index;
+                    if (nextValue !== undefined) state.data[currentKey] = nextValue;
+                    else delete state.data[currentKey];
+                }
+                delete state.data[monthIndex + '-' + section.id + '-' + (oldLength - 1)];
+            }
+
+            const octoberSections = state.struct[9];
+            const novemberSections = state.struct[10];
+            const octoberLoanSection = octoberSections.find(section =>
+                section && (section.cfoSeedId === 'planned-loan-repayments-oct-2026' ||
+                (section.type === 'debt' && /devolución de préstamos sin intereses/i.test(String(section.title || ''))))
+            );
+
+            // Remove López only from October debt repayments, preserving the other payments and their values.
+            if (octoberLoanSection && Array.isArray(octoberLoanSection.items)) {
+                for (let index = octoberLoanSection.items.length - 1; index >= 0; index--) {
+                    const label = String(octoberLoanSection.items[index]).toLowerCase();
+                    if (label.includes('lópez') && label.includes('préstamo')) {
+                        removeItemAndReindex(9, octoberLoanSection, index);
+                    }
+                }
+                const octoberTotal = octoberLoanSection.items.reduce((sum, item, index) =>
+                    sum + (Number(state.data['9-' + octoberLoanSection.id + '-' + index]) || 0), 0);
+                octoberLoanSection.debtTotal = octoberTotal;
+            }
+
+            let novemberLoanSection = novemberSections.find(section =>
+                section && section.cfoSeedId === 'planned-loan-repayments-nov-2026'
+            );
+            if (!novemberLoanSection) {
+                novemberLoanSection = novemberSections.find(section =>
+                    section && section.type === 'debt' &&
+                    /devolución de préstamos sin intereses/i.test(String(section.title || ''))
+                );
+            }
+            if (!novemberLoanSection) {
+                novemberLoanSection = {
+                    id: 'planned-loan-repayments-nov-2026',
+                    cfoSeedId: 'planned-loan-repayments-nov-2026',
+                    title: 'Devolución de préstamos sin intereses',
+                    type: 'debt',
+                    debtRate: 0,
+                    items: [],
+                    collapsed: false
+                };
+                novemberSections.push(novemberLoanSection);
+            }
+            if (!Array.isArray(novemberLoanSection.items)) novemberLoanSection.items = [];
+
+            // Ensure there is exactly one López entry in November.
+            const lopezIndexes = [];
+            novemberLoanSection.items.forEach((label, index) => {
+                const normalized = String(label).toLowerCase();
+                if (normalized.includes('lópez') && normalized.includes('préstamo')) lopezIndexes.push(index);
+            });
+            let lopezIndex;
+            if (!lopezIndexes.length) {
+                lopezIndex = novemberLoanSection.items.length;
+                novemberLoanSection.items.push('Préstamo amigo López — vence 15/11');
+            } else {
+                lopezIndex = lopezIndexes[0];
+                lopezIndexes.slice(1).sort((a, b) => b - a).forEach(index => {
+                    removeItemAndReindex(10, novemberLoanSection, index);
+                });
+                novemberLoanSection.items[lopezIndex] = 'Préstamo amigo López — vence 15/11';
+            }
+            state.data['10-' + novemberLoanSection.id + '-' + lopezIndex] = 150;
+            novemberLoanSection.debtTotal = novemberLoanSection.items.reduce((sum, item, index) =>
+                sum + (Number(state.data['10-' + novemberLoanSection.id + '-' + index]) || 0), 0);
+            if (novemberLoanSection.debtRate === undefined) novemberLoanSection.debtRate = 0;
+
+            // Update the existing reminders (or create them if the earlier reminder was removed).
+            upsertPlannedEvent({
+                cfoSeedId: 'payday-and-october-commitments-2026',
+                name: 'Día de pago y compromisos — S/ 1,696',
+                d: 23, m: 10, year: 2026, type: 'payment',
+                notes: 'Pago previsto para el viernes 23/10. Gastos habituales: S/ 408. Impresiones ESBAS: S/ 28. Devolución de préstamos sin intereses con vencimiento el 23/10: S/ 500. Interés de tía Milagros: S/ 100. Cuota de octubre de Cristina: S/ 360. Abono mínimo a Miguel: S/ 300. El préstamo de López por S/ 150 se trasladó al 15/11. Total planificado para el 23/10: S/ 1,696; no significa que los pagos ya se hayan realizado.'
+            });
+            upsertPlannedEvent({
+                cfoSeedId: 'loans-claudia-carolina-due-2026-11-15',
+                name: 'Vencen préstamos Claudia, Carolina y López — S/ 538',
+                d: 15, m: 11, year: 2026, type: 'payment',
+                notes: 'Claudia: S/ 288. Carolina: S/ 100. López: S/ 150. Total previsto: S/ 538. Planificado con la CTS estimada del 8 de noviembre.'
+            });
+
+            state[marker] = true;
+            return true;
+        }
+
         function escapeHtmlText(value) {
             return String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;')
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
@@ -1403,12 +1507,14 @@
                         const commitmentsApplied = applyOctoberNovemberCommitments2026();
                         const criticalLoansApplied = applyCriticalLoanPayments2026();
                         const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
+                        const lopezMoved = applyLopezLoanMove2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied) {
+                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved) {
                             await sync(false);
-                            if (cleanupApplied) showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
+                            if (lopezMoved) showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
+                            else if (cleanupApplied) showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
                             else if (criticalLoansApplied) showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
                             else if (commitmentsApplied) showToast('Compromisos de octubre y noviembre registrados.', 'success');
                             else showToast('Ingresos netos de enero a septiembre registrados según tus boletas.', 'success');
@@ -1424,9 +1530,12 @@
                     const commitmentsApplied = applyOctoberNovemberCommitments2026();
                     const criticalLoansApplied = applyCriticalLoanPayments2026();
                     const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
+                    const lopezMoved = applyLopezLoanMove2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && cleanupApplied) {
+                    if (saved && lopezMoved) {
+                        showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
+                    } else if (saved && cleanupApplied) {
                         showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
                     } else if (saved && criticalLoansApplied) {
                         showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
@@ -1446,6 +1555,7 @@
                     applyOctoberNovemberCommitments2026();
                     applyCriticalLoanPayments2026();
                     applyFiorellaAndDeduplicateOctober2026();
+                    applyLopezLoanMove2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -1460,9 +1570,12 @@
             const commitmentsApplied = applyOctoberNovemberCommitments2026();
             const criticalLoansApplied = applyCriticalLoanPayments2026();
             const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
+            const lopezMoved = applyLopezLoanMove2026();
             await init();
             const saved = await sync(false);
-            if (saved && cleanupApplied) {
+            if (saved && lopezMoved) {
+                showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
+            } else if (saved && cleanupApplied) {
                 showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
             } else if (saved && criticalLoansApplied) {
                 showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
@@ -1488,6 +1601,7 @@
             state[OCT_NOV_COMMITMENTS_MARKER] = true;
             state.criticalLoanPayments2026_v1 = true;
             state.fiorellaLoanAndDuplicateCleanup2026_v1 = true;
+            state.lopezLoanMovedToNovember2026_v1 = true;
             lastCommittedStateSnapshot = JSON.stringify(state);
 
             const ok = await sync(false);

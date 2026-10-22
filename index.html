@@ -1593,10 +1593,13 @@
                 const sameAsDue = (dueDate && dueDate.toDateString() === plannedDate.toDateString()) ||
                     (hasMonthlyDue && plannedDate.getDate() === Number(meta.dueDay));
                 const status = meta.plannedStatus === 'confirmed' ? 'Pago previsto: ' : 'Pago tentativo: ';
-                addEvent(plannedDate, 'planned', (sameAsDue ? 'Vence y ' : '') + status + itemName,
+                const eventName = sameAsDue
+                    ? (meta.plannedStatus === 'confirmed' ? 'Vence y se prevé pagar: ' : 'Vence; pago tentativo: ') + itemName
+                    : status + itemName;
+                addEvent(plannedDate, 'planned', eventName,
                     'Fecha de pago ' + (meta.plannedStatus === 'confirmed' ? 'confirmada' : 'tentativa') +
                     ': ' + displayISODate(meta.plannedDate) + '. Importe de referencia: ' + amountText +
-                    (sameAsDue ? '. Esta fecha también coincide con el vencimiento.' : '') +
+                    (sameAsDue ? '. Esta fecha también coincide con el vencimiento' : '') +
                     '. El recordatorio no marca el pago como realizado.');
             }
         }
@@ -2428,17 +2431,19 @@
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    if(imported && imported.struct) {
-                        state = imported;
+                    if(isValidCfoState(imported)) {
+                        state = normalizeCfoState(imported);
                         save();
                         closeModals();
                         showToast('Datos restaurados con éxito');
                     } else {
-                        showToast('Archivo JSON inválido', 'error');
+                        showToast('El respaldo JSON no tiene una estructura financiera válida.', 'error');
                     }
                 } catch(err) {
                     showToast('Error al leer el archivo', 'error');
+                    console.error('Error al importar respaldo:', err);
                 }
+                event.target.value = '';
             };
             reader.readAsText(file);
         };

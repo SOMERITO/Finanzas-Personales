@@ -147,6 +147,39 @@
         .sync-light.error { background: #ef4444; box-shadow: 0 0 5px rgba(239,68,68,.35); }
 
         /* SECTION COLLAPSE ANIMATION */
+        /* Arrastre profesional estilo Tasky: mantener pulsado, vista previa y destino resaltado. */
+        .finance-drag-handle {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 16px; min-width: 16px; flex-shrink: 0; position: relative;
+            color: #94a3b8; cursor: grab; user-select: none; touch-action: none;
+            border-radius: 5px; transition: color .15s ease, transform .15s ease;
+        }
+        .finance-drag-handle:hover { color: #6366f1; }
+        .finance-drag-handle:active { cursor: grabbing; }
+        .finance-drag-handle.finance-drag-charging { color: #6366f1; }
+        .finance-drag-handle.finance-drag-charging::after {
+            content: ""; position: absolute; bottom: -3px; left: 0; height: 2px;
+            width: 100%; border-radius: 99px; background: #6366f1;
+            transform-origin: left center; animation: financeHoldProgress .36s linear forwards;
+        }
+        @keyframes financeHoldProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .finance-drag-active {
+            opacity: .92; transform: scale(1.008) translateY(-2px) !important;
+            box-shadow: 0 18px 40px rgba(99,102,241,.2) !important;
+            border-color: #818cf8 !important; z-index: 40; cursor: grabbing !important;
+        }
+        .finance-drop-ghost {
+            opacity: .42 !important; border: 2px dashed #818cf8 !important;
+            background: rgba(99,102,241,.07) !important; box-shadow: none !important;
+            transform: scale(.995) !important; pointer-events: none !important;
+            transition: none !important; animation: none !important;
+        }
+        .finance-drop-ghost * { pointer-events: none !important; }
+        .finance-section-card.finance-drop-target {
+            outline: 2px solid rgba(99,102,241,.48); outline-offset: 3px;
+        }
+        body.finance-is-dragging { user-select: none; cursor: grabbing; }
+
         .section-content {
             transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease, padding 0.25s ease;
             overflow: hidden;
@@ -2312,6 +2345,379 @@
             });
         }
 
+        // Arrastre estilo Tasky: mantener pulsado 360 ms, vista previa en vivo y auto-desplazamiento.
+        const financeDrag = {
+            holdTimer: null,
+            chargingEl: null,
+            activeType: null,
+            activeId: null,
+            activeEl: null,
+            previewSlot: null,
+            monthIndex: null,
+            sourceSectionId: null,
+            sourceItemIndex: null,
+            startX: 0,
+            startY: 0,
+            lastX: 0,
+            lastY: 0,
+            autoScrollRaf: null,
+            autoScrollVelocity: 0,
+            expandedSectionIds: new Set()
+        };
+
+        function cancelFinanceHoldCharge() {
+            if (financeDrag.holdTimer) {
+                clearTimeout(financeDrag.holdTimer);
+                financeDrag.holdTimer = null;
+            }
+            if (financeDrag.chargingEl) {
+                financeDrag.chargingEl.classList.remove('finance-drag-charging');
+                financeDrag.chargingEl = null;
+            }
+        }
+
+        function stopFinanceAutoScrollLoop() {
+            if (financeDrag.autoScrollRaf) {
+                cancelAnimationFrame(financeDrag.autoScrollRaf);
+                financeDrag.autoScrollRaf = null;
+            }
+            financeDrag.autoScrollVelocity = 0;
+        }
+
+        function placeFinanceGhost(parent, ghost, beforeNode) {
+            if (!parent || !ghost) return;
+            const next = beforeNode || null;
+            if (ghost.parentNode !== parent || ghost.nextSibling !== next) {
+                parent.insertBefore(ghost, next);
+            }
+        }
+
+        function highlightFinanceDropTarget(card) {
+            document.querySelectorAll('.finance-section-card.finance-drop-target').forEach(element => {
+                if (element !== card) element.classList.remove('finance-drop-target');
+            });
+            if (card) card.classList.add('finance-drop-target');
+        }
+
+        function beginFinanceHoldDrag(type, element, details, event) {
+            if (!element || !event || event.button !== 0 || event.ctrlKey || event.metaKey) return;
+            cancelFinanceHoldCharge();
+            financeDrag.startX = event.clientX;
+            financeDrag.startY = event.clientY;
+            financeDrag.lastX = event.clientX;
+            financeDrag.lastY = event.clientY;
+            financeDrag.chargingEl = type === 'item' ? element.querySelector('.finance-drag-handle') : element.querySelector('.section-header-toggle-zone');
+            if (!financeDrag.chargingEl) financeDrag.chargingEl = element;
+            financeDrag.chargingEl.classList.add('finance-drag-charging');
+
+            financeDrag.holdTimer = setTimeout(() => {
+                financeDrag.holdTimer = null;
+                if (financeDrag.chargingEl) {
+                    financeDrag.chargingEl.classList.remove('finance-drag-charging');
+                    financeDrag.chargingEl = null;
+                }
+                financeDrag.activeType = type;
+                financeDrag.activeId = type === 'section' ? String(details.sectionId) : String(details.sectionId) + ':' + String(details.itemIndex);
+                financeDrag.activeEl = element;
+                financeDrag.monthIndex = Number(details.monthIndex);
+                financeDrag.sourceSectionId = String(details.sectionId);
+                financeDrag.sourceItemIndex = type === 'item' ? Number(details.itemIndex) : null;
+                financeDrag.expandedSectionIds = new Set();
+                element.classList.add('finance-drag-active');
+
+                const ghost = element.cloneNode(true);
+                ghost.classList.remove('finance-drag-active', 'finance-drag-charging');
+                ghost.classList.add('finance-drop-ghost');
+                ghost.dataset.financeDropGhost = 'true';
+                ghost.removeAttribute('data-finance-section-id');
+                ghost.removeAttribute('data-finance-item-row');
+                ghost.removeAttribute('data-finance-item-index');
+                ghost.setAttribute('aria-hidden', 'true');
+                financeDrag.previewSlot = ghost;
+                if (element.parentNode) element.parentNode.insertBefore(ghost, element.nextSibling);
+                document.body.classList.add('finance-is-dragging');
+                runFinanceAutoScrollLoop();
+            }, 360);
+        }
+
+        function findFinanceSectionCardAt(elements, excludeActive = false) {
+            for (const element of elements) {
+                if (!element || !element.closest) continue;
+                const card = element.closest('.finance-section-card');
+                if (!card || card.classList.contains('finance-drop-ghost')) continue;
+                if (excludeActive && card === financeDrag.activeEl) continue;
+                if (!card.dataset.financeSectionId) continue;
+                return card;
+            }
+            return null;
+        }
+
+        function expandFinanceSectionForDrop(card) {
+            if (!card) return null;
+            const sectionId = String(card.dataset.financeSectionId || '');
+            const section = state.struct[financeDrag.monthIndex] &&
+                state.struct[financeDrag.monthIndex].find(item => String(item.id) === sectionId);
+            const content = card.querySelector('.section-content');
+            if (!section || !content) return null;
+            if (section.collapsed || content.classList.contains('collapsed')) {
+                financeDrag.expandedSectionIds.add(sectionId);
+                content.classList.remove('collapsed');
+                content.classList.add('expanded');
+                const caret = card.querySelector('.section-header-toggle-zone .ph-caret-down');
+                if (caret) caret.classList.remove('-rotate-90');
+            }
+            return content;
+        }
+
+        function updateFinanceDropPreview(clientX, clientY) {
+            if (!financeDrag.activeType || !financeDrag.previewSlot) return;
+            const hitElements = document.elementsFromPoint(clientX, clientY);
+
+            if (financeDrag.activeType === 'section') {
+                const targetCard = findFinanceSectionCardAt(hitElements, true);
+                if (!targetCard) return;
+                highlightFinanceDropTarget(targetCard);
+                const rect = targetCard.getBoundingClientRect();
+                const before = clientY < rect.top + rect.height / 2;
+                const parent = document.getElementById('ledger');
+                const targetNode = before ? targetCard : targetCard.nextSibling;
+                placeFinanceGhost(parent, financeDrag.previewSlot, targetNode);
+                return;
+            }
+
+            const overRow = hitElements.map(element =>
+                element && element.closest ? element.closest('.finance-item-row') : null
+            ).find(row => row && row !== financeDrag.activeEl && !row.classList.contains('finance-drop-ghost'));
+
+            if (overRow && overRow.parentNode) {
+                const content = overRow.closest('.section-content');
+                const targetCard = overRow.closest('.finance-section-card');
+                highlightFinanceDropTarget(targetCard);
+                const rect = overRow.getBoundingClientRect();
+                const before = clientY < rect.top + rect.height / 2;
+                const targetNode = before ? overRow : overRow.nextSibling;
+                placeFinanceGhost(content, financeDrag.previewSlot, targetNode);
+                return;
+            }
+
+            const targetCard = findFinanceSectionCardAt(hitElements, false);
+            if (!targetCard) return;
+            const content = expandFinanceSectionForDrop(targetCard);
+            if (!content) return;
+            highlightFinanceDropTarget(targetCard);
+            const flashRow = content.querySelector('.flash-row');
+            placeFinanceGhost(content, financeDrag.previewSlot, flashRow);
+        }
+
+        function runFinanceAutoScrollLoop() {
+            if (!financeDrag.activeType) return;
+            if (financeDrag.autoScrollVelocity) {
+                window.scrollBy(0, financeDrag.autoScrollVelocity);
+                updateFinanceDropPreview(financeDrag.lastX, financeDrag.lastY);
+            }
+            financeDrag.autoScrollRaf = requestAnimationFrame(runFinanceAutoScrollLoop);
+        }
+
+        function handleFinanceGlobalPointerMove(event) {
+            if (financeDrag.holdTimer) {
+                const distance = Math.hypot(event.clientX - financeDrag.startX, event.clientY - financeDrag.startY);
+                if (distance > 12) cancelFinanceHoldCharge();
+                return;
+            }
+            if (!financeDrag.activeType || !financeDrag.previewSlot) return;
+            financeDrag.lastX = event.clientX;
+            financeDrag.lastY = event.clientY;
+            const edgeThreshold = 90;
+            if (event.clientY < edgeThreshold) {
+                financeDrag.autoScrollVelocity = -Math.max(4, Math.round((edgeThreshold - event.clientY) / 5));
+            } else if (event.clientY > window.innerHeight - edgeThreshold) {
+                financeDrag.autoScrollVelocity = Math.max(4, Math.round((event.clientY - (window.innerHeight - edgeThreshold)) / 5));
+            } else {
+                financeDrag.autoScrollVelocity = 0;
+            }
+            updateFinanceDropPreview(event.clientX, event.clientY);
+        }
+
+        function restoreFinanceAutoExpanded(keepExpandedSectionId = null) {
+            const monthSections = state.struct[financeDrag.monthIndex];
+            for (const sectionId of financeDrag.expandedSectionIds) {
+                if (String(sectionId) === String(keepExpandedSectionId)) continue;
+                const section = Array.isArray(monthSections)
+                    ? monthSections.find(item => String(item.id) === String(sectionId))
+                    : null;
+                if (!section || !section.collapsed) continue;
+                const card = Array.from(document.querySelectorAll('.finance-section-card'))
+                    .find(item => String(item.dataset.financeSectionId) === String(sectionId));
+                if (!card) continue;
+                const content = card.querySelector('.section-content');
+                if (content) {
+                    content.classList.remove('expanded');
+                    content.classList.add('collapsed');
+                }
+                const caret = card.querySelector('.section-header-toggle-zone .ph-caret-down');
+                if (caret) caret.classList.add('-rotate-90');
+            }
+        }
+
+        function clearFinanceDragState(keepExpandedSectionId = null) {
+            restoreFinanceAutoExpanded(keepExpandedSectionId);
+            stopFinanceAutoScrollLoop();
+            cancelFinanceHoldCharge();
+            if (financeDrag.activeEl) financeDrag.activeEl.classList.remove('finance-drag-active');
+            if (financeDrag.previewSlot && financeDrag.previewSlot.parentNode) financeDrag.previewSlot.remove();
+            document.querySelectorAll('.finance-section-card.finance-drop-target').forEach(element => element.classList.remove('finance-drop-target'));
+            document.body.classList.remove('finance-is-dragging');
+            financeDrag.activeType = null;
+            financeDrag.activeId = null;
+            financeDrag.activeEl = null;
+            financeDrag.previewSlot = null;
+            financeDrag.monthIndex = null;
+            financeDrag.sourceSectionId = null;
+            financeDrag.sourceItemIndex = null;
+            financeDrag.expandedSectionIds = new Set();
+        }
+
+        function moveFinanceItem(monthIndex, sourceSectionId, sourceItemIndex, targetSectionId, targetItemIndex) {
+            const sections = state.struct[monthIndex];
+            if (!Array.isArray(sections)) return false;
+            const sourceSection = sections.find(section => String(section.id) === String(sourceSectionId));
+            const targetSection = sections.find(section => String(section.id) === String(targetSectionId));
+            if (!sourceSection || !targetSection || !Array.isArray(sourceSection.items) || !Array.isArray(targetSection.items)) return false;
+            if (!Number.isInteger(sourceItemIndex) || sourceItemIndex < 0 || sourceItemIndex >= sourceSection.items.length) return false;
+            if (sourceSection === targetSection && sourceItemIndex === targetItemIndex) return false;
+
+            const key = (section, index) => monthIndex + '-' + section.id + '-' + index;
+            const owns = (object, objectKey) => Object.prototype.hasOwnProperty.call(object, objectKey);
+            const sourceKey = key(sourceSection, sourceItemIndex);
+            const movedLabel = sourceSection.items[sourceItemIndex];
+            const hadAmount = owns(state.data, sourceKey);
+            const movedAmount = state.data[sourceKey];
+            const movedMeta = state.paymentDates[sourceKey] ? Object.assign({}, state.paymentDates[sourceKey]) : null;
+
+            const oldSourceLength = sourceSection.items.length;
+            sourceSection.items.splice(sourceItemIndex, 1);
+            for (let index = sourceItemIndex; index < oldSourceLength - 1; index++) {
+                const oldKey = key(sourceSection, index + 1);
+                const newKey = key(sourceSection, index);
+                if (owns(state.data, oldKey)) state.data[newKey] = state.data[oldKey];
+                else delete state.data[newKey];
+                if (owns(state.paymentDates, oldKey)) state.paymentDates[newKey] = state.paymentDates[oldKey];
+                else delete state.paymentDates[newKey];
+            }
+            delete state.data[key(sourceSection, oldSourceLength - 1)];
+            delete state.paymentDates[key(sourceSection, oldSourceLength - 1)];
+
+            const targetLength = targetSection.items.length;
+            const insertionIndex = Math.max(0, Math.min(targetLength, Number.isFinite(targetItemIndex) ? Math.trunc(targetItemIndex) : targetLength));
+            for (let index = targetLength - 1; index >= insertionIndex; index--) {
+                const oldKey = key(targetSection, index);
+                const newKey = key(targetSection, index + 1);
+                if (owns(state.data, oldKey)) state.data[newKey] = state.data[oldKey];
+                else delete state.data[newKey];
+                if (owns(state.paymentDates, oldKey)) state.paymentDates[newKey] = state.paymentDates[oldKey];
+                else delete state.paymentDates[newKey];
+            }
+            targetSection.items.splice(insertionIndex, 0, movedLabel);
+            const targetKey = key(targetSection, insertionIndex);
+            if (hadAmount) state.data[targetKey] = movedAmount;
+            else delete state.data[targetKey];
+            if (movedMeta) state.paymentDates[targetKey] = movedMeta;
+            else delete state.paymentDates[targetKey];
+
+            refreshSectionPaymentDateEvents(monthIndex, sourceSection);
+            if (targetSection !== sourceSection) refreshSectionPaymentDateEvents(monthIndex, targetSection);
+            return true;
+        }
+
+        function finishFinanceDrag() {
+            cancelFinanceHoldCharge();
+            stopFinanceAutoScrollLoop();
+            const drag = {
+                type: financeDrag.activeType,
+                monthIndex: financeDrag.monthIndex,
+                sectionId: financeDrag.sourceSectionId,
+                itemIndex: financeDrag.sourceItemIndex,
+                activeEl: financeDrag.activeEl,
+                previewSlot: financeDrag.previewSlot
+            };
+            if (!drag.type || !drag.activeEl || !drag.previewSlot) {
+                clearFinanceDragState();
+                return;
+            }
+
+            if (drag.type === 'item') {
+                const content = drag.previewSlot.closest('.section-content');
+                const targetSectionId = content ? String(content.dataset.financeSectionContent || '') : '';
+                const targetSection = state.struct[drag.monthIndex] &&
+                    state.struct[drag.monthIndex].find(section => String(section.id) === targetSectionId);
+                if (!content || !targetSection || !drag.previewSlot.parentNode) {
+                    clearFinanceDragState();
+                    return;
+                }
+
+                let targetIndex = 0;
+                for (const child of Array.from(content.children)) {
+                    if (child === drag.previewSlot) break;
+                    if (child !== drag.activeEl && child.classList &&
+                        child.classList.contains('finance-item-row') &&
+                        !child.classList.contains('finance-drop-ghost')) targetIndex++;
+                }
+
+                const noChange = String(drag.sectionId) === String(targetSectionId) && targetIndex === drag.itemIndex;
+                if (noChange) {
+                    clearFinanceDragState();
+                    return;
+                }
+
+                drag.activeEl.remove();
+                drag.previewSlot.remove();
+                if (financeDrag.expandedSectionIds.has(targetSectionId)) targetSection.collapsed = false;
+                const moved = moveFinanceItem(drag.monthIndex, drag.sectionId, drag.itemIndex, targetSectionId, targetIndex);
+                clearFinanceDragState(targetSectionId);
+                if (moved) {
+                    save();
+                    showToast('Concepto movido a ' + targetSection.title + '.', 'success');
+                }
+                return;
+            }
+
+            if (drag.type === 'section') {
+                const container = document.getElementById('ledger');
+                if (!container || drag.previewSlot.parentNode !== container) {
+                    clearFinanceDragState();
+                    return;
+                }
+
+                drag.activeEl.classList.remove('finance-drag-active');
+                drag.activeEl.remove();
+                drag.previewSlot.replaceWith(drag.activeEl);
+                const orderedIds = Array.from(container.children)
+                    .filter(element => element.classList && element.classList.contains('finance-section-card') && element.dataset.financeSectionId)
+                    .map(element => String(element.dataset.financeSectionId));
+                const sectionMap = new Map((state.struct[drag.monthIndex] || []).map(section => [String(section.id), section]));
+                const reordered = orderedIds.map(id => sectionMap.get(id)).filter(Boolean);
+                const current = state.struct[drag.monthIndex] || [];
+                const changed = reordered.length === current.length && reordered.some((section, index) => section !== current[index]);
+                clearFinanceDragState();
+                if (changed) {
+                    state.struct[drag.monthIndex] = reordered;
+                    save();
+                    showToast('Casillas reordenadas.', 'success');
+                }
+                return;
+            }
+
+            clearFinanceDragState();
+        }
+
+        function cancelFinanceDrag() {
+            clearFinanceDragState();
+        }
+
+        window.addEventListener('pointermove', handleFinanceGlobalPointerMove, { passive: true });
+        window.addEventListener('pointerup', finishFinanceDrag);
+        window.addEventListener('pointercancel', cancelFinanceDrag);
+
         function renderLedger() {
             const con = document.getElementById('ledger');
             con.innerHTML = '';
@@ -2325,7 +2731,9 @@
                 });
                 
                 const card = document.createElement('div');
-                card.className = "card";
+                card.className = "card finance-section-card";
+                card.dataset.financeSectionId = String(sec.id);
+                card.dataset.financeMonth = String(state.month);
                 
                 // Ícono y estilo según tipo de sección
                 const badgeConfig = {
@@ -2435,7 +2843,7 @@
                     ${weightBar}
                     ${debtHTML}
                 </div>
-                <div class="section-content ${sec.collapsed ? 'collapsed' : 'expanded'} px-5 md:px-6 pb-6 space-y-2 border-t border-slate-100 dark:border-slate-800/60 pt-4">
+                <div class="section-content ${sec.collapsed ? 'collapsed' : 'expanded'} px-5 md:px-6 pb-6 space-y-2 border-t border-slate-100 dark:border-slate-800/60 pt-4" data-finance-section-content="${escapeHtmlText(sec.id)}">
                     ${sec.type === 'savings' 
                     ? `<div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex justify-between items-center">
                             <div class="flex items-center gap-3">
@@ -2454,7 +2862,8 @@
                             ? '<span class="block px-1 text-[9px] font-extrabold text-amber-600 dark:text-amber-400 leading-tight">Este importe se descuenta del presupuesto de ' + escapeHtmlText(MONTHS[cashflowMonth]) + ', no de ' + escapeHtmlText(MONTHS[state.month]) + '.</span>'
                             : '';
                         return `
-                        <div class="flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group">
+                        <div class="finance-item-row flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group" data-finance-item-row="true" data-finance-item-index="${i}" data-finance-section-id="${escapeHtmlText(sec.id)}">
+                            <span class="finance-drag-handle" title="Mantén pulsado y arrastra para mover este concepto" aria-label="Arrastrar concepto"><i class="ph-bold ph-dots-six-vertical text-sm"></i></span>
                             <button onclick="delItem(${sIdx},${i})" class="btn-icon !w-7 !h-7 opacity-60 group-hover:opacity-100 shrink-0" title="Borrar fila">
                                 <i class="ph-bold ph-x text-xs"></i>
                             </button>
@@ -2482,7 +2891,30 @@
                             </button>
                         </div>
                     `}
-                </div>`;
+                </div>\`;
+                const headerZone = card.querySelector('.section-header-toggle-zone');
+                if (headerZone) {
+                    headerZone.addEventListener('pointerdown', event => {
+                        if (event.button !== 0 || event.ctrlKey || event.metaKey) return;
+                        if (event.target.closest('button, input, .section-title-display, .finance-drag-handle')) return;
+                        beginFinanceHoldDrag('section', card, {
+                            monthIndex: state.month,
+                            sectionId: String(sec.id)
+                        }, event);
+                    });
+                }
+                card.querySelectorAll('.finance-item-row').forEach(row => {
+                    const handle = row.querySelector('.finance-drag-handle');
+                    if (!handle) return;
+                    handle.addEventListener('pointerdown', event => {
+                        event.stopPropagation();
+                        beginFinanceHoldDrag('item', row, {
+                            monthIndex: state.month,
+                            sectionId: String(sec.id),
+                            itemIndex: Number(row.dataset.financeItemIndex)
+                        }, event);
+                    });
+                });
                 con.appendChild(card);
             });
 

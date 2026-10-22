@@ -157,6 +157,9 @@
         .finance-drag-handle:hover { color: #6366f1; }
         .finance-drag-handle:active { cursor: grabbing; }
         .finance-drag-handle.finance-drag-charging { color: #6366f1; }
+        .finance-item-row.finance-drag-charging { outline: 1px solid rgba(99,102,241,.22); outline-offset: -1px; }
+        .finance-item-name { display: inline; cursor: text; }
+        .finance-item-main .finance-item-name-edit { display: block; width: 100%; }
         .finance-drag-handle.finance-drag-charging::after {
             content: ""; position: absolute; bottom: -3px; left: 0; height: 2px;
             width: 100%; border-radius: 99px; background: #6366f1;
@@ -462,43 +465,6 @@
 
                 <!-- LEDGER SECTIONS: FULL WIDTH -->
                 <div class="space-y-5" id="ledger"></div>
-
-                <!-- EXPENSE STRUCTURE: COLLAPSIBLE BELOW THE LEDGER -->
-                <div class="mt-5" id="expense-structure-card">
-                    <div class="card p-4 md:p-5">
-                        <button type="button" id="expense-structure-toggle" onclick="toggleExpenseStructure()" aria-expanded="false" aria-controls="expense-structure-content" class="w-full text-left flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
-                                    <i class="ph-bold ph-chart-donut text-lg"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="font-extrabold text-sm uppercase tracking-wider">Estructura de gasto</h4>
-                                    <p class="text-xs text-slate-400 font-medium">Distribución por secciones</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 shrink-0">
-                                <div class="text-right">
-                                    <span class="block text-[9px] uppercase font-extrabold tracking-wider text-slate-400">Salidas del mes</span>
-                                    <span id="chart-total-compact" class="block font-extrabold text-base md:text-lg">S/ 0.00</span>
-                                </div>
-                                <i id="expense-structure-chevron" class="ph-bold ph-caret-down text-slate-400 transition-transform duration-200"></i>
-                            </div>
-                        </button>
-
-                        <div id="expense-structure-content" class="hidden pt-4">
-                            <div class="h-60 relative">
-                                <canvas id="chart-mini"></canvas>
-                                <div class="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                                    <span class="text-[10px] uppercase font-extrabold text-slate-400 tracking-widest">Salidas</span>
-                                    <span id="chart-total-center" class="font-extrabold text-xl mt-0.5">S/ 0.00</span>
-                                </div>
-                            </div>
-
-                            <!-- CATEGORY BREAKDOWN LIST -->
-                            <div id="chart-breakdown" class="mt-5 pt-5 border-t border-slate-200/70 dark:border-slate-800 space-y-3"></div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- NEW SECTION CTA -->
                 <div class="mt-10 flex justify-center">
@@ -934,18 +900,6 @@
         }
 
         // --- TEMA OSCURO / CLARO ---
-        window.toggleExpenseStructure = function() {
-            const content = document.getElementById('expense-structure-content');
-            const button = document.getElementById('expense-structure-toggle');
-            const chevron = document.getElementById('expense-structure-chevron');
-            if (!content || !button) return;
-            const willExpand = content.classList.contains('hidden');
-            content.classList.toggle('hidden', !willExpand);
-            button.setAttribute('aria-expanded', String(willExpand));
-            if (chevron) chevron.classList.toggle('rotate-180', willExpand);
-            if (willExpand && charts.mini) requestAnimationFrame(() => charts.mini.resize());
-        };
-
         function updateThemeIcon() {
             const isDark = document.documentElement.classList.contains('dark');
             const icon = document.getElementById('theme-icon');
@@ -2875,8 +2829,8 @@
                             <button onclick="delItem(${sIdx},${i})" class="btn-icon !w-7 !h-7 opacity-60 group-hover:opacity-100 shrink-0" title="Borrar fila">
                                 <i class="ph-bold ph-x text-xs"></i>
                             </button>
-                            <div class="flex-1 min-w-0">
-                                <input class="input-row" value="${escapeHtmlText(it)}" onchange="renItem(${sIdx},${i},this.value)">
+                            <div class="finance-item-main flex-1 min-w-0">
+                                <span class="finance-item-name" title="Clic para editar el nombre" onclick="startEditFinanceItemName(${sIdx},${i},this,event)">${escapeHtmlText(it)}</span>
                                 ${dateSummary ? `<span class="block px-1 text-[9px] font-bold text-indigo-500 dark:text-indigo-300 leading-tight">${dateSummary}</span>` : ''}
                     ${dateMeta && dateMeta.planningNote ? `<span class="block px-1 text-[9px] text-slate-400 leading-tight">${escapeHtmlText(dateMeta.planningNote)}</span>` : ''}
                     ${cashflowNote}
@@ -2912,9 +2866,9 @@
                     });
                 }
                 card.querySelectorAll('.finance-item-row').forEach(row => {
-                    const handle = row.querySelector('.finance-drag-handle');
-                    if (!handle) return;
-                    handle.addEventListener('pointerdown', event => {
+                    row.addEventListener('pointerdown', event => {
+                        if (event.button !== 0 || event.ctrlKey || event.metaKey) return;
+                        if (event.target.closest('button, input, .finance-item-name, .finance-item-name-edit')) return;
                         event.stopPropagation();
                         beginFinanceHoldDrag('item', row, {
                             monthIndex: state.month,
@@ -3117,6 +3071,53 @@
             if (meta) refreshPaymentDateEvents(key, v, state.data[key] || 0, meta);
             save();
         }
+
+        function createFinanceItemNameDisplay(sIdx, itemIdx, label) {
+            const display = document.createElement('span');
+            display.className = 'finance-item-name';
+            display.title = 'Clic para editar el nombre';
+            display.textContent = label || '';
+            display.onclick = event => window.startEditFinanceItemName(sIdx, itemIdx, display, event);
+            return display;
+        }
+
+        window.startEditFinanceItemName = function(sIdx, itemIdx, displayEl, event) {
+            if (event) event.stopPropagation();
+            const sections = state.struct[state.month];
+            const section = Array.isArray(sections) ? sections[sIdx] : null;
+            if (!section || !Array.isArray(section.items) || section.items[itemIdx] === undefined || !displayEl) return;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = section.items[itemIdx];
+            input.className = 'input-row finance-item-name-edit';
+            input.setAttribute('aria-label', 'Nombre del concepto');
+            input.title = 'Escribe el nombre y presiona Enter';
+            input.onclick = e => e.stopPropagation();
+            input.onkeydown = e => {
+                e.stopPropagation();
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    input.dataset.cancelled = 'true';
+                    input.blur();
+                }
+            };
+            input.onblur = () => {
+                const nextTitle = input.value.trim();
+                if (input.dataset.cancelled !== 'true' && nextTitle && nextTitle !== section.items[itemIdx]) {
+                    renItem(sIdx, itemIdx, nextTitle);
+                } else {
+                    input.replaceWith(createFinanceItemNameDisplay(sIdx, itemIdx, section.items[itemIdx]));
+                }
+            };
+            displayEl.replaceWith(input);
+            input.focus();
+            input.select();
+        };
+
         function saveSectionTitleWithoutRerender() {
             const nextSnapshot = JSON.stringify(state);
             if (!historyReplayInProgress && lastCommittedStateSnapshot && nextSnapshot !== lastCommittedStateSnapshot) {
@@ -3633,7 +3634,7 @@
             showToast(`Mes duplicado en ${MONTHS[targetMonth]}`);
         }
 
-        // --- RENDER STATS & DONUT CON BREAKDOWN ---
+        // --- RENDER STATS ---
         function renderStats() {
             const t = getTotals(state.month);
             document.getElementById('kpi-income').innerText = fmt(t.i);
@@ -3656,63 +3657,8 @@
             document.getElementById('kpi-expense-bar').style.width = `${expPct}%`;
             document.getElementById('kpi-expense-ratio').innerText = `${expPct.toFixed(1)}% de tus ingresos`;
             document.getElementById('kpi-savings-rate').innerText = `${savPct.toFixed(1)}% tasa`;
-            document.getElementById('chart-total-center').innerText = fmt(t.e);
-            const compactTotalEl = document.getElementById('chart-total-compact');
-            if (compactTotalEl) compactTotalEl.innerText = fmt(t.e);
+            // La estructura de gasto se retiró; se mantienen los indicadores financieros.
 
-            // Datos del gráfico Donut
-            const expenseBreakdown = getExpenseBreakdownForMonth(state.month);
-            let labels = expenseBreakdown.map(item => item.label);
-            let data = expenseBreakdown.map(item => item.amount);
-            const ctx = document.getElementById('chart-mini');
-            if(charts.mini) charts.mini.destroy();
-            const isDark = document.documentElement.classList.contains('dark');
-            const hasExpenses = data.length > 0;
-
-            charts.mini = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: hasExpenses ? labels : ['Sin gastos registrados'],
-                    datasets: [{
-                        data: hasExpenses ? data : [1],
-                        backgroundColor: hasExpenses ? PALETTE : [isDark ? '#1e293b' : '#e2e8f0'],
-                        borderWidth: 0,
-                        hoverOffset: hasExpenses ? 6 : 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '76%',
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: hasExpenses }
-                    }
-                }
-            });
-
-            // Lista de desglose debajo del gráfico
-            const breakdownEl = document.getElementById('chart-breakdown');
-            if (!hasExpenses) {
-                breakdownEl.innerHTML = `<p class="text-xs font-bold text-slate-400 text-center py-2">Registra tus gastos para ver la distribución porcentual.</p>`;
-            } else {
-                breakdownEl.innerHTML = labels.map((lbl, idx) => {
-                    const val = data[idx];
-                    const pct = t.e > 0 ? ((val / t.e) * 100).toFixed(1) : 0;
-                    const color = PALETTE[idx % PALETTE.length];
-                    return `
-                    <div class="flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-2.5 truncate pr-2">
-                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
-                            <span class="font-bold truncate">${lbl}</span>
-                        </div>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="font-extrabold">${fmt(val)}</span>
-                            <span class="text-[10px] font-extrabold text-slate-400 w-10 text-right">${pct}%</span>
-                        </div>
-                    </div>`;
-                }).join('');
-            }
         }
 
     </script>

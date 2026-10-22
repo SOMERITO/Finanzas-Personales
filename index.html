@@ -1745,127 +1745,109 @@
         }
 
         function applyChatGPTBudgetMonthShift2026() {
-            const marker = 'chatGPTBudgetMovedToNovember2026_v1';
+            const marker = 'chatGPTBudgetRegisterOctoberCashflowNovember2026_v2';
             if (state[marker] === true) return false;
             if (!Array.isArray(state.struct) || !Array.isArray(state.struct[9]) || !Array.isArray(state.struct[10])) return false;
             if (!state.data || typeof state.data !== 'object') state.data = {};
             if (!state.paymentDates || typeof state.paymentDates !== 'object') state.paymentDates = {};
             if (!Array.isArray(state.events)) state.events = [];
 
-            function rowKey(monthIndex, section, itemIndex) {
-                return monthIndex + '-' + section.id + '-' + itemIndex;
+            const rowKey = (monthIndex, section, itemIndex) => monthIndex + '-' + section.id + '-' + itemIndex;
+            const findChatGPT = monthIndex => {
+                const rows = [];
+                state.struct[monthIndex].forEach(section => {
+                    if (!section || section.type !== 'expense' || !Array.isArray(section.items)) return;
+                    section.items.forEach((label, index) => {
+                        if (String(label).trim().toLowerCase() === 'chatgpt') {
+                            const key = rowKey(monthIndex, section, index);
+                            rows.push({
+                                monthIndex, section, index, key,
+                                amount: state.data[key] === undefined ? 23 : (Number(state.data[key]) || 0),
+                                meta: state.paymentDates[key] ? Object.assign({}, state.paymentDates[key]) : null
+                            });
+                        }
+                    });
+                });
+                return rows;
+            };
+            const octoberRows = findChatGPT(9);
+            const novemberRows = findChatGPT(10);
+            const allRows = octoberRows.concat(novemberRows);
+
+            if (!allRows.length) {
+                state[marker] = true;
+                return false;
             }
-            function removeItemAndReindex(monthIndex, section, itemIndex) {
-                const oldLength = section.items.length;
-                section.items.splice(itemIndex, 1);
-                for (let index = itemIndex; index < oldLength - 1; index++) {
-                    const oldNextKey = rowKey(monthIndex, section, index + 1);
-                    const newKey = rowKey(monthIndex, section, index);
+
+            // October is the original registration month; a November copy is only a legacy migration artifact.
+            const source = octoberRows[0] || novemberRows[0];
+            const sourceAmount = source.amount;
+            const sourceMeta = source.meta ? Object.assign({}, source.meta) : {};
+            const touchedSections = new Map();
+            const rowKeysToRemove = new Set(allRows.map(row => row.key));
+            state.events = state.events.filter(event => !rowKeysToRemove.has(event.paymentDateKey));
+
+            allRows.slice().sort((a, b) =>
+                b.monthIndex - a.monthIndex ||
+                state.struct[b.monthIndex].indexOf(b.section) - state.struct[a.monthIndex].indexOf(a.section) ||
+                b.index - a.index
+            ).forEach(row => {
+                const currentItems = row.section.items;
+                const currentIndex = currentItems.findIndex(item => String(item).trim().toLowerCase() === 'chatgpt');
+                if (currentIndex < 0) return;
+                const oldLength = currentItems.length;
+                currentItems.splice(currentIndex, 1);
+                for (let index = currentIndex; index < oldLength - 1; index++) {
+                    const oldNextKey = rowKey(row.monthIndex, row.section, index + 1);
+                    const newKey = rowKey(row.monthIndex, row.section, index);
                     if (state.data[oldNextKey] !== undefined) state.data[newKey] = state.data[oldNextKey];
                     else delete state.data[newKey];
                     if (state.paymentDates[oldNextKey] !== undefined) state.paymentDates[newKey] = state.paymentDates[oldNextKey];
                     else delete state.paymentDates[newKey];
                 }
-                const lastKey = rowKey(monthIndex, section, oldLength - 1);
-                delete state.data[lastKey];
-                delete state.paymentDates[lastKey];
-            }
-
-            const octoberRows = [];
-            state.struct[9].forEach(section => {
-                if (!section || section.type !== 'expense' || !Array.isArray(section.items)) return;
-                section.items.forEach((label, index) => {
-                    if (String(label).trim().toLowerCase() === 'chatgpt') {
-                        const key = rowKey(9, section, index);
-                        octoberRows.push({
-                            section, index, key,
-                            amount: Number(state.data[key]) || 23,
-                            meta: state.paymentDates[key] ? Object.assign({}, state.paymentDates[key]) : null
-                        });
-                    }
-                });
+                delete state.data[rowKey(row.monthIndex, row.section, oldLength - 1)];
+                delete state.paymentDates[rowKey(row.monthIndex, row.section, oldLength - 1)];
+                touchedSections.set(row.monthIndex + '-' + row.section.id, { monthIndex: row.monthIndex, section: row.section });
             });
 
-            const novemberRows = [];
-            state.struct[10].forEach(section => {
-                if (!section || section.type !== 'expense' || !Array.isArray(section.items)) return;
-                section.items.forEach((label, index) => {
-                    if (String(label).trim().toLowerCase() === 'chatgpt') {
-                        const key = rowKey(10, section, index);
-                        novemberRows.push({ section, index, key, amount: Number(state.data[key]) || 23, meta: state.paymentDates[key] || null });
-                    }
-                });
-            });
-
-            if (!octoberRows.length && !novemberRows.length) return false;
-            const source = octoberRows[0] || null;
-            const sourceAmount = source ? source.amount : novemberRows[0].amount;
-            const sourceMeta = source && source.meta ? source.meta : (novemberRows[0] && novemberRows[0].meta ? novemberRows[0].meta : {});
-
-            let targetSection = novemberRows.length ? novemberRows[0].section : null;
-            if (!targetSection && source) {
-                targetSection = state.struct[10].find(section =>
+            let targetSection = octoberRows.length ? octoberRows[0].section : null;
+            if (!targetSection) {
+                targetSection = state.struct[9].find(section =>
                     section && section.type === 'expense' &&
                     String(section.title || '').trim().toLowerCase() === String(source.section.title || '').trim().toLowerCase()
                 );
             }
-            if (!targetSection) targetSection = state.struct[10].find(section => section && section.type === 'expense');
+            if (!targetSection) targetSection = state.struct[9].find(section => section && section.type === 'expense');
             if (!targetSection) {
                 targetSection = {
-                    id: 'planned-chatgpt-nov-2026',
-                    title: source ? source.section.title : 'Gastos habituales',
+                    id: 'planned-chatgpt-oct-2026',
+                    title: source.section.title || 'Gastos habituales',
                     type: 'expense',
                     items: [],
                     collapsed: false
                 };
-                state.struct[10].push(targetSection);
+                state.struct[9].push(targetSection);
             }
             if (!Array.isArray(targetSection.items)) targetSection.items = [];
 
-            // Remove every November copy first, then append one canonical row to the chosen section.
-            const novemberSectionsWithChatGPT = new Set(novemberRows.map(row => row.section));
-            novemberRows.forEach(row => {
-                state.events = state.events.filter(event => event.paymentDateKey !== row.key);
-            });
-            novemberRows.slice().sort((a,b) =>
-                state.struct[10].indexOf(b.section) - state.struct[10].indexOf(a.section) || b.index - a.index
-            ).forEach(row => {
-                const currentIndex = row.section.items.findIndex(item => String(item).trim().toLowerCase() === 'chatgpt');
-                if (currentIndex >= 0) removeItemAndReindex(10, row.section, currentIndex);
-            });
-
             targetSection.items.push('ChatGPT');
             const targetIndex = targetSection.items.length - 1;
-            const targetKey = rowKey(10, targetSection, targetIndex);
+            const targetKey = rowKey(9, targetSection, targetIndex);
             state.data[targetKey] = sourceAmount;
 
-            // Keep the monthly due date (8th) distinct from the uncertain planned payment window (Nov 8-15).
+            // The record lives in October, while its cash impact is assigned to the planned payment month.
             const paymentMeta = Object.assign({}, sourceMeta);
             paymentMeta.dueMode = 'monthly';
             paymentMeta.dueDate = '';
             paymentMeta.dueDay = 8;
             paymentMeta.plannedDate = '2026-11-15';
             paymentMeta.plannedStatus = 'tentative';
-            paymentMeta.planningNote = 'La CTS puede llegar el 8 o el 15 de noviembre como máximo. Esta suscripción se pagará en noviembre; si la CTS llega el día 8, puedo pagarla antes del 15.';
+            paymentMeta.planningNote = 'El registro se conserva en octubre, pero los S/ 23 se descuentan del presupuesto de noviembre. La CTS podría llegar el 8 o el 15 de noviembre; si llega el día 8, puedes pagar la suscripción antes del 15.';
             paymentMeta.reminders = true;
             state.paymentDates[targetKey] = paymentMeta;
+            touchedSections.set('9-' + targetSection.id, { monthIndex: 9, section: targetSection });
 
-            // Remove all October copies; preserve other rows' amounts and date metadata as they reindex.
-            const octoberSectionsWithChatGPT = new Set(octoberRows.map(row => row.section));
-            octoberRows
-                .slice()
-                .sort((a,b) => state.struct[9].indexOf(b.section) - state.struct[9].indexOf(a.section) || b.index - a.index)
-                .forEach(row => {
-                    const currentIndex = row.section.items.findIndex(item => String(item).trim().toLowerCase() === 'chatgpt');
-                    if (currentIndex >= 0) {
-                        state.events = state.events.filter(event => event.paymentDateKey !== rowKey(9, row.section, currentIndex));
-                        removeItemAndReindex(9, row.section, currentIndex);
-                    }
-                });
-
-            octoberSectionsWithChatGPT.forEach(section => refreshSectionPaymentDateEvents(9, section));
-            novemberSectionsWithChatGPT.forEach(section => refreshSectionPaymentDateEvents(10, section));
-            refreshSectionPaymentDateEvents(10, targetSection);
+            touchedSections.forEach(entry => refreshSectionPaymentDateEvents(entry.monthIndex, entry.section));
 
             upsertPlannedEvent({
                 cfoSeedId: 'cts-estimated-2026-11-08',
@@ -2192,7 +2174,9 @@
 
             st.forEach((sec, sIdx) => {
                 let total = 0;
-                sec.items.forEach((_, i) => total += (state.data[`${state.month}-${sec.id}-${i}`] || 0));
+                sec.items.forEach((_, i) => {
+                    if (getRowCashflowMonth(state.month, sec, i) === state.month) total += (Number(state.data[`${state.month}-${sec.id}-${i}`]) || 0);
+                });
                 
                 const card = document.createElement('div');
                 card.className = "card";
@@ -2319,7 +2303,11 @@
                         const val = state.data[itemKey] || 0;
                         const dateMeta = state.paymentDates && state.paymentDates[itemKey];
                         const dateSummary = getPaymentDateSummary(dateMeta);
-                        return `
+                        const cashflowMonth = getRowCashflowMonth(state.month, sec, i);
+                        const cashflowNote = cashflowMonth !== state.month
+                            ? '<span class="block px-1 text-[9px] font-extrabold text-amber-600 dark:text-amber-400 leading-tight">Este importe se descuenta del presupuesto de ' + escapeHtmlText(MONTHS[cashflowMonth]) + ', no de ' + escapeHtmlText(MONTHS[state.month]) + '.</span>'
+                            : '';
+                        return \`
                         <div class="flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group">
                             <button onclick="delItem(${sIdx},${i})" class="btn-icon !w-7 !h-7 opacity-60 group-hover:opacity-100 shrink-0" title="Borrar fila">
                                 <i class="ph-bold ph-x text-xs"></i>
@@ -2328,6 +2316,7 @@
                                 <input class="input-row" value="${escapeHtmlText(it)}" onchange="renItem(${sIdx},${i},this.value)">
                                 ${dateSummary ? `<span class="block px-1 text-[9px] font-bold text-indigo-500 dark:text-indigo-300 leading-tight">${dateSummary}</span>` : ''}
                     ${dateMeta && dateMeta.planningNote ? `<span class="block px-1 text-[9px] text-slate-400 leading-tight">${escapeHtmlText(dateMeta.planningNote)}</span>` : ''}
+                    ${cashflowNote}
                             </div>
                             <button onclick="openPaymentDatesModal(${state.month},${sIdx},${i})" class="btn-icon !w-7 !h-7 shrink-0 ${dateMeta ? 'text-indigo-500 !bg-indigo-500/10' : 'opacity-60 group-hover:opacity-100'}" title="Configurar vencimiento y fecha de pago">
                                 <i class="ph-bold ph-calendar-dots text-sm"></i>
@@ -2350,6 +2339,41 @@
                 </div>`;
                 con.appendChild(card);
             });
+
+            const carryoverItems = getCashflowItemsForMonth(state.month);
+            if (carryoverItems.length) {
+                const carryoverTotal = carryoverItems.reduce((sum, item) => sum + item.amount, 0);
+                const carryoverCard = document.createElement('div');
+                carryoverCard.className = 'card border border-amber-500/20';
+                carryoverCard.innerHTML = \`
+                    <div class="p-5 md:p-6">
+                        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                    <i class="ph-bold ph-calendar-arrow-up text-xl"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-extrabold text-base md:text-lg">Pagos registrados en otro mes</div>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Se descuentan del presupuesto de \${escapeHtmlText(MONTHS[state.month])}, aunque el registro original permanece en su mes.</p>
+                                </div>
+                            </div>
+                            <span class="font-extrabold text-lg md:text-xl text-amber-600 dark:text-amber-400">\${fmt(carryoverTotal)}</span>
+                        </div>
+                        <div class="space-y-2">
+                            \${carryoverItems.map(item => \`
+                                <div class="flex justify-between items-center gap-3 py-2 px-3 rounded-xl bg-amber-500/5">
+                                    <div class="min-w-0">
+                                        <div class="font-bold text-sm">\${escapeHtmlText(item.label)}</div>
+                                        <div class="text-[10px] text-slate-500 dark:text-slate-400">Registrado en \${escapeHtmlText(MONTHS[item.monthIndex])} · \${item.type === 'debt' ? 'Deuda' : 'Gasto'}</div>
+                                    </div>
+                                    <span class="font-extrabold text-sm shrink-0">\${fmt(item.amount)}</span>
+                                </div>
+                            \`).join('')}
+                        </div>
+                        <p class="mt-3 text-[10px] text-slate-500 dark:text-slate-400">Esta vista es informativa: no crea un segundo registro editable ni marca el pago como realizado.</p>
+                    </div>\`;
+                con.appendChild(carryoverCard);
+            }
         }
 
         // --- OPERACIONES CON REINDEXACIÓN SEGURA ---
@@ -2520,15 +2544,61 @@
             }
         }
 
+        function getRowCashflowMonth(monthIndex, section, itemIndex) {
+            if (!section || (section.type !== 'expense' && section.type !== 'debt')) return monthIndex;
+            const key = monthIndex + '-' + section.id + '-' + itemIndex;
+            const meta = state.paymentDates && state.paymentDates[key];
+            const plannedDate = meta && typeof meta.plannedDate === 'string' ? meta.plannedDate : '';
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(plannedDate)) return monthIndex;
+            const parts = plannedDate.split('-');
+            // The current ledger stores the 2026 budget year; don't map another year onto the same month index.
+            if (Number(parts[0]) !== 2026) return monthIndex;
+            const month = Number(parts[1]) - 1;
+            return month >= 0 && month < 12 ? month : monthIndex;
+        }
+
+        function getCashflowItemsForMonth(targetMonth) {
+            const rows = [];
+            if (!Array.isArray(state.struct)) return rows;
+            state.struct.forEach((sections, registeredMonth) => {
+                if (!Array.isArray(sections) || registeredMonth === targetMonth) return;
+                sections.forEach(section => {
+                    if (!section || (section.type !== 'expense' && section.type !== 'debt') || !Array.isArray(section.items)) return;
+                    section.items.forEach((label, itemIndex) => {
+                        if (getRowCashflowMonth(registeredMonth, section, itemIndex) !== targetMonth) return;
+                        const key = registeredMonth + '-' + section.id + '-' + itemIndex;
+                        const amount = Number(state.data[key]) || 0;
+                        if (amount === 0) return;
+                        rows.push({
+                            monthIndex: registeredMonth,
+                            section,
+                            itemIndex,
+                            label: String(label),
+                            amount,
+                            type: section.type
+                        });
+                    });
+                });
+            });
+            return rows;
+        }
+
         function getTotals(m) {
             let i = 0, e = 0, s = 0;
-            if(!state.struct[m]) return {i:0, e:0, s:0, b:0};
-            state.struct[m].forEach(sec => {
-                let sum = 0;
-                sec.items.forEach((_, x) => sum += (state.data[`${m}-${sec.id}-${x}`] || 0));
-                if(sec.type === 'income') i += sum;
-                else if(sec.type === 'savings') s += sum;
-                else e += sum;
+            if (!Array.isArray(state.struct)) return {i:0, e:0, s:0, b:0};
+            state.struct.forEach((sections, registeredMonth) => {
+                if (!Array.isArray(sections)) return;
+                sections.forEach(sec => {
+                    if (!sec || !Array.isArray(sec.items)) return;
+                    let sum = 0;
+                    sec.items.forEach((_, x) => {
+                        if (getRowCashflowMonth(registeredMonth, sec, x) !== m) return;
+                        sum += Number(state.data[registeredMonth + '-' + sec.id + '-' + x]) || 0;
+                    });
+                    if (sec.type === 'income') i += sum;
+                    else if (sec.type === 'savings') s += sum;
+                    else e += sum;
+                });
             });
             return { i, e, s, b: i - e - s };
         }

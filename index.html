@@ -136,11 +136,15 @@
         .btn-icon.refresh:hover { background: #d1fae5; color: #059669; border-color: #6ee7b7; transform: rotate(180deg) scale(1.08); }
         .btn-icon.nav:hover { background: #e0e7ff; color: #4f46e5; border-color: #a5b4fc; transform: scale(1.08); }
 
-        /* SYNC LIGHT */
-        .sync-light { width: 9px; height: 9px; border-radius: 50%; transition: all 0.4s ease; }
-        .sync-light.ok { background: #10b981; box-shadow: 0 0 10px #10b981; }
-        .sync-light.working { background: #f59e0b; box-shadow: 0 0 12px #f59e0b; animation: pulseSoft 1s infinite; }
-        .sync-light.error { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
+        /* MINIMAL SYNC INDICATOR */
+        .sync-light {
+            display: inline-block; flex: 0 0 8px;
+            width: 8px; height: 8px; border-radius: 50%;
+            transition: background-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .sync-light.ok { background: #10b981; box-shadow: 0 0 5px rgba(16,185,129,.35); }
+        .sync-light.working { background: #f59e0b; box-shadow: 0 0 5px rgba(245,158,11,.35); animation: pulseSoft 1s infinite; }
+        .sync-light.error { background: #ef4444; box-shadow: 0 0 5px rgba(239,68,68,.35); }
 
         /* SECTION COLLAPSE ANIMATION */
         .section-content {
@@ -317,13 +321,8 @@
             </div>
             
             <div class="flex items-center gap-2 md:gap-4">
-                <!-- SYNC BADGE -->
-                <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10" title="Estado de guardado y sincronización">
-                    <div id="sync-indicator" class="sync-light working"></div>
-                    <span id="sync-text" class="text-[11px] font-bold text-slate-300 hidden sm:inline">Cargando datos</span>
-                </div>
-
-                <div class="h-6 w-px bg-white/10 hidden sm:block"></div>
+                <!-- INDICADOR DE SINCRONIZACIÓN MINIMALISTA -->
+                <span id="sync-indicator" class="sync-light working" role="status" aria-label="Cargando datos" title="Cargando datos"></span>
                 
                 <button onclick="openCalendar()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Calendario Financiero">
                     <i class="ph-bold ph-calendar-blank text-xl"></i>
@@ -829,9 +828,11 @@
 
         function setSyncState(mode, label) {
             const indicator = document.getElementById('sync-indicator');
-            const text = document.getElementById('sync-text');
-            if (indicator) indicator.className = 'sync-light ' + mode;
-            if (text) text.innerText = label;
+            if (indicator) {
+                indicator.className = 'sync-light ' + mode;
+                indicator.setAttribute('aria-label', label);
+                indicator.title = label;
+            }
         }
 
         async function init() {

@@ -1475,18 +1475,27 @@
 
         window.resetCfoData = async function() {
             if (!confirm('Esto reemplazará tus datos financieros guardados por una estructura vacía. Exporta una copia antes de continuar. ¿Deseas seguir?')) return;
+
+            // El reinicio también se puede deshacer durante esta sesión.
+            const previousSnapshot = JSON.stringify(state);
+            undoHistory.push(previousSnapshot);
+            if (undoHistory.length > MAX_UNDO_HISTORY) undoHistory.shift();
+            redoHistory = [];
+
             state = makeInitialState();
-            // Un reinicio solicitado por el usuario debe respetarse y no reimportar estas boletas.
+            // Un reinicio solicitado por el usuario debe respetarse y no reimportar estos registros automáticamente.
             state[PAYROLL_HISTORY_MARKER] = true;
             state[OCT_NOV_COMMITMENTS_MARKER] = true;
             state.criticalLoanPayments2026_v1 = true;
             state.fiorellaLoanAndDuplicateCleanup2026_v1 = true;
+            lastCommittedStateSnapshot = JSON.stringify(state);
+
             const ok = await sync(false);
             if (ok) {
                 closeModals();
                 await init();
                 const hasCloudSession = !!(window.cfoFirebase && window.cfoFirebase.getCurrentUser() && !cfoCloudUnavailable);
-                showToast(hasCloudSession ? 'Datos reiniciados en Firestore' : 'Datos locales reiniciados', 'info');
+                showToast(hasCloudSession ? 'Datos reiniciados en Firestore. Puedes deshacer con Ctrl+Z.' : 'Datos locales reiniciados. Puedes deshacer con Ctrl+Z.', 'info');
             }
         };
 

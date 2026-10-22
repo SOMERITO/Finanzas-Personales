@@ -3108,7 +3108,12 @@
             input.onblur = () => {
                 const nextTitle = input.value.trim();
                 if (input.dataset.cancelled !== 'true' && nextTitle && nextTitle !== section.items[itemIdx]) {
-                    renItem(sIdx, itemIdx, nextTitle);
+                    section.items[itemIdx] = nextTitle;
+                    const key = `${state.month}-${section.id}-${itemIdx}`;
+                    const meta = state.paymentDates && state.paymentDates[key];
+                    if (meta) refreshPaymentDateEvents(key, nextTitle, state.data[key] || 0, meta);
+                    input.replaceWith(createFinanceItemNameDisplay(sIdx, itemIdx, nextTitle));
+                    saveSectionTitleWithoutRerender();
                 } else {
                     input.replaceWith(createFinanceItemNameDisplay(sIdx, itemIdx, section.items[itemIdx]));
                 }

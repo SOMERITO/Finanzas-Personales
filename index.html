@@ -525,6 +525,68 @@
         </div>
     </div>
 
+    <!-- MODAL: FECHAS DE VENCIMIENTO Y PAGO -->
+    <div id="modal-payment-dates" class="modal-wrap">
+        <div class="modal-box modal-sm">
+            <button onclick="smartClose('modal-payment-dates')" class="absolute top-5 right-5 btn-icon" aria-label="Cerrar fechas"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-center gap-3 mb-5 pr-8">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center"><i class="ph-bold ph-calendar-dots text-2xl"></i></div>
+                <div>
+                    <h3 class="text-xl font-extrabold">Fechas del pago</h3>
+                    <p id="payment-dates-item-name" class="text-xs font-bold text-slate-400 mt-1 break-words">Concepto</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 rounded-2xl bg-slate-100/70 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 space-y-3">
+                    <label for="payment-due-mode" class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">¿Cuándo vence?</label>
+                    <select id="payment-due-mode" onchange="togglePaymentDueMode()" class="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold outline-none focus:border-indigo-500">
+                        <option value="none">Sin fecha de vencimiento</option>
+                        <option value="specific">En una fecha específica</option>
+                        <option value="monthly">Se repite cada mes</option>
+                    </select>
+
+                    <div id="payment-due-specific-wrap" class="hidden">
+                        <label for="payment-due-date" class="block text-xs font-bold text-slate-500 mb-1.5">Fecha límite</label>
+                        <input id="payment-due-date" type="date" class="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold">
+                    </div>
+                    <div id="payment-due-monthly-wrap" class="hidden">
+                        <label for="payment-due-day" class="block text-xs font-bold text-slate-500 mb-1.5">Día de vencimiento mensual</label>
+                        <div class="flex items-center gap-2">
+                            <input id="payment-due-day" type="number" min="1" max="31" step="1" placeholder="Ej. 8" class="w-28 p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold">
+                            <span class="text-xs text-slate-500">de cada mes</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2">En meses más cortos se usa el último día del mes.</p>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/15 space-y-3">
+                    <div>
+                        <label for="payment-planned-date" class="block text-[10px] font-extrabold text-indigo-500 uppercase tracking-wider mb-1.5">¿Cuándo planeas pagarlo?</label>
+                        <input id="payment-planned-date" type="date" class="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-indigo-500/20 text-sm font-bold">
+                    </div>
+                    <div>
+                        <label for="payment-planned-status" class="block text-xs font-bold text-slate-500 mb-1.5">Estado del plan</label>
+                        <select id="payment-planned-status" class="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold">
+                            <option value="tentative">Tentativo — aún por confirmar</option>
+                            <option value="confirmed">Plan confirmado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-slate-200/70 dark:border-slate-700/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    <input id="payment-dates-reminders" type="checkbox" checked class="mt-0.5 accent-indigo-600">
+                    <span>Crear recordatorios en el calendario para el vencimiento y la fecha prevista. Estos avisos no marcarán el pago como realizado.</span>
+                </label>
+
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button onclick="clearPaymentDatesFromModal()" class="py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 font-bold text-xs">Quitar fechas</button>
+                    <button onclick="savePaymentDatesFromModal()" class="py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-md shadow-indigo-500/20">Guardar fechas</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: DETALLE DEL DÍA -->
     <div id="modal-day-details" class="modal-wrap z-[80]">
         <div class="modal-box modal-sm">
@@ -783,7 +845,8 @@
             {id:'s', title:'Ahorros', type:'savings', items:['Fondo'], collapsed:false}
         ];
         
-        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [] };
+        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {} };
+        let editingPaymentDate = null;
         let charts = {};
         let calMonth = new Date().getMonth();
         let calYear = 2026;
@@ -844,7 +907,8 @@
                     {name:'San Valentín', d:14, m:2, type:'other'},
                     {name:'Navidad', d:25, m:12, type:'bday'}
                 ],
-                goals: [{name:'Fondo Emergencia', target:5000, priority:1}]
+                goals: [{name:'Fondo Emergencia', target:5000, priority:1}],
+                paymentDates: {}
             };
         }
 
@@ -867,6 +931,8 @@
             normalized.data = normalized.data || {};
             normalized.events = Array.isArray(normalized.events) ? normalized.events : [];
             normalized.goals = Array.isArray(normalized.goals) ? normalized.goals : [];
+            normalized.paymentDates = normalized.paymentDates && typeof normalized.paymentDates === 'object'
+                ? normalized.paymentDates : {};
             return normalized;
         }
 
@@ -1444,6 +1510,228 @@
                 .replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
         }
 
+        function dateISOFromParts(year, monthIndex, day) {
+            return String(year).padStart(4, '0') + '-' + String(monthIndex + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        }
+
+        function parseISODate(value) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))) return null;
+            const parts = value.split('-').map(Number);
+            const date = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+            if (date.getFullYear() !== parts[0] || date.getMonth() !== parts[1] - 1 || date.getDate() !== parts[2]) return null;
+            return date;
+        }
+
+        function displayISODate(value) {
+            const date = parseISODate(value);
+            if (!date) return '';
+            return String(date.getDate()).padStart(2, '0') + '/' +
+                String(date.getMonth() + 1).padStart(2, '0') + '/' + date.getFullYear();
+        }
+
+        function getPaymentDateSummary(meta) {
+            if (!meta) return '';
+            const bits = [];
+            if (meta.dueMode === 'monthly' && Number(meta.dueDay) >= 1 && Number(meta.dueDay) <= 31) {
+                bits.push('Vence cada mes el día ' + Number(meta.dueDay));
+            } else if (meta.dueMode === 'specific' && meta.dueDate) {
+                bits.push('Vence ' + displayISODate(meta.dueDate));
+            }
+            if (meta.plannedDate) {
+                bits.push((meta.plannedStatus === 'confirmed' ? 'Pago previsto ' : 'Pago tentativo ') + displayISODate(meta.plannedDate));
+            }
+            return bits.map(escapeHtmlText).join(' · ');
+        }
+
+        function refreshPaymentDateEvents(itemKey, itemName, amount, meta) {
+            if (!Array.isArray(state.events)) state.events = [];
+            state.events = state.events.filter(event => event.paymentDateKey !== itemKey);
+            if (!meta || meta.reminders === false) return;
+
+            const plannedDate = parseISODate(meta.plannedDate);
+            const amountText = fmt(Number(amount) || 0);
+            const hasMonthlyDue = meta.dueMode === 'monthly' && Number(meta.dueDay) >= 1 && Number(meta.dueDay) <= 31;
+            const dueDate = meta.dueMode === 'specific' ? parseISODate(meta.dueDate) : null;
+
+            function addEvent(date, kind, name, notes) {
+                if (!date) return;
+                state.events.push({
+                    name,
+                    d: date.getDate(),
+                    m: date.getMonth() + 1,
+                    year: date.getFullYear(),
+                    type: kind === 'planned' ? 'payment' : 'deadline',
+                    paymentDateKey: itemKey,
+                    paymentDateKind: kind,
+                    notes
+                });
+            }
+
+            if (dueDate && (!plannedDate || dueDate.toDateString() !== plannedDate.toDateString())) {
+                addEvent(dueDate, 'due', 'Vence: ' + itemName,
+                    'Vencimiento específico registrado para ' + displayISODate(meta.dueDate) + '. Importe de referencia: ' + amountText + '. Este recordatorio no marca el pago como realizado.');
+            }
+
+            if (hasMonthlyDue) {
+                const today = new Date();
+                const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                let added = 0;
+                for (let offset = 0; offset < 24 && added < 12; offset++) {
+                    const monthBase = new Date(today.getFullYear(), today.getMonth() + offset, 1, 12, 0, 0);
+                    const lastDay = new Date(monthBase.getFullYear(), monthBase.getMonth() + 1, 0).getDate();
+                    const day = Math.min(Number(meta.dueDay), lastDay);
+                    const occurrence = new Date(monthBase.getFullYear(), monthBase.getMonth(), day, 12, 0, 0);
+                    if (occurrence < todayStart) continue;
+                    if (plannedDate && occurrence.toDateString() === plannedDate.toDateString()) continue;
+                    addEvent(occurrence, 'due', 'Vence: ' + itemName,
+                        'Vencimiento recurrente: día ' + Number(meta.dueDay) + ' de cada mes. Importe de referencia: ' + amountText + '. Este recordatorio no marca el pago como realizado.');
+                    added++;
+                }
+            }
+
+            if (plannedDate) {
+                const sameAsDue = (dueDate && dueDate.toDateString() === plannedDate.toDateString()) ||
+                    (hasMonthlyDue && plannedDate.getDate() === Number(meta.dueDay));
+                const status = meta.plannedStatus === 'confirmed' ? 'Pago previsto: ' : 'Pago tentativo: ';
+                addEvent(plannedDate, 'planned', (sameAsDue ? 'Vence y ' : '') + status + itemName,
+                    'Fecha de pago ' + (meta.plannedStatus === 'confirmed' ? 'confirmada' : 'tentativa') +
+                    ': ' + displayISODate(meta.plannedDate) + '. Importe de referencia: ' + amountText +
+                    (sameAsDue ? '. Esta fecha también coincide con el vencimiento.' : '') +
+                    '. El recordatorio no marca el pago como realizado.');
+            }
+        }
+
+        function refreshSectionPaymentDateEvents(monthIndex, section) {
+            if (!section || !Array.isArray(section.items)) return;
+            const prefix = monthIndex + '-' + section.id + '-';
+            state.events = (state.events || []).filter(event =>
+                !(typeof event.paymentDateKey === 'string' && event.paymentDateKey.startsWith(prefix))
+            );
+            section.items.forEach((name, index) => {
+                const itemKey = prefix + index;
+                const meta = state.paymentDates && state.paymentDates[itemKey];
+                if (meta) refreshPaymentDateEvents(itemKey, name, state.data[itemKey] || 0, meta);
+            });
+        }
+
+        window.togglePaymentDueMode = function() {
+            const mode = document.getElementById('payment-due-mode').value;
+            document.getElementById('payment-due-specific-wrap').classList.toggle('hidden', mode !== 'specific');
+            document.getElementById('payment-due-monthly-wrap').classList.toggle('hidden', mode !== 'monthly');
+        };
+
+        window.openPaymentDatesModal = function(monthIndex, sectionIndex, itemIndex) {
+            const section = state.struct[monthIndex] && state.struct[monthIndex][sectionIndex];
+            if (!section || !section.items || section.items[itemIndex] === undefined) return;
+            const key = monthIndex + '-' + section.id + '-' + itemIndex;
+            editingPaymentDate = { monthIndex, sectionIndex, itemIndex, key };
+            const meta = state.paymentDates && state.paymentDates[key] ? state.paymentDates[key] : {};
+            document.getElementById('payment-dates-item-name').textContent = section.items[itemIndex];
+            document.getElementById('payment-due-mode').value = meta.dueMode || 'none';
+            document.getElementById('payment-due-date').value = meta.dueDate || '';
+            document.getElementById('payment-due-day').value = meta.dueDay || '';
+            document.getElementById('payment-planned-date').value = meta.plannedDate || '';
+            document.getElementById('payment-planned-status').value = meta.plannedStatus || 'tentative';
+            document.getElementById('payment-dates-reminders').checked = meta.reminders !== false;
+            togglePaymentDueMode();
+            openModal('modal-payment-dates');
+        };
+
+        window.savePaymentDatesFromModal = function() {
+            if (!editingPaymentDate) return;
+            const { monthIndex, sectionIndex, itemIndex, key } = editingPaymentDate;
+            const section = state.struct[monthIndex] && state.struct[monthIndex][sectionIndex];
+            if (!section || !section.items || section.items[itemIndex] === undefined) {
+                showToast('No se encontró el concepto que estás editando.', 'error');
+                return;
+            }
+
+            const dueMode = document.getElementById('payment-due-mode').value;
+            const dueDate = document.getElementById('payment-due-date').value;
+            const dueDayRaw = document.getElementById('payment-due-day').value;
+            const dueDay = Number(dueDayRaw);
+            const plannedDate = document.getElementById('payment-planned-date').value;
+            const plannedStatus = document.getElementById('payment-planned-status').value;
+            const reminders = document.getElementById('payment-dates-reminders').checked;
+
+            if (dueMode === 'specific' && !parseISODate(dueDate)) {
+                showToast('Selecciona una fecha de vencimiento válida.', 'error');
+                return;
+            }
+            if (dueMode === 'monthly' && (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 31)) {
+                showToast('El día mensual debe estar entre 1 y 31.', 'error');
+                return;
+            }
+            if (plannedDate && !parseISODate(plannedDate)) {
+                showToast('Selecciona una fecha prevista válida.', 'error');
+                return;
+            }
+
+            const hasDue = dueMode === 'specific' ? !!dueDate : dueMode === 'monthly' ? !!dueDayRaw : false;
+            if (!hasDue && !plannedDate) {
+                delete state.paymentDates[key];
+                refreshPaymentDateEvents(key, section.items[itemIndex], state.data[key] || 0, null);
+            } else {
+                const meta = {
+                    dueMode,
+                    dueDate: dueMode === 'specific' ? dueDate : '',
+                    dueDay: dueMode === 'monthly' ? dueDay : null,
+                    plannedDate: plannedDate || '',
+                    plannedStatus: plannedStatus === 'confirmed' ? 'confirmed' : 'tentative',
+                    reminders
+                };
+                if (!state.paymentDates || typeof state.paymentDates !== 'object') state.paymentDates = {};
+                state.paymentDates[key] = meta;
+                refreshPaymentDateEvents(key, section.items[itemIndex], state.data[key] || 0, meta);
+            }
+
+            save();
+            smartClose('modal-payment-dates');
+            showToast('Fechas del pago guardadas.', 'success');
+        };
+
+        window.clearPaymentDatesFromModal = function() {
+            if (!editingPaymentDate) return;
+            const key = editingPaymentDate.key;
+            delete state.paymentDates[key];
+            refreshPaymentDateEvents(key, '', 0, null);
+            save();
+            smartClose('modal-payment-dates');
+            showToast('Fechas y recordatorios eliminados.', 'info');
+        };
+
+        function applyChatGPTPaymentDateExample2026() {
+            const marker = 'chatGPTDueDayAndTentativeNovemberPayment2026_v1';
+            if (state[marker] === true) return false;
+            if (!Array.isArray(state.struct) || !Array.isArray(state.struct[9])) return false;
+            if (!state.paymentDates || typeof state.paymentDates !== 'object') state.paymentDates = {};
+            if (!Array.isArray(state.events)) state.events = [];
+
+            let found = null;
+            state.struct[9].forEach(section => {
+                if (!section || !Array.isArray(section.items) || section.type !== 'expense') return;
+                section.items.forEach((item, index) => {
+                    if (String(item).trim().toLowerCase() === 'chatgpt') found = { section, index };
+                });
+            });
+            if (!found) return false;
+
+            const key = '9-' + found.section.id + '-' + found.index;
+            if (!state.paymentDates[key]) {
+                state.paymentDates[key] = {
+                    dueMode: 'monthly',
+                    dueDate: '',
+                    dueDay: 8,
+                    plannedDate: '2026-11-08',
+                    plannedStatus: 'tentative',
+                    reminders: true
+                };
+            }
+            refreshPaymentDateEvents(key, found.section.items[found.index], state.data[key] || 23, state.paymentDates[key]);
+            state[marker] = true;
+            return true;
+        }
+
         async function sync(pull = false) {
             const currentUser = window.cfoFirebase && window.cfoFirebase.getCurrentUser();
 
@@ -1508,12 +1796,14 @@
                         const criticalLoansApplied = applyCriticalLoanPayments2026();
                         const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
                         const lopezMoved = applyLopezLoanMove2026();
+                        const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
                         persistLocalState();
                         localStorage.setItem('cfo_v120_cache_' + user.uid, JSON.stringify(state));
                         await init();
-                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved) {
+                        if (payrollHistoryApplied || commitmentsApplied || criticalLoansApplied || cleanupApplied || lopezMoved || chatGptDatesApplied) {
                             await sync(false);
-                            if (lopezMoved) showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
+                            if (chatGptDatesApplied) showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
+                            else if (lopezMoved) showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
                             else if (cleanupApplied) showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
                             else if (criticalLoansApplied) showToast('Pagos críticos y cuotas atrasadas registrados por separado.', 'success');
                             else if (commitmentsApplied) showToast('Compromisos de octubre y noviembre registrados.', 'success');
@@ -1531,9 +1821,12 @@
                     const criticalLoansApplied = applyCriticalLoanPayments2026();
                     const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
                     const lopezMoved = applyLopezLoanMove2026();
+                    const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
                     await init();
                     const saved = await sync(false);
-                    if (saved && lopezMoved) {
+                    if (saved && chatGptDatesApplied) {
+                        showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
+                    } else if (saved && lopezMoved) {
                         showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
                     } else if (saved && cleanupApplied) {
                         showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
@@ -1556,6 +1849,7 @@
                     applyCriticalLoanPayments2026();
                     applyFiorellaAndDeduplicateOctober2026();
                     applyLopezLoanMove2026();
+                    applyChatGPTPaymentDateExample2026();
                     await init();
                     try { persistLocalState(); } catch (localError) {
                         console.error('No se pudo guardar la copia local:', localError);
@@ -1571,9 +1865,12 @@
             const criticalLoansApplied = applyCriticalLoanPayments2026();
             const cleanupApplied = applyFiorellaAndDeduplicateOctober2026();
             const lopezMoved = applyLopezLoanMove2026();
+            const chatGptDatesApplied = applyChatGPTPaymentDateExample2026();
             await init();
             const saved = await sync(false);
-            if (saved && lopezMoved) {
+            if (saved && chatGptDatesApplied) {
+                showToast('Vencimiento de ChatGPT y pago tentativo del 8 de noviembre registrados.', 'success');
+            } else if (saved && lopezMoved) {
                 showToast('Préstamo de López reprogramado al 15 de noviembre.', 'success');
             } else if (saved && cleanupApplied) {
                 showToast('Duplicados corregidos y préstamo de Fiorella restaurado.', 'success');
@@ -1602,6 +1899,7 @@
             state.criticalLoanPayments2026_v1 = true;
             state.fiorellaLoanAndDuplicateCleanup2026_v1 = true;
             state.lopezLoanMovedToNovember2026_v1 = true;
+            state.chatGPTDueDayAndTentativeNovemberPayment2026_v1 = true;
             lastCommittedStateSnapshot = JSON.stringify(state);
 
             const ok = await sync(false);
@@ -1855,13 +2153,22 @@
                             <input type="text" inputmode="decimal" placeholder="0.00" class="text-right bg-white dark:bg-slate-900 font-extrabold text-xl text-indigo-600 dark:text-indigo-400 outline-none w-36 px-3 py-1.5 rounded-xl border border-indigo-500/30" value="${total===0?'':total}" onblur="saveVal('${state.month}-${sec.id}-0',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
                        </div>`
                     : sec.items.map((it, i) => {
-                        const val = state.data[`${state.month}-${sec.id}-${i}`] || 0;
+                        const itemKey = `${state.month}-${sec.id}-${i}`;
+                        const val = state.data[itemKey] || 0;
+                        const dateMeta = state.paymentDates && state.paymentDates[itemKey];
+                        const dateSummary = getPaymentDateSummary(dateMeta);
                         return `
                         <div class="flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group">
                             <button onclick="delItem(${sIdx},${i})" class="btn-icon !w-7 !h-7 opacity-60 group-hover:opacity-100 shrink-0" title="Borrar fila">
                                 <i class="ph-bold ph-x text-xs"></i>
                             </button>
-                            <input class="input-row flex-1" value="${it}" onchange="renItem(${sIdx},${i},this.value)">
+                            <div class="flex-1 min-w-0">
+                                <input class="input-row" value="${escapeHtmlText(it)}" onchange="renItem(${sIdx},${i},this.value)">
+                                ${dateSummary ? `<span class="block px-1 text-[9px] font-bold text-indigo-500 dark:text-indigo-300 leading-tight">${dateSummary}</span>` : ''}
+                            </div>
+                            <button onclick="openPaymentDatesModal(${state.month},${sIdx},${i})" class="btn-icon !w-7 !h-7 shrink-0 ${dateMeta ? 'text-indigo-500 !bg-indigo-500/10' : 'opacity-60 group-hover:opacity-100'}" title="Configurar vencimiento y fecha de pago">
+                                <i class="ph-bold ph-calendar-dots text-sm"></i>
+                            </button>
                             <div class="flex items-center bg-slate-100/80 dark:bg-slate-800/70 rounded-lg px-2.5 py-1 border border-transparent focus-within:border-indigo-500 transition-colors">
                                 <span class="text-xs font-bold text-slate-400 mr-1">S/</span>
                                 <input type="text" inputmode="decimal" placeholder="0.00" class="text-right font-extrabold outline-none bg-transparent w-24 text-sm" value="${val===0?'':val}" onblur="saveVal('${state.month}-${sec.id}-${i}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
@@ -1903,17 +2210,23 @@
             const m = state.month;
             const sec = state.struct[m][sIdx];
             const oldLen = sec.items.length;
+            const oldDatePrefix = `${m}-${sec.id}-`;
             sec.items.splice(itemIdx, 1);
 
             for (let k = itemIdx; k < oldLen - 1; k++) {
                 const nextVal = state.data[`${m}-${sec.id}-${k + 1}`];
-                if (nextVal !== undefined) {
-                    state.data[`${m}-${sec.id}-${k}`] = nextVal;
-                } else {
-                    delete state.data[`${m}-${sec.id}-${k}`];
-                }
+                if (nextVal !== undefined) state.data[`${m}-${sec.id}-${k}`] = nextVal;
+                else delete state.data[`${m}-${sec.id}-${k}`];
+
+                const nextDate = state.paymentDates[`${m}-${sec.id}-${k + 1}`];
+                const currentDateKey = `${m}-${sec.id}-${k}`;
+                if (nextDate !== undefined) state.paymentDates[currentDateKey] = nextDate;
+                else delete state.paymentDates[currentDateKey];
             }
             delete state.data[`${m}-${sec.id}-${oldLen - 1}`];
+            delete state.paymentDates[`${m}-${sec.id}-${oldLen - 1}`];
+            state.events = state.events.filter(event => !(typeof event.paymentDateKey === 'string' && event.paymentDateKey.startsWith(oldDatePrefix)));
+            refreshSectionPaymentDateEvents(m, sec);
             save();
             showToast('Concepto eliminado', 'info');
         };
@@ -1925,6 +2238,12 @@
             Object.keys(state.data).forEach(k => {
                 if (k.startsWith(`${m}-${sec.id}-`)) delete state.data[k];
             });
+            Object.keys(state.paymentDates || {}).forEach(k => {
+                if (k.startsWith(`${m}-${sec.id}-`)) delete state.paymentDates[k];
+            });
+            state.events = state.events.filter(event =>
+                !(typeof event.paymentDateKey === 'string' && event.paymentDateKey.startsWith(`${m}-${sec.id}-`))
+            );
             state.struct[m].splice(sIdx, 1);
             save();
             showToast('Sección eliminada', 'info');
@@ -2004,9 +2323,27 @@
         function saveVal(k, v) {
             const parsed = parseFloat(String(v).replace(/,/g, '')) || 0;
             state.data[k] = parsed;
+            const meta = state.paymentDates && state.paymentDates[k];
+            if (meta) {
+                const parts = k.split('-');
+                const monthIndex = Number(parts[0]);
+                const itemIndex = Number(parts[parts.length - 1]);
+                const sectionId = parts.slice(1, -1).join('-');
+                const section = state.struct[monthIndex] && state.struct[monthIndex].find(item => item.id === sectionId);
+                if (section && section.items[itemIndex] !== undefined) {
+                    refreshPaymentDateEvents(k, section.items[itemIndex], parsed, meta);
+                }
+            }
             save();
         }
-        function renItem(s, i, v) { state.struct[state.month][s].items[i] = v; save(); }
+        function renItem(s, i, v) {
+            const section = state.struct[state.month][s];
+            section.items[i] = v;
+            const key = `${state.month}-${section.id}-${i}`;
+            const meta = state.paymentDates && state.paymentDates[key];
+            if (meta) refreshPaymentDateEvents(key, v, state.data[key] || 0, meta);
+            save();
+        }
         function toggleSec(s) { state.struct[state.month][s].collapsed = !state.struct[state.month][s].collapsed; save(); }
         function updSec(s, v) { state.struct[state.month][s].title = v; save(); }
         
@@ -2363,6 +2700,12 @@
             Object.keys(state.data).forEach(k => {
                 if(k.startsWith(`${targetMonth}-`)) delete state.data[k];
             });
+            Object.keys(state.paymentDates || {}).forEach(k => {
+                if(k.startsWith(`${targetMonth}-`)) delete state.paymentDates[k];
+            });
+            state.events = state.events.filter(event =>
+                !(typeof event.paymentDateKey === 'string' && event.paymentDateKey.startsWith(`${targetMonth}-`))
+            );
 
             // Clonar estructura
             state.struct[targetMonth] = JSON.parse(JSON.stringify(state.struct[sourceMonth]));
@@ -2370,10 +2713,17 @@
             // Clonar montos si está marcado
             if(includeAmounts) {
                 state.struct[sourceMonth].forEach(sec => {
-                    sec.items.forEach((_, idx) => {
-                        const val = state.data[`${sourceMonth}-${sec.id}-${idx}`];
-                        if(val !== undefined) {
-                            state.data[`${targetMonth}-${sec.id}-${idx}`] = val;
+                    sec.items.forEach((itemName, idx) => {
+                        const sourceKey = `${sourceMonth}-${sec.id}-${idx}`;
+                        const targetKey = `${targetMonth}-${sec.id}-${idx}`;
+                        const val = state.data[sourceKey];
+                        if(val !== undefined) state.data[targetKey] = val;
+
+                        const sourceMeta = state.paymentDates && state.paymentDates[sourceKey];
+                        if (sourceMeta) {
+                            const clonedMeta = Object.assign({}, sourceMeta, { plannedDate: '' });
+                            state.paymentDates[targetKey] = clonedMeta;
+                            refreshPaymentDateEvents(targetKey, itemName, val || 0, clonedMeta);
                         }
                     });
                 });

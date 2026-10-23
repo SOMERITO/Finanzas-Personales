@@ -63,8 +63,8 @@
         .sidebar { 
             width: 280px;
             background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             border-right: 1px solid var(--border-card); 
             display: flex;
             flex-direction: column;
@@ -88,8 +88,7 @@
         }
         .overlay {
             position: fixed; inset: 0;
-            background: rgba(7, 11, 20, 0.65);
-            backdrop-filter: blur(4px);
+            background: rgba(7, 11, 20, 0.68);
             z-index: 40; opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
         }
@@ -3732,7 +3731,18 @@
 
             // El pliegue es visual: no crea una acción de deshacer ni activa la sincronización con Firebase.
             lastCommittedStateSnapshot = JSON.stringify(state);
-            renderLedger();
+
+            // Cambiar solo la casilla afectada conserva los nodos, evita parpadeos y permite la transición CSS.
+            const card = Array.from(document.querySelectorAll('#ledger .finance-section-card'))
+                .find(element => String(element.dataset.financeSectionId) === String(section.id));
+            if (!card) return;
+            const content = card.querySelector('.section-content');
+            const caret = card.querySelector('.section-header-toggle-zone .ph-caret-down');
+            if (content) {
+                content.classList.toggle('collapsed', !!section.collapsed);
+                content.classList.toggle('expanded', !section.collapsed);
+            }
+            if (caret) caret.classList.toggle('-rotate-90', !!section.collapsed);
         }
         function updSec(s, v) { state.struct[state.month][s].title = v; save(); }
         

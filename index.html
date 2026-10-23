@@ -2404,8 +2404,6 @@
             autoScrollRaf: null,
             autoScrollVelocity: 0,
             previewRaf: null,
-            lastDropTargetRow: null,
-            lastDropSide: null,
             expandedSectionIds: new Set()
         };
 
@@ -2468,8 +2466,6 @@
                 financeDrag.sourceSectionId = String(details.sectionId);
                 financeDrag.sourceItemIndex = type === 'item' ? Number(details.itemIndex) : null;
                 financeDrag.expandedSectionIds = new Set();
-                financeDrag.lastDropTargetRow = null;
-                financeDrag.lastDropSide = null;
                 element.classList.add('finance-drag-active');
 
                 const ghost = element.cloneNode(true);
@@ -2571,8 +2567,6 @@
                 if (targetNode !== financeDrag.previewSlot) {
                     placeFinanceGhost(content, financeDrag.previewSlot, targetNode);
                 }
-                financeDrag.lastDropTargetRow = overRow;
-                financeDrag.lastDropSide = before;
                 return;
             }
 
@@ -2649,8 +2643,6 @@
                 cancelAnimationFrame(financeDrag.previewRaf);
                 financeDrag.previewRaf = null;
             }
-            financeDrag.lastDropTargetRow = null;
-            financeDrag.lastDropSide = null;
             if (financeDrag.activeEl) financeDrag.activeEl.classList.remove('finance-drag-active');
             if (financeDrag.previewSlot && financeDrag.previewSlot.parentNode) financeDrag.previewSlot.remove();
             document.querySelectorAll('.finance-section-card.finance-drop-target').forEach(element => element.classList.remove('finance-drop-target'));
@@ -2717,9 +2709,23 @@
             return true;
         }
 
-        function finishFinanceDrag() {
+        function finishFinanceDrag(event) {
             cancelFinanceHoldCharge();
             stopFinanceAutoScrollLoop();
+
+            // Asegura que el destino refleje la última posición, aunque pointerup ocurra antes del próximo frame.
+            if (financeDrag.activeType && financeDrag.previewSlot) {
+                if (financeDrag.previewRaf !== null) {
+                    cancelAnimationFrame(financeDrag.previewRaf);
+                    financeDrag.previewRaf = null;
+                }
+                if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+                    financeDrag.lastX = event.clientX;
+                    financeDrag.lastY = event.clientY;
+                    updateFinanceDropPreview(event.clientX, event.clientY);
+                }
+            }
+
             const drag = {
                 type: financeDrag.activeType,
                 monthIndex: financeDrag.monthIndex,

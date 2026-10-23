@@ -188,6 +188,15 @@
             transition: none !important; animation: none !important;
         }
         .finance-drop-ghost * { pointer-events: none !important; }
+        /* Durante el arrastre, evita que las transiciones animen las filas y den sensación de salto. */
+        body.finance-is-dragging .finance-item-row,
+        body.finance-is-dragging .finance-section-card,
+        body.finance-is-dragging .section-content {
+            transition: none !important;
+        }
+        body.finance-is-dragging .finance-item-row:hover {
+            transition: none !important;
+        }
         .finance-section-card.finance-drop-target {
             outline: 2px solid rgba(99,102,241,.48); outline-offset: 3px;
         }
@@ -532,12 +541,6 @@
                 <!-- LEDGER SECTIONS: FULL WIDTH -->
                 <div class="space-y-5" id="ledger"></div>
 
-                <!-- NEW SECTION CTA -->
-                <div class="mt-10 flex justify-center">
-                    <button onclick="openNewSectionModal()" class="py-4 px-8 rounded-2xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-extrabold text-sm hover:border-indigo-500 hover:text-indigo-500 dark:hover:border-indigo-400 dark:hover:text-indigo-400 hover:shadow-xl transition-all flex items-center gap-3 btn-pro">
-                        <i class="ph-bold ph-plus-circle text-xl"></i> Añadir Nueva Sección Financiera
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -2400,6 +2403,9 @@
             lastY: 0,
             autoScrollRaf: null,
             autoScrollVelocity: 0,
+            previewRaf: null,
+            lastDropTargetRow: null,
+            lastDropSide: null,
             expandedSectionIds: new Set()
         };
 
@@ -2425,6 +2431,7 @@
         function placeFinanceGhost(parent, ghost, beforeNode) {
             if (!parent || !ghost) return;
             const next = beforeNode || null;
+            if (next === ghost) return;
             if (ghost.parentNode !== parent || ghost.nextSibling !== next) {
                 parent.insertBefore(ghost, next);
             }
@@ -2461,6 +2468,8 @@
                 financeDrag.sourceSectionId = String(details.sectionId);
                 financeDrag.sourceItemIndex = type === 'item' ? Number(details.itemIndex) : null;
                 financeDrag.expandedSectionIds = new Set();
+                financeDrag.lastDropTargetRow = null;
+                financeDrag.lastDropSide = null;
                 element.classList.add('finance-drag-active');
 
                 const ghost = element.cloneNode(true);
@@ -2540,9 +2549,30 @@
                 const targetCard = overRow.closest('.finance-section-card');
                 highlightFinanceDropTarget(targetCard);
                 const rect = overRow.getBoundingClientRect();
-                const before = clientY < rect.top + rect.height / 2;
+                const midpoint = rect.top + rect.height / 2;
+                const hysteresis = Math.min(8, rect.height * 0.14);
+                let before;
+
+                // Banda muerta alrededor del punto medio: si ya está colocado junto a esta fila,
+                // no alternar entre arriba/abajo por pequeñas variaciones de píxeles.
+                if (clientY < midpoint - hysteresis) {
+                    before = true;
+                } else if (clientY > midpoint + hysteresis) {
+                    before = false;
+                } else {
+                    const ghostBeforeRow = financeDrag.previewSlot.parentNode === overRow.parentNode &&
+                        financeDrag.previewSlot.nextSibling === overRow;
+                    const ghostAfterRow = overRow.nextSibling === financeDrag.previewSlot;
+                    if (ghostBeforeRow || ghostAfterRow) return;
+                    before = clientY < midpoint;
+                }
+
                 const targetNode = before ? overRow : overRow.nextSibling;
-                placeFinanceGhost(content, financeDrag.previewSlot, targetNode);
+                if (targetNode !== financeDrag.previewSlot) {
+                    placeFinanceGhost(content, financeDrag.previewSlot, targetNode);
+                }
+                financeDrag.lastDropTargetRow = overRow;
+                financeDrag.lastDropSide = before;
                 return;
             }
 
@@ -2581,7 +2611,13 @@
             } else {
                 financeDrag.autoScrollVelocity = 0;
             }
-            updateFinanceDropPreview(event.clientX, event.clientY);
+            // Agrupa movimientos rápidos en un solo cálculo por frame para evitar recolocaciones redundantes.
+            if (financeDrag.previewRaf === null) {
+                financeDrag.previewRaf = requestAnimationFrame(() => {
+                    financeDrag.previewRaf = null;
+                    updateFinanceDropPreview(financeDrag.lastX, financeDrag.lastY);
+                });
+            }
         }
 
         function restoreFinanceAutoExpanded(keepExpandedSectionId = null) {
@@ -2609,6 +2645,12 @@
             restoreFinanceAutoExpanded(keepExpandedSectionId);
             stopFinanceAutoScrollLoop();
             cancelFinanceHoldCharge();
+            if (financeDrag.previewRaf !== null) {
+                cancelAnimationFrame(financeDrag.previewRaf);
+                financeDrag.previewRaf = null;
+            }
+            financeDrag.lastDropTargetRow = null;
+            financeDrag.lastDropSide = null;
             if (financeDrag.activeEl) financeDrag.activeEl.classList.remove('finance-drag-active');
             if (financeDrag.previewSlot && financeDrag.previewSlot.parentNode) financeDrag.previewSlot.remove();
             document.querySelectorAll('.finance-section-card.finance-drop-target').forEach(element => element.classList.remove('finance-drop-target'));
@@ -2764,18 +2806,35 @@
         window.addEventListener('pointerup', finishFinanceDrag);
         window.addEventListener('pointercancel', cancelFinanceDrag);
 
-        // El botón de subir aparece solo después de desplazarse, como en Tasky.
+        // El contenido principal se desplaza dentro de #workspace (el body permanece bloqueado).
+        // Escucha ambos contextos y desplaza el contenedor real al volver al inicio.
         (function initFinanceFloatingButtons() {
             const topButton = document.getElementById('finance-scroll-top');
+            const workspace = document.getElementById('workspace');
             if (!topButton) return;
+
             const refreshVisibility = () => {
-                const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-                topButton.classList.toggle('is-visible', scrollY > 160);
+                const workspaceY = workspace ? workspace.scrollTop : 0;
+                const documentY = Math.max(
+                    window.scrollY || 0,
+                    document.documentElement.scrollTop || 0,
+                    document.body.scrollTop || 0
+                );
+                topButton.classList.toggle('is-visible', Math.max(workspaceY, documentY) > 160);
             };
+
             window.addEventListener('scroll', refreshVisibility, { passive: true });
+            document.addEventListener('scroll', refreshVisibility, { passive: true, capture: true });
+            if (workspace) workspace.addEventListener('scroll', refreshVisibility, { passive: true });
+            window.addEventListener('resize', refreshVisibility, { passive: true });
+
             topButton.addEventListener('click', () => {
+                if (workspace) workspace.scrollTo({ top: 0, behavior: 'smooth' });
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
+                refreshVisibility();
             });
+
             refreshVisibility();
         })();
 

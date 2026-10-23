@@ -1308,6 +1308,58 @@
                 candidate.data !== null;
         }
 
+        // La preferencia de plegar/desplegar es local a este navegador/cuenta; nunca es dato financiero compartido.
+        function getLocalCollapsePrefsKey() {
+            const user = window.cfoFirebase && typeof window.cfoFirebase.getCurrentUser === 'function'
+                ? window.cfoFirebase.getCurrentUser() : null;
+            return user && user.uid
+                ? 'cfo_v120_collapsed_sections_' + user.uid
+                : 'cfo_v120_collapsed_sections_local';
+        }
+
+        function readLocalCollapsePreferences() {
+            try {
+                const raw = localStorage.getItem(getLocalCollapsePrefsKey());
+                if (!raw) return {};
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+            } catch (error) {
+                console.warn('No se pudieron leer las preferencias locales de las casillas.', error);
+                return {};
+            }
+        }
+
+        function persistLocalCollapsePreferences() {
+            const preferences = {};
+            if (Array.isArray(state.struct)) {
+                state.struct.forEach((sections, monthIndex) => {
+                    if (!Array.isArray(sections)) return;
+                    sections.forEach(section => {
+                        if (!section || section.id === undefined || section.id === null) return;
+                        preferences[monthIndex + ':' + String(section.id)] = !!section.collapsed;
+                    });
+                });
+            }
+            try {
+                localStorage.setItem(getLocalCollapsePrefsKey(), JSON.stringify(preferences));
+            } catch (error) {
+                console.warn('No se pudieron guardar las preferencias locales de las casillas.', error);
+            }
+        }
+
+        function makeCloudStateSnapshot(sourceState) {
+            const snapshot = JSON.parse(JSON.stringify(sourceState || state));
+            if (Array.isArray(snapshot.struct)) {
+                snapshot.struct.forEach(sections => {
+                    if (!Array.isArray(sections)) return;
+                    sections.forEach(section => {
+                        if (section && typeof section === 'object') delete section.collapsed;
+                    });
+                });
+            }
+            return snapshot;
+        }
+
         function normalizeCfoState(candidate) {
             if (!isValidCfoState(candidate)) {
                 throw new Error('El archivo no contiene una copia válida de Finanzas Personales.');
@@ -1315,6 +1367,22 @@
             const normalized = Object.assign({}, candidate);
             normalized.month = Number.isInteger(normalized.month) && normalized.month >= 0 && normalized.month < 12
                 ? normalized.month : new Date().getMonth();
+            normalized.struct = normalized.struct.map((sections, monthIndex) => sections.map(section => {
+                const normalizedSection = Object.assign({}, section);
+                const key = monthIndex + ':' + String(normalizedSection.id);
+                // No heredar el valor antiguo guardado en Firebase: la preferencia se administra localmente.
+                normalizedSection.collapsed = false;
+                return normalizedSection;
+            }));
+            const collapsePreferences = readLocalCollapsePreferences();
+            normalized.struct.forEach((sections, monthIndex) => {
+                sections.forEach(section => {
+                    const key = monthIndex + ':' + String(section.id);
+                    if (Object.prototype.hasOwnProperty.call(collapsePreferences, key)) {
+                        section.collapsed = !!collapsePreferences[key];
+                    }
+                });
+            });
             normalized.data = normalized.data || {};
             normalized.events = Array.isArray(normalized.events) ? normalized.events : [];
             normalized.goals = Array.isArray(normalized.goals) ? normalized.goals : [];
@@ -2393,7 +2461,8 @@
                     if (!remoteState) return false;
                     state = normalizeCfoState(remoteState);
                 } else {
-                    await window.cfoFirebase.saveState(state);
+                    // Excluir preferencias de interfaz (plegar/desplegar casillas) del estado enviado a Firebase.
+                    await window.cfoFirebase.saveState(makeCloudStateSnapshot(state));
                 }
                 persistLocalState();
                 localStorage.setItem('cfo_v120_cache_' + currentUser.uid, JSON.stringify(state));
@@ -3643,7 +3712,16 @@
             input.select();
         };
 
-        function toggleSec(s) { state.struct[state.month][s].collapsed = !state.struct[state.month][s].collapsed; save(); }
+        function toggleSec(s) {
+            const section = state.struct[state.month] && state.struct[state.month][s];
+            if (!section) return;
+            section.collapsed = !section.collapsed;
+            persistLocalCollapsePreferences();
+
+            // El pliegue es visual: no crea una acción de deshacer ni activa la sincronización con Firebase.
+            lastCommittedStateSnapshot = JSON.stringify(state);
+            renderLedger();
+        }
         function updSec(s, v) { state.struct[state.month][s].title = v; save(); }
         
         function clearMonth() {

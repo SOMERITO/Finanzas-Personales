@@ -99,8 +99,8 @@
         /* CARDS & GLASSMORPHISM */
         .card {
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             border-radius: 22px;
             box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.04);
             border: 1px solid var(--border-card);
@@ -323,15 +323,12 @@
         .modal-wrap {
             position: fixed; inset: 0; z-index: 70;
             display: none; align-items: center; justify-content: center;
-            background: rgba(7, 11, 20, 0.75);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(7, 11, 20, 0.78);
             padding: 16px;
         }
         .modal-wrap.active { display: flex; animation: fadeIn 0.25s forwards; }
         .modal-box {
             background: var(--bg-card);
-            backdrop-filter: blur(24px);
             border: 1px solid var(--border-card);
             width: 100%; border-radius: 26px; padding: 28px;
             box-shadow: 0 25px 70px -12px rgba(0,0,0,0.55);
@@ -395,8 +392,8 @@
                 radial-gradient(ellipse at 12% 18%, rgba(99,102,241,.12), transparent 38%),
                 radial-gradient(ellipse at 84% 22%, rgba(16,185,129,.085), transparent 34%),
                 radial-gradient(ellipse at 55% 92%, rgba(56,189,248,.07), transparent 42%);
-            transform: translate3d(0,0,0);
-            animation: financeAmbientDrift 30s ease-in-out infinite alternate;
+            transform: none;
+            animation: none;
         }
 
         #workspace {
@@ -410,8 +407,8 @@
         }
 
         @keyframes financeKpiEnter {
-            from { opacity: 0; transform: translateY(16px) scale(.985); filter: blur(3px); }
-            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+            from { opacity: 0; transform: translateY(12px) scale(.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         @keyframes financeSectionEnter {
@@ -469,12 +466,14 @@
         .finance-section-card {
             position: relative;
             isolation: isolate;
-            animation: financeSectionEnter .42s var(--finance-ease-out) both;
-            animation-delay: var(--finance-card-delay, 0ms);
+            /* Las casillas se reconstruyen al guardar: no volver a animarlas en cada acción. */
+            animation: none !important;
             transition:
                 transform .28s var(--finance-ease-spring),
                 box-shadow .28s ease,
                 border-color .25s ease;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
 
         .finance-section-card.finance-drag-active,
@@ -2656,7 +2655,7 @@
 
         function genYear() { return Array(12).fill(null).map(() => JSON.parse(JSON.stringify(BASE))); }
 
-        function save() {
+        function save(options = {}) {
             const nextSnapshot = JSON.stringify(state);
             if (!historyReplayInProgress && lastCommittedStateSnapshot && nextSnapshot !== lastCommittedStateSnapshot) {
                 undoHistory.push(lastCommittedStateSnapshot);
@@ -2664,7 +2663,14 @@
                 redoHistory = [];
             }
             lastCommittedStateSnapshot = nextSnapshot;
-            render();
+
+            if (options && options.partial === 'financial-value') {
+                // Actualizar solo las cifras; mantener intacta la lista y los inputs activos.
+                renderStats();
+                refreshFinanceSectionSummaries();
+            } else {
+                render();
+            }
             sync(false);
         }
 
@@ -3240,14 +3246,14 @@
 
                 // Porcentaje respecto al total de gastos (si aplica)
                 let weightBar = '';
-                if ((sec.type === 'expense' || sec.type === 'debt') && monthTotals.e > 0) {
-                    const pct = Math.min(100, (total / monthTotals.e) * 100);
+                if (sec.type === 'expense' || sec.type === 'debt') {
+                    const pct = monthTotals.e > 0 ? Math.min(100, (total / monthTotals.e) * 100) : 0;
                     weightBar = `
-                    <div class="mt-3 flex items-center gap-3">
+                    <div data-finance-weight-bar="true" class="mt-3 flex items-center gap-3 ${monthTotals.e > 0 ? '' : 'hidden'}">
                         <div class="flex-1 bg-slate-200/70 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                            <div class="${sec.type==='debt'?'bg-rose-500':'bg-indigo-500'} h-full rounded-full transition-all duration-500" style="width:${pct}%"></div>
+                            <div data-finance-weight-fill="true" class="${sec.type==='debt'?'bg-rose-500':'bg-indigo-500'} h-full rounded-full" style="width:${pct}%"></div>
                         </div>
-                        <span class="text-[10px] font-extrabold text-slate-400 w-12 text-right">${pct.toFixed(0)}% out</span>
+                        <span data-finance-weight-label="true" class="text-[10px] font-extrabold text-slate-400 w-12 text-right">${pct.toFixed(0)}% out</span>
                     </div>`;
                 }
 
@@ -3326,7 +3332,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-3 shrink-0">
-                            <span class="font-extrabold text-lg md:text-xl ${sec.type==='income'?'text-emerald-600 dark:text-emerald-400':(sec.type==='debt'?'text-rose-500':(sec.type==='savings'?'text-indigo-500':''))}">${fmt(total)}</span>
+                            <span data-finance-section-total="true" class="font-extrabold text-lg md:text-xl ${sec.type==='income'?'text-emerald-600 dark:text-emerald-400':(sec.type==='debt'?'text-rose-500':(sec.type==='savings'?'text-indigo-500':''))}">${fmt(total)}</span>
                             <button onclick="event.stopPropagation();if(confirm('¿Eliminar la sección ${sec.title}?'))delSec(${sIdx})" class="btn-icon !w-8 !h-8" title="Eliminar Sección">
                                 <i class="ph-bold ph-trash text-sm"></i>
                             </button>
@@ -3594,7 +3600,7 @@
                     refreshPaymentDateEvents(k, section.items[itemIndex], parsed, meta);
                 }
             }
-            save();
+            save({ partial: 'financial-value' });
         }
         function renItem(s, i, v) {
             const section = state.struct[state.month][s];
@@ -4179,6 +4185,39 @@
             save();
             closeModals();
             showToast(`Mes duplicado en ${MONTHS[targetMonth]}`);
+        }
+
+        // Actualiza totales de secciones sin reemplazar sus nodos: evita parpadeo y pérdida de foco.
+        function refreshFinanceSectionSummaries() {
+            const sections = state.struct[state.month];
+            if (!Array.isArray(sections)) return;
+            const monthTotals = getTotals(state.month);
+            const cards = Array.from(document.querySelectorAll('#ledger .finance-section-card'));
+
+            sections.forEach(section => {
+                const card = cards.find(element => String(element.dataset.financeSectionId) === String(section.id));
+                if (!card) return;
+                let total = 0;
+                (section.items || []).forEach((_, index) => {
+                    if (getRowCashflowMonth(state.month, section, index) === state.month) {
+                        total += Number(state.data[state.month + '-' + section.id + '-' + index]) || 0;
+                    }
+                });
+
+                const totalElement = card.querySelector('[data-finance-section-total]');
+                if (totalElement) totalElement.textContent = fmt(total);
+
+                const weightBar = card.querySelector('[data-finance-weight-bar]');
+                if (weightBar) {
+                    const hasExpenses = monthTotals.e > 0;
+                    weightBar.classList.toggle('hidden', !hasExpenses);
+                    const percent = hasExpenses ? Math.min(100, (total / monthTotals.e) * 100) : 0;
+                    const fill = weightBar.querySelector('[data-finance-weight-fill]');
+                    const label = weightBar.querySelector('[data-finance-weight-label]');
+                    if (fill) fill.style.width = percent + '%';
+                    if (label) label.textContent = percent.toFixed(0) + '% out';
+                }
+            });
         }
 
         // --- RENDER STATS ---

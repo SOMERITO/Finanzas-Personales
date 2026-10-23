@@ -1367,22 +1367,28 @@
             const normalized = Object.assign({}, candidate);
             normalized.month = Number.isInteger(normalized.month) && normalized.month >= 0 && normalized.month < 12
                 ? normalized.month : new Date().getMonth();
+            const collapsePrefsKey = getLocalCollapsePrefsKey();
+            let rawCollapsePreferences = null;
+            try { rawCollapsePreferences = localStorage.getItem(collapsePrefsKey); } catch (error) {}
+            const collapsePreferences = readLocalCollapsePreferences();
             normalized.struct = normalized.struct.map((sections, monthIndex) => sections.map(section => {
                 const normalizedSection = Object.assign({}, section);
                 const key = monthIndex + ':' + String(normalizedSection.id);
-                // No heredar el valor antiguo guardado en Firebase: la preferencia se administra localmente.
-                normalizedSection.collapsed = false;
+                if (Object.prototype.hasOwnProperty.call(collapsePreferences, key)) {
+                    normalizedSection.collapsed = !!collapsePreferences[key];
+                } else if (rawCollapsePreferences === null &&
+                    Object.prototype.hasOwnProperty.call(normalizedSection, 'collapsed')) {
+                    // Migración única: conserva el aspecto previo en este dispositivo y deja de compartirlo.
+                    normalizedSection.collapsed = !!normalizedSection.collapsed;
+                    collapsePreferences[key] = normalizedSection.collapsed;
+                } else {
+                    normalizedSection.collapsed = false;
+                }
                 return normalizedSection;
             }));
-            const collapsePreferences = readLocalCollapsePreferences();
-            normalized.struct.forEach((sections, monthIndex) => {
-                sections.forEach(section => {
-                    const key = monthIndex + ':' + String(section.id);
-                    if (Object.prototype.hasOwnProperty.call(collapsePreferences, key)) {
-                        section.collapsed = !!collapsePreferences[key];
-                    }
-                });
-            });
+            if (rawCollapsePreferences === null) {
+                try { localStorage.setItem(collapsePrefsKey, JSON.stringify(collapsePreferences)); } catch (error) {}
+            }
             normalized.data = normalized.data || {};
             normalized.events = Array.isArray(normalized.events) ? normalized.events : [];
             normalized.goals = Array.isArray(normalized.goals) ? normalized.goals : [];

@@ -489,62 +489,44 @@
         .calendar-event-title { font-size: 13px; line-height: 1.45; font-weight: 800; color: var(--text-main); }
         .calendar-event-meta { margin-top: 3px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; }
         .payment-check {
-            display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-shrink: 0;
-            min-height: 44px; padding: 10px 15px; border-radius: 13px;
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            border: 1px solid rgba(79,70,229,.72);
-            color: #fff; cursor: pointer; font-size: 12px; line-height: 1.15; font-weight: 850;
-            letter-spacing: .01em; box-shadow: 0 5px 13px rgba(79,70,229,.22);
-            transition: transform .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+            display: inline-grid; place-items: center; flex: 0 0 28px;
+            width: 28px; height: 28px; min-height: 28px; padding: 0;
+            border-radius: 7px; background: #fff;
+            border: 1.5px solid #cbd5e1; color: #334155; cursor: pointer;
+            box-shadow: none; transition: background-color .14s ease, border-color .14s ease;
             user-select: none;
         }
-        .payment-check:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(79,70,229,.28); }
-        .payment-check:active { transform: scale(.98); }
+        .payment-check:hover { background: #f8fafc; border-color: #64748b; }
+        .payment-check:active { transform: none; }
         .payment-check input {
-            appearance: none; -webkit-appearance: none; position: relative; flex: 0 0 21px;
-            width: 21px; height: 21px; margin: 0; border: 2px solid rgba(255,255,255,.96);
-            border-radius: 6px; background: rgba(255,255,255,.14); cursor: pointer;
+            appearance: none; -webkit-appearance: none; position: relative; flex: 0 0 18px;
+            width: 18px; height: 18px; margin: 0; border: 1.5px solid #94a3b8;
+            border-radius: 4px; background: #fff; cursor: pointer;
             display: inline-grid; place-items: center;
         }
-        .payment-check input:checked { background: #fff; border-color: #fff; }
+        .payment-check input:checked { background: #059669; border-color: #059669; }
         .payment-check input:checked::after {
-            content: ""; width: 10px; height: 6px; border: solid #059669;
-            border-width: 0 0 2.5px 2.5px; transform: rotate(-45deg); margin-top: -3px;
+            content: ""; width: 8px; height: 4px; border: solid #fff;
+            border-width: 0 0 2px 2px; transform: rotate(-45deg); margin-top: -2px;
         }
         .payment-check input:focus-visible { outline: 3px solid rgba(99,102,241,.35); outline-offset: 3px; }
-        .payment-check.is-checked {
-            background: linear-gradient(135deg, #047857, #10b981);
-            border-color: rgba(5,150,105,.9); color: #fff;
-            box-shadow: 0 5px 13px rgba(5,150,105,.2);
-        }
-        .payment-check.is-checked:hover { box-shadow: 0 8px 18px rgba(5,150,105,.27); }
+        .payment-check.is-checked { background: #ecfdf5; border-color: #059669; box-shadow: none; }
         .ledger-payment-check {
-            display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto;
-            min-width: 36px; height: 36px; padding: 0 10px; border-radius: 11px;
-            border: 1px solid rgba(99,102,241,.46);
-            background: linear-gradient(135deg, #f8faff, #e0e7ff);
-            color: #4338ca; cursor: pointer; white-space: nowrap; font-size: 10px; font-weight: 850;
-            box-shadow: 0 2px 7px rgba(79,70,229,.10);
-            transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease;
+            appearance: none; -webkit-appearance: none; position: relative;
+            display: inline-grid; place-items: center; flex: 0 0 18px;
+            width: 18px; min-width: 18px; height: 18px; margin: 0; padding: 0;
+            border: 1.5px solid #94a3b8; border-radius: 5px; background: #fff;
+            cursor: pointer; box-shadow: none;
+            transition: background-color .14s ease, border-color .14s ease;
         }
-        .ledger-payment-check i { font-size: 18px; line-height: 1; }
-        .ledger-payment-label { font-size: 10px; font-weight: 850; letter-spacing: .01em; }
-        .ledger-payment-check:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(79,70,229,.18); }
-        .ledger-payment-check:active { transform: scale(.96); }
-        .ledger-payment-check.is-paid {
-            color: #fff; border-color: #059669;
-            background: linear-gradient(135deg, #047857, #10b981);
-            box-shadow: 0 3px 9px rgba(5,150,105,.19);
+        .ledger-payment-check:checked { background: #059669; border-color: #059669; }
+        .ledger-payment-check:checked::after {
+            content: ""; width: 8px; height: 4px; border: solid #fff;
+            border-width: 0 0 2px 2px; transform: rotate(-45deg); margin-top: -2px;
         }
-        .ledger-payment-check.is-paid:hover { box-shadow: 0 5px 13px rgba(5,150,105,.25); }
-        .ledger-payment-check:focus-visible { outline: 3px solid rgba(99,102,241,.4); outline-offset: 2px; }
-        @media (max-width: 640px) {
-            .ledger-payment-check { width: 36px; min-width: 36px; padding: 0; }
-            .ledger-payment-label { display: none; }
-        }
-        html.dark .ledger-payment-check:not(.is-paid) {
-            background: rgba(99,102,241,.18); border-color: rgba(129,140,248,.7); color: #c7d2fe;
-        }
+        .ledger-payment-check:focus-visible { outline: 3px solid rgba(99,102,241,.35); outline-offset: 3px; }
+        .ledger-payment-check[hidden] { display: none !important; }
+        html.dark .ledger-payment-check:not(:checked) { background: rgba(255,255,255,.04); border-color: #64748b; }
         .calendar-event-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
         @media (max-width: 640px) {
             .calendar-toolbar { align-items: flex-start; flex-direction: column; }
@@ -3695,7 +3677,7 @@
                             : null;
                         const ledgerPaymentPaid = !!(ledgerPaymentKey && state.paidPayments && state.paidPayments[ledgerPaymentKey]);
                         const paymentCheckHTML = showPaymentCheck
-                            ? `<button type="button" class="ledger-payment-check ${ledgerPaymentPaid ? 'is-paid' : ''}" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" aria-pressed="${ledgerPaymentPaid ? 'true' : 'false'}" aria-label="${ledgerPaymentPaid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado'}" title="${ledgerPaymentPaid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado'}"><i class="ph-bold ${ledgerPaymentPaid ? 'ph-check-square' : 'ph-square'}" aria-hidden="true"></i><span class="ledger-payment-label">${ledgerPaymentPaid ? 'Pagado' : 'Marcar pago'}</span><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span></button>`
+                            ? `<input type="checkbox" class="ledger-payment-check" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" ${ledgerPaymentPaid ? 'checked hidden' : ''} aria-label="Marcar pago como realizado" title="Marcar pago como realizado" onchange="toggleLedgerPaymentCompletion(this)"><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span>`
                             : '';
                         return `
                         <div class="finance-item-row flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group" data-finance-item-row="true" data-finance-item-index="${i}" data-finance-section-id="${escapeHtmlText(sec.id)}">
@@ -4457,36 +4439,32 @@
         }
 
         function refreshLedgerPaymentChecks() {
-            document.querySelectorAll('[data-ledger-payment-check="true"]').forEach(button => {
+            document.querySelectorAll('input[data-ledger-payment-check="true"]').forEach(input => {
                 const key = getLedgerPaymentOccurrenceKey(
-                    button.dataset.ledgerMonth,
-                    button.dataset.ledgerSectionId,
-                    button.dataset.ledgerItemIndex
+                    input.dataset.ledgerMonth,
+                    input.dataset.ledgerSectionId,
+                    input.dataset.ledgerItemIndex
                 );
                 const paid = !!(key && state.paidPayments && state.paidPayments[key]);
-                button.classList.toggle('is-paid', paid);
-                button.setAttribute('aria-pressed', paid ? 'true' : 'false');
-                button.setAttribute('aria-label', paid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado');
-                button.title = paid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado';
-                const icon = button.querySelector('i');
-                if (icon) icon.className = 'ph-bold ' + (paid ? 'ph-check-square' : 'ph-square');
-                const srText = button.querySelector('.sr-only');
-                if (srText) srText.textContent = paid ? 'Pago realizado' : 'Marcar como pagado';
-                const label = button.querySelector('.ledger-payment-label');
-                if (label) label.textContent = paid ? 'Pagado' : 'Marcar pago';
+                input.checked = paid;
+                input.hidden = paid;
+                input.setAttribute('aria-label', paid ? 'Pago ya registrado' : 'Marcar pago como realizado');
+                input.title = paid ? 'Pago realizado' : 'Marcar pago como realizado';
             });
         }
 
-        window.toggleLedgerPaymentCompletion = function(button) {
-            if (!button) return;
+        window.toggleLedgerPaymentCompletion = function(input) {
+            if (!input) return;
             const key = getLedgerPaymentOccurrenceKey(
-                button.dataset.ledgerMonth,
-                button.dataset.ledgerSectionId,
-                button.dataset.ledgerItemIndex
+                input.dataset.ledgerMonth,
+                input.dataset.ledgerSectionId,
+                input.dataset.ledgerItemIndex
             );
             if (!key) return;
             if (!state.paidPayments || typeof state.paidPayments !== 'object') state.paidPayments = {};
-            const paid = !state.paidPayments[key];
+            const paid = !!input.checked;
+            const wasPaid = !!state.paidPayments[key];
+            if (paid === wasPaid) return;
             if (paid) state.paidPayments[key] = true;
             else delete state.paidPayments[key];
             appendPaymentHistoryRecord(key, paid, 'Registro principal');
@@ -4716,10 +4694,11 @@
 
             const events = state.events.filter(event =>
                 event.d === d && event.m === calMonth + 1 &&
-                (!Number.isInteger(event.year) || event.year === calYear)
+                (!Number.isInteger(event.year) || event.year === calYear) &&
+                (!event.paymentDateKey || !isPaymentEventPaid(event))
             );
             if (!events.length) {
-                list.innerHTML = '<p class="text-slate-400 text-xs font-bold py-7 text-center">No hay eventos programados para este día.</p>';
+                list.innerHTML = '<p class="text-slate-400 text-xs font-bold py-7 text-center">No hay pagos pendientes ni eventos programados para este día.</p>';
                 return;
             }
 
@@ -4733,10 +4712,10 @@
                     event.paymentDateKind === 'due' ? 'Vencimiento' : (event.type || event.category || 'General'));
                 const notes = event.notes ? '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">' + escapeHtmlText(event.notes) + '</p>' : '';
                 const actions = paymentEvent
-                    ? '<label class="payment-check ' + (paid ? 'is-checked' : '') + '">' +
+                    ? '<label class="payment-check ' + (paid ? 'is-checked' : '') + '" title="Marcar pago como realizado">' +
                         '<input type="checkbox" ' + (paid ? 'checked' : '') +
-                        ' onchange="togglePaymentCompletion(' + index + ', this.checked)" aria-label="' + (paid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado') + '">' +
-                        '<span>' + (paid ? 'Pago realizado' : 'Marcar como pagado') + '</span></label>'
+                        ' onchange="togglePaymentCompletion(' + index + ', this.checked)" aria-label="' + (paid ? 'Pago ya registrado' : 'Marcar pago como realizado') + '">' +
+                        '<span class="sr-only">' + (paid ? 'Pago realizado' : 'Marcar como pagado') + '</span></label>'
                     : '<button onclick="deleteEvent(' + index + ')" class="btn-icon !w-8 !h-8" aria-label="Eliminar evento" title="Eliminar evento"><i class="ph-bold ph-trash"></i></button>';
 
                 list.insertAdjacentHTML('beforeend', `

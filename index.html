@@ -339,28 +339,123 @@
         .modal-wrap.active .modal-box { transform: scale(1) translateY(0); }
         .modal-xl { max-width: 1180px; } .modal-lg { max-width: 860px; } .modal-sm { max-width: 460px; }
 
-        /* CALENDAR */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; width: 100%; }
+        /* CALENDARIO FINANCIERO */
+        .calendar-modal-shell { max-width: 1040px; }
+        .calendar-toolbar {
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .calendar-month-control {
+            display: flex; align-items: center; gap: 8px;
+            border: 1px solid var(--border-card); background: var(--bg-card);
+            border-radius: 16px; padding: 5px;
+        }
+        .calendar-month-control .btn-icon {
+            width: 38px; height: 38px; border-radius: 12px;
+        }
+        .calendar-overview {
+            display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px;
+            margin: 22px 0 18px;
+        }
+        .calendar-stat {
+            min-width: 0; border: 1px solid var(--border-card);
+            background: linear-gradient(135deg, rgba(255,255,255,.86), rgba(248,250,252,.55));
+            border-radius: 18px; padding: 14px 16px;
+        }
+        html.dark .calendar-stat {
+            background: linear-gradient(135deg, rgba(30,41,59,.78), rgba(15,23,42,.72));
+        }
+        .calendar-stat-value {
+            display: block; font-size: 24px; line-height: 1.2; font-weight: 800;
+            letter-spacing: -.04em; color: var(--text-main); font-variant-numeric: tabular-nums;
+        }
+        .calendar-stat-label {
+            display: block; margin-top: 5px; font-size: 10px; line-height: 1.3;
+            font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: #94a3b8;
+        }
+        .calendar-stat.is-paid .calendar-stat-value { color: #059669; }
+        .calendar-stat.is-pending .calendar-stat-value { color: #d97706; }
+        .calendar-legend {
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            margin: 0 0 13px; color: #94a3b8; font-size: 11px; font-weight: 700;
+        }
+        .calendar-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+        .calendar-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .calendar-weekdays {
+            display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 7px;
+            margin-bottom: 7px; text-align: center;
+        }
+        .calendar-weekday {
+            padding: 7px 0; font-size: 10px; font-weight: 800;
+            color: #94a3b8; text-transform: uppercase; letter-spacing: .08em;
+        }
+        .cal-grid { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: 7px; width: 100%; }
         .cal-cell {
-            aspect-ratio: 1; border-radius: 14px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-            font-size: 14px; font-weight: 700;
-            position: relative; border: 1px solid var(--border-card);
-            background: rgba(148, 163, 184, 0.06);
+            min-width: 0; min-height: 76px; aspect-ratio: auto; border-radius: 15px;
+            display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
+            padding: 10px; cursor: pointer; text-align: left; overflow: hidden;
+            transition: border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+            font-size: 13px; font-weight: 800; position: relative;
+            border: 1px solid var(--border-card); background: rgba(148, 163, 184, .045);
+            color: var(--text-main);
         }
         .cal-cell:hover {
-            border-color: #6366f1;
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.18);
-            transform: translateY(-2px); z-index: 10;
+            border-color: rgba(99,102,241,.58); background: rgba(99,102,241,.07);
+            box-shadow: 0 7px 18px rgba(79,70,229,.09); transform: translateY(-1px); z-index: 2;
         }
+        .cal-cell.is-empty { visibility: hidden; pointer-events: none; }
         .cal-cell.today {
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: white !important; border-color: transparent;
-            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45);
+            border-color: transparent; background: linear-gradient(140deg,#4f46e5,#6366f1);
+            color: #fff !important; box-shadow: 0 7px 18px rgba(79,70,229,.25);
         }
-        .cal-cell.has-event { border-color: rgba(99, 102, 241, 0.45); background: rgba(99, 102, 241, 0.1); }
-        .event-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .cal-cell.today:hover { background: linear-gradient(140deg,#4338ca,#4f46e5); }
+        .cal-cell.has-event:not(.today) { border-color: rgba(99,102,241,.25); background: rgba(99,102,241,.045); }
+        .calendar-day-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .calendar-day-number { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 9px; }
+        .cal-cell.today .calendar-day-number { background: rgba(255,255,255,.16); }
+        .calendar-day-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 19px; height: 19px; padding: 0 5px; border-radius: 7px;
+            background: rgba(148,163,184,.13); color: #94a3b8; font-size: 9px; font-weight: 800;
+        }
+        .cal-cell.today .calendar-day-count { background: rgba(255,255,255,.18); color: white; }
+        .calendar-day-markers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 8px; min-height: 12px; }
+        .event-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 7px; box-shadow: 0 0 0 2px rgba(148,163,184,.08); }
+        .event-dot.is-paid { background: #10b981 !important; }
+        .calendar-event-card {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+            padding: 14px; border-radius: 17px; border: 1px solid var(--border-card);
+            background: var(--bg-card); transition: border-color .18s ease, background-color .18s ease;
+        }
+        .calendar-event-card.is-paid { border-color: rgba(16,185,129,.32); background: rgba(16,185,129,.055); }
+        .calendar-event-title { font-size: 13px; line-height: 1.45; font-weight: 800; color: var(--text-main); }
+        .calendar-event-meta { margin-top: 3px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; }
+        .payment-check {
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex-shrink: 0;
+            min-height: 34px; padding: 7px 10px; border-radius: 11px;
+            background: rgba(148,163,184,.10); border: 1px solid var(--border-card);
+            color: #64748b; cursor: pointer; font-size: 10px; font-weight: 800;
+            transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+        }
+        .payment-check input { width: 16px; height: 16px; accent-color: #059669; cursor: pointer; }
+        .payment-check.is-checked { background: rgba(16,185,129,.10); color: #059669; border-color: rgba(16,185,129,.32); }
+        .calendar-event-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+        @media (max-width: 640px) {
+            .calendar-toolbar { align-items: flex-start; flex-direction: column; }
+            .calendar-overview { gap: 7px; margin: 17px 0 14px; }
+            .calendar-stat { padding: 11px 10px; border-radius: 14px; }
+            .calendar-stat-value { font-size: 20px; }
+            .calendar-stat-label { font-size: 8px; letter-spacing: .04em; }
+            .calendar-weekdays, .cal-grid { gap: 4px; }
+            .calendar-weekday { font-size: 9px; padding: 6px 0; }
+            .cal-cell { min-height: 55px; border-radius: 11px; padding: 5px; font-size: 11px; }
+            .calendar-day-number { width: 23px; height: 23px; }
+            .calendar-day-count { min-width: 16px; height: 16px; font-size: 8px; }
+            .calendar-day-markers { gap: 3px; padding-top: 4px; }
+            .event-dot { width: 5px; height: 5px; flex-basis: 5px; }
+            .calendar-event-card { flex-direction: column; }
+            .calendar-event-actions { align-self: flex-end; width: 100%; justify-content: space-between; }
+            .payment-check { min-height: 32px; }
+        }
 
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -888,19 +983,48 @@
 
     <!-- MODAL: CALENDARIO -->
     <div id="modal-calendar" class="modal-wrap">
-        <div class="modal-box modal-lg">
-            <button onclick="smartClose('modal-calendar')" class="absolute top-6 right-6 btn-icon"><i class="ph-bold ph-x"></i></button>
-            <div class="flex flex-col items-center justify-center mb-6 pt-2">
-                <span class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 mb-1">Agenda de Pagos & Eventos</span>
-                <h3 class="text-3xl font-extrabold mb-4" id="cal-title">Enero 2026</h3>
-                <div class="flex items-center gap-3 bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-full">
-                    <button onclick="calChangeMonth(-1)" class="btn-icon nav bg-white dark:bg-slate-900 shadow-sm rounded-full"><i class="ph-bold ph-caret-left"></i></button>
-                    <span class="text-xs font-extrabold text-slate-500 dark:text-slate-400 px-3 uppercase tracking-widest">Cambiar Mes</span>
-                    <button onclick="calChangeMonth(1)" class="btn-icon nav bg-white dark:bg-slate-900 shadow-sm rounded-full"><i class="ph-bold ph-caret-right"></i></button>
+        <div class="modal-box calendar-modal-shell">
+            <button onclick="smartClose('modal-calendar')" class="absolute top-5 right-5 btn-icon" aria-label="Cerrar calendario"><i class="ph-bold ph-x"></i></button>
+            <div class="calendar-toolbar pr-10">
+                <div>
+                    <span class="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-indigo-500 mb-2">
+                        <i class="ph-bold ph-calendar-check text-base"></i> Finanzas personales
+                    </span>
+                    <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight" id="cal-title">Enero 2026</h3>
+                    <p class="text-xs font-semibold text-slate-400 mt-1">Vencimientos, pagos previstos y seguimiento de pagos</p>
+                </div>
+                <div class="calendar-month-control">
+                    <button onclick="calChangeMonth(-1)" class="btn-icon nav" aria-label="Mes anterior"><i class="ph-bold ph-caret-left"></i></button>
+                    <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 px-2 uppercase tracking-wider">Mes</span>
+                    <button onclick="calChangeMonth(1)" class="btn-icon nav" aria-label="Mes siguiente"><i class="ph-bold ph-caret-right"></i></button>
                 </div>
             </div>
-            <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-extrabold text-slate-400 uppercase mb-3 tracking-widest">
-                <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+
+            <div class="calendar-overview">
+                <div class="calendar-stat">
+                    <span class="calendar-stat-value" id="calendar-payment-total">0</span>
+                    <span class="calendar-stat-label">Pagos programados</span>
+                </div>
+                <div class="calendar-stat is-paid">
+                    <span class="calendar-stat-value" id="calendar-payment-paid">0</span>
+                    <span class="calendar-stat-label">Pagos realizados</span>
+                </div>
+                <div class="calendar-stat is-pending">
+                    <span class="calendar-stat-value" id="calendar-payment-pending">0</span>
+                    <span class="calendar-stat-label">Pendientes</span>
+                </div>
+            </div>
+
+            <div class="calendar-legend">
+                <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:#6366f1"></span>Evento</span>
+                <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:#f59e0b"></span>Vencimiento</span>
+                <span class="calendar-legend-item"><span class="calendar-legend-dot" style="background:#10b981"></span>Pago realizado</span>
+                <span class="text-slate-400">Selecciona un día para ver o marcar los pagos.</span>
+            </div>
+
+            <div class="calendar-weekdays">
+                <div class="calendar-weekday">Dom</div><div class="calendar-weekday">Lun</div><div class="calendar-weekday">Mar</div>
+                <div class="calendar-weekday">Mié</div><div class="calendar-weekday">Jue</div><div class="calendar-weekday">Vie</div><div class="calendar-weekday">Sáb</div>
             </div>
             <div id="calendar-grid" class="cal-grid"></div>
         </div>
@@ -1230,7 +1354,7 @@
             {id:'s', title:'Ahorros', type:'savings', items:['Fondo'], collapsed:false}
         ];
         
-        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {} };
+        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {}, paidPayments: {} };
         let editingPaymentDate = null;
         let charts = {};
         let calMonth = new Date().getMonth();
@@ -1293,7 +1417,8 @@
                     {name:'Navidad', d:25, m:12, type:'bday'}
                 ],
                 goals: [{name:'Fondo Emergencia', target:5000, priority:1}],
-                paymentDates: {}
+                paymentDates: {},
+                paidPayments: {}
             };
         }
 
@@ -1392,6 +1517,8 @@
             normalized.goals = Array.isArray(normalized.goals) ? normalized.goals : [];
             normalized.paymentDates = normalized.paymentDates && typeof normalized.paymentDates === 'object'
                 ? normalized.paymentDates : {};
+            normalized.paidPayments = normalized.paidPayments && typeof normalized.paidPayments === 'object' && !Array.isArray(normalized.paidPayments)
+                ? normalized.paidPayments : {};
             return normalized;
         }
 
@@ -2667,6 +2794,11 @@
                 // Actualizar solo las cifras; mantener intacta la lista y los inputs activos.
                 renderStats();
                 refreshFinanceSectionSummaries();
+            } else if (options && options.partial === 'payment-status') {
+                renderCal();
+                if (Number.isInteger(selectedDay) && document.getElementById('modal-day-details').classList.contains('active')) {
+                    renderDayDetails(selectedDay);
+                }
             } else {
                 render();
             }
@@ -3998,62 +4130,166 @@
         };
 
         // --- CALENDARIO ---
-        function openCalendar() { calMonth = state.month; calYear = 2026; renderCal(); openModal('modal-calendar'); }
-        function calChangeMonth(d) { calMonth += d; if(calMonth > 11){calMonth = 0; calYear++;} if(calMonth < 0){calMonth = 11; calYear--;} renderCal(); }
+        function openCalendar() {
+            calMonth = state.month;
+            calYear = 2026;
+            renderCal();
+            openModal('modal-calendar');
+        }
+
+        function calChangeMonth(d) {
+            calMonth += d;
+            if (calMonth > 11) { calMonth = 0; calYear++; }
+            if (calMonth < 0) { calMonth = 11; calYear--; }
+            renderCal();
+        }
+
+        function getPaymentOccurrenceKey(event) {
+            if (!event || !event.paymentDateKey) return null;
+            const year = Number.isInteger(event.year) ? event.year : calYear;
+            const month = String(Number(event.m)).padStart(2, '0');
+            const day = String(Number(event.d)).padStart(2, '0');
+            const kind = event.paymentDateKind || 'due';
+            return String(event.paymentDateKey) + '|' + year + '-' + month + '-' + day + '|' + kind;
+        }
+
+        function isPaymentEventPaid(event) {
+            const key = getPaymentOccurrenceKey(event);
+            return !!(key && state.paidPayments && state.paidPayments[key]);
+        }
+
+        window.togglePaymentCompletion = function(eventIndex, checked) {
+            const event = state.events[Number(eventIndex)];
+            const key = getPaymentOccurrenceKey(event);
+            if (!event || !key) return;
+
+            if (!state.paidPayments || typeof state.paidPayments !== 'object') state.paidPayments = {};
+            if (checked) state.paidPayments[key] = true;
+            else delete state.paidPayments[key];
+
+            save({ partial: 'payment-status' });
+            showToast(checked ? 'Pago marcado como realizado' : 'Pago marcado como pendiente', checked ? 'success' : 'info');
+        };
+
         function renderCal() {
             const grid = document.getElementById('calendar-grid');
+            if (!grid) return;
             grid.innerHTML = '';
-            document.getElementById('cal-title').innerText = `${MONTHS[calMonth]} ${calYear}`;
+            document.getElementById('cal-title').innerText = MONTHS[calMonth] + ' ' + calYear;
+
+            const monthEvents = state.events.filter(event =>
+                event.m === calMonth + 1 && (!Number.isInteger(event.year) || event.year === calYear)
+            );
+            const paymentEvents = monthEvents.filter(event => !!event.paymentDateKey);
+            const paidCount = paymentEvents.filter(isPaymentEventPaid).length;
+            const totalEl = document.getElementById('calendar-payment-total');
+            const paidEl = document.getElementById('calendar-payment-paid');
+            const pendingEl = document.getElementById('calendar-payment-pending');
+            if (totalEl) totalEl.textContent = String(paymentEvents.length);
+            if (paidEl) paidEl.textContent = String(paidCount);
+            if (pendingEl) pendingEl.textContent = String(Math.max(0, paymentEvents.length - paidCount));
+
             const first = new Date(calYear, calMonth, 1).getDay();
             const days = new Date(calYear, calMonth + 1, 0).getDate();
             const now = new Date();
-            for(let i = 0; i < first; i++) grid.innerHTML += `<div></div>`;
-            for(let d = 1; d <= days; d++) {
-                const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1) && (!Number.isInteger(e.year) || e.year === calYear));
-                const isToday = (d === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear());
-                const dots = evs.map(e => `<div class="event-dot" style="background:${getColor(e.type || e.category)}"></div>`).join('');
-                grid.innerHTML += `
-                <div class="cal-cell ${isToday ? 'today' : ''} ${evs.length > 0 ? 'has-event' : ''}" onclick="openDayDetails(${d})">
-                    <span class="z-10">${d}</span>
-                    <div class="flex gap-1 absolute bottom-1.5">${dots}</div>
-                </div>`;
+            const totalCells = Math.ceil((first + days) / 7) * 7;
+
+            for (let cell = 0; cell < totalCells; cell++) {
+                const day = cell - first + 1;
+                if (day < 1 || day > days) {
+                    grid.insertAdjacentHTML('beforeend', '<div class="cal-cell is-empty" aria-hidden="true"></div>');
+                    continue;
+                }
+
+                const events = state.events.filter(event =>
+                    event.d === day && event.m === calMonth + 1 &&
+                    (!Number.isInteger(event.year) || event.year === calYear)
+                );
+                const paymentDayEvents = events.filter(event => !!event.paymentDateKey);
+                const allPaymentEventsPaid = paymentDayEvents.length > 0 && paymentDayEvents.every(isPaymentEventPaid);
+                const isToday = day === now.getDate() && calMonth === now.getMonth() && calYear === now.getFullYear();
+                const dots = events.slice(0, 5).map(event => {
+                    const paid = event.paymentDateKey && isPaymentEventPaid(event);
+                    const color = paid ? '#10b981' : getColor(event.paymentDateKind === 'due' ? 'deadline' : (event.type || event.category));
+                    return '<span class="event-dot ' + (paid ? 'is-paid' : '') + '" style="background:' + color + '"></span>';
+                }).join('');
+                const dayClass = ['cal-cell', isToday ? 'today' : '', events.length ? 'has-event' : '', allPaymentEventsPaid ? 'all-payments-paid' : ''].filter(Boolean).join(' ');
+                const aria = day + ' de ' + MONTHS[calMonth] + ' de ' + calYear + (events.length ? ', ' + events.length + ' evento(s)' : '');
+
+                grid.insertAdjacentHTML('beforeend', `
+                    <button type="button" class="${dayClass}" onclick="openDayDetails(${day})" aria-label="${escapeHtmlText(aria)}" title="${escapeHtmlText(aria)}">
+                        <span class="calendar-day-top">
+                            <span class="calendar-day-number">${day}</span>
+                            ${events.length ? '<span class="calendar-day-count">' + events.length + '</span>' : ''}
+                        </span>
+                        <span class="calendar-day-markers">${dots}</span>
+                    </button>
+                `);
             }
         }
+
         function getColor(s) {
-            if(!s) return '#6366f1';
+            if (!s) return '#6366f1';
             let hash = 0;
             for (let i = 0; i < s.length; i++) hash = s.charCodeAt(i) + ((hash << 5) - hash);
-            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-            return '#' + "00000".substring(0, 6 - c.length) + c;
+            const color = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+            return '#' + '00000'.substring(0, 6 - color.length) + color;
         }
+
         function openDayDetails(d) {
             selectedDay = d;
-            document.getElementById('day-detail-title').innerText = `${d} de ${MONTHS[calMonth]}`;
-            const l = document.getElementById('day-events-list');
-            l.innerHTML = '';
-            const evs = state.events.filter(e => e.d === d && e.m === (calMonth + 1) && (!Number.isInteger(e.year) || e.year === calYear));
-            if(evs.length === 0) {
-                l.innerHTML = '<p class="text-slate-400 text-xs font-bold py-6 text-center">No hay eventos programados para este día.</p>';
-            } else {
-                evs.forEach(e => {
-                    const idx = state.events.findIndex(x => x === e);
-                    const bg = getColor(e.type || e.category);
-                    l.innerHTML += `
-                    <div class="flex justify-between items-center bg-white/80 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700 p-3.5 rounded-2xl shadow-sm">
-                        <div class="flex items-center gap-3">
-                            <span class="w-3 h-3 rounded-full shrink-0" style="background:${bg}"></span>
-                            <div>
-                                <p class="font-extrabold text-sm">${e.name}</p>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">${e.type || e.category || 'General'}</p>
-                                ${e.notes ? '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">' + escapeHtmlText(e.notes) + '</p>' : ''}
-                            </div>
-                        </div>
-                        <button onclick="deleteEvent(${idx})" class="btn-icon !w-8 !h-8"><i class="ph-bold ph-trash"></i></button>
-                    </div>`;
-                });
-            }
+            renderDayDetails(d);
             openModal('modal-day-details');
         }
+
+        function renderDayDetails(d) {
+            const title = document.getElementById('day-detail-title');
+            const list = document.getElementById('day-events-list');
+            if (!title || !list) return;
+            title.innerText = d + ' de ' + MONTHS[calMonth] + ' de ' + calYear;
+            list.innerHTML = '';
+
+            const events = state.events.filter(event =>
+                event.d === d && event.m === calMonth + 1 &&
+                (!Number.isInteger(event.year) || event.year === calYear)
+            );
+            if (!events.length) {
+                list.innerHTML = '<p class="text-slate-400 text-xs font-bold py-7 text-center">No hay eventos programados para este día.</p>';
+                return;
+            }
+
+            events.forEach(event => {
+                const index = state.events.indexOf(event);
+                const paymentEvent = !!event.paymentDateKey;
+                const paid = paymentEvent && isPaymentEventPaid(event);
+                const color = paid ? '#10b981' : getColor(event.paymentDateKind === 'due' ? 'deadline' : (event.type || event.category));
+                const eventName = escapeHtmlText(event.name || 'Evento');
+                const eventType = escapeHtmlText(event.paymentDateKind === 'planned' ? 'Pago previsto' :
+                    event.paymentDateKind === 'due' ? 'Vencimiento' : (event.type || event.category || 'General'));
+                const notes = event.notes ? '<p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">' + escapeHtmlText(event.notes) + '</p>' : '';
+                const actions = paymentEvent
+                    ? '<label class="payment-check ' + (paid ? 'is-checked' : '') + '">' +
+                        '<input type="checkbox" ' + (paid ? 'checked' : '') +
+                        ' onchange="togglePaymentCompletion(' + index + ', this.checked)" aria-label="' + (paid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado') + '">' +
+                        '<span>' + (paid ? 'Pagado' : 'Marcar pagado') + '</span></label>'
+                    : '<button onclick="deleteEvent(' + index + ')" class="btn-icon !w-8 !h-8" aria-label="Eliminar evento" title="Eliminar evento"><i class="ph-bold ph-trash"></i></button>';
+
+                list.insertAdjacentHTML('beforeend', `
+                    <div class="calendar-event-card ${paid ? 'is-paid' : ''}">
+                        <div class="flex items-start gap-3 min-w-0 flex-1">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0 mt-1.5" style="background:${color}"></span>
+                            <div class="min-w-0 flex-1">
+                                <p class="calendar-event-title">${eventName}</p>
+                                <p class="calendar-event-meta">${eventType}${paid ? ' · REALIZADO' : ''}</p>
+                                ${notes}
+                            </div>
+                        </div>
+                        <div class="calendar-event-actions">${actions}</div>
+                    </div>
+                `);
+            });
+        }
+
         window.addEventFromModal = function() {
             const n = document.getElementById('new-event-input').value.trim();
             const cat = document.getElementById('new-event-cat').value.trim();

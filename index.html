@@ -468,7 +468,7 @@
             box-shadow: 0 2px 7px rgba(79,70,229,.10);
             transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease;
         }
-        .ledger-payment-check i { font-size: 19px; line-height: 1; }
+        .ledger-payment-check i { font-size: 21px; line-height: 1; }
         .ledger-payment-check:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(79,70,229,.18); }
         .ledger-payment-check:active { transform: scale(.96); }
         .ledger-payment-check.is-paid {
@@ -3544,7 +3544,7 @@
                             : null;
                         const ledgerPaymentPaid = !!(ledgerPaymentKey && state.paidPayments && state.paidPayments[ledgerPaymentKey]);
                         const paymentCheckHTML = showPaymentCheck
-                            ? `<button type="button" class="ledger-payment-check ${ledgerPaymentPaid ? 'is-paid' : ''}" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" aria-pressed="${ledgerPaymentPaid ? 'true' : 'false'}" aria-label="${ledgerPaymentPaid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado'}" title="${ledgerPaymentPaid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado'}"><i class="ph-bold ${ledgerPaymentPaid ? 'ph-check-circle' : 'ph-check'}" aria-hidden="true"></i><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span></button>`
+                            ? `<button type="button" class="ledger-payment-check ${ledgerPaymentPaid ? 'is-paid' : ''}" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" aria-pressed="${ledgerPaymentPaid ? 'true' : 'false'}" aria-label="${ledgerPaymentPaid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado'}" title="${ledgerPaymentPaid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado'}"><i class="ph-bold ${ledgerPaymentPaid ? 'ph-check-square' : 'ph-square'}" aria-hidden="true"></i><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span></button>`
                             : '';
                         return `
                         <div class="finance-item-row flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group" data-finance-item-row="true" data-finance-item-index="${i}" data-finance-section-id="${escapeHtmlText(sec.id)}">
@@ -4245,7 +4245,7 @@
                 button.setAttribute('aria-label', paid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado');
                 button.title = paid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado';
                 const icon = button.querySelector('i');
-                if (icon) icon.className = 'ph-bold ' + (paid ? 'ph-check-circle' : 'ph-check');
+                if (icon) icon.className = 'ph-bold ' + (paid ? 'ph-check-square' : 'ph-square');
                 const srText = button.querySelector('.sr-only');
                 if (srText) srText.textContent = paid ? 'Pago realizado' : 'Marcar como pagado';
             });

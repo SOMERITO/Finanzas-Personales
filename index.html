@@ -430,14 +430,35 @@
         .calendar-event-title { font-size: 13px; line-height: 1.45; font-weight: 800; color: var(--text-main); }
         .calendar-event-meta { margin-top: 3px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; }
         .payment-check {
-            display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex-shrink: 0;
-            min-height: 34px; padding: 7px 10px; border-radius: 11px;
-            background: rgba(148,163,184,.10); border: 1px solid var(--border-card);
-            color: #64748b; cursor: pointer; font-size: 10px; font-weight: 800;
-            transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex-shrink: 0;
+            min-height: 44px; padding: 10px 15px; border-radius: 13px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            border: 1px solid rgba(79,70,229,.72);
+            color: #fff; cursor: pointer; font-size: 12px; line-height: 1.15; font-weight: 850;
+            letter-spacing: .01em; box-shadow: 0 5px 13px rgba(79,70,229,.22);
+            transition: transform .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+            user-select: none;
         }
-        .payment-check input { width: 16px; height: 16px; accent-color: #059669; cursor: pointer; }
-        .payment-check.is-checked { background: rgba(16,185,129,.10); color: #059669; border-color: rgba(16,185,129,.32); }
+        .payment-check:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(79,70,229,.28); }
+        .payment-check:active { transform: scale(.98); }
+        .payment-check input {
+            appearance: none; -webkit-appearance: none; position: relative; flex: 0 0 21px;
+            width: 21px; height: 21px; margin: 0; border: 2px solid rgba(255,255,255,.96);
+            border-radius: 6px; background: rgba(255,255,255,.14); cursor: pointer;
+            display: inline-grid; place-items: center;
+        }
+        .payment-check input:checked { background: #fff; border-color: #fff; }
+        .payment-check input:checked::after {
+            content: ""; width: 10px; height: 6px; border: solid #059669;
+            border-width: 0 0 2.5px 2.5px; transform: rotate(-45deg); margin-top: -3px;
+        }
+        .payment-check input:focus-visible { outline: 3px solid rgba(99,102,241,.35); outline-offset: 3px; }
+        .payment-check.is-checked {
+            background: linear-gradient(135deg, #047857, #10b981);
+            border-color: rgba(5,150,105,.9); color: #fff;
+            box-shadow: 0 5px 13px rgba(5,150,105,.2);
+        }
+        .payment-check.is-checked:hover { box-shadow: 0 8px 18px rgba(5,150,105,.27); }
         .calendar-event-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
         @media (max-width: 640px) {
             .calendar-toolbar { align-items: flex-start; flex-direction: column; }
@@ -454,7 +475,8 @@
             .event-dot { width: 5px; height: 5px; flex-basis: 5px; }
             .calendar-event-card { flex-direction: column; }
             .calendar-event-actions { align-self: flex-end; width: 100%; justify-content: space-between; }
-            .payment-check { min-height: 32px; }
+            .payment-check { min-height: 44px; width: 100%; justify-content: center; padding: 11px 14px; font-size: 12px; }
+            .payment-check input { flex-basis: 22px; width: 22px; height: 22px; }
         }
 
         /* SCROLLBAR */
@@ -4278,7 +4300,7 @@
                     ? '<label class="payment-check ' + (paid ? 'is-checked' : '') + '">' +
                         '<input type="checkbox" ' + (paid ? 'checked' : '') +
                         ' onchange="togglePaymentCompletion(' + index + ', this.checked)" aria-label="' + (paid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado') + '">' +
-                        '<span>' + (paid ? 'Pagado' : 'Marcar pagado') + '</span></label>'
+                        '<span>' + (paid ? 'Pago realizado' : 'Marcar como pagado') + '</span></label>'
                     : '<button onclick="deleteEvent(' + index + ')" class="btn-icon !w-8 !h-8" aria-label="Eliminar evento" title="Eliminar evento"><i class="ph-bold ph-trash"></i></button>';
 
                 list.insertAdjacentHTML('beforeend', `

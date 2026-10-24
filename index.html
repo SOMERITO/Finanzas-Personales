@@ -4148,9 +4148,9 @@
             if (!event || !event.paymentDateKey) return null;
             const year = Number.isInteger(event.year) ? event.year : calYear;
             const month = String(Number(event.m)).padStart(2, '0');
-            const day = String(Number(event.d)).padStart(2, '0');
-            const kind = event.paymentDateKind || 'due';
-            return String(event.paymentDateKey) + '|' + year + '-' + month + '-' + day + '|' + kind;
+            // Un concepto representa una obligación por mes: si tiene vencimiento y pago previsto en el mismo mes,
+            // ambos recordatorios reflejan el mismo pago realizado.
+            return String(event.paymentDateKey) + '|' + year + '-' + month;
         }
 
         function isPaymentEventPaid(event) {
@@ -4181,13 +4181,20 @@
                 event.m === calMonth + 1 && (!Number.isInteger(event.year) || event.year === calYear)
             );
             const paymentEvents = monthEvents.filter(event => !!event.paymentDateKey);
-            const paidCount = paymentEvents.filter(isPaymentEventPaid).length;
+            const paymentOccurrences = new Map();
+            paymentEvents.forEach(event => {
+                const key = getPaymentOccurrenceKey(event);
+                if (key) paymentOccurrences.set(key, event);
+            });
+            const occurrenceKeys = Array.from(paymentOccurrences.keys());
+            const totalCount = occurrenceKeys.length;
+            const paidCount = occurrenceKeys.filter(key => !!(state.paidPayments && state.paidPayments[key])).length;
             const totalEl = document.getElementById('calendar-payment-total');
             const paidEl = document.getElementById('calendar-payment-paid');
             const pendingEl = document.getElementById('calendar-payment-pending');
-            if (totalEl) totalEl.textContent = String(paymentEvents.length);
+            if (totalEl) totalEl.textContent = String(totalCount);
             if (paidEl) paidEl.textContent = String(paidCount);
-            if (pendingEl) pendingEl.textContent = String(Math.max(0, paymentEvents.length - paidCount));
+            if (pendingEl) pendingEl.textContent = String(Math.max(0, totalCount - paidCount));
 
             const first = new Date(calYear, calMonth, 1).getDay();
             const days = new Date(calYear, calMonth + 1, 0).getDate();

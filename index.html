@@ -459,6 +459,28 @@
             box-shadow: 0 5px 13px rgba(5,150,105,.2);
         }
         .payment-check.is-checked:hover { box-shadow: 0 8px 18px rgba(5,150,105,.27); }
+        .ledger-payment-check {
+            display: inline-flex; align-items: center; justify-content: center; flex: 0 0 36px;
+            width: 36px; min-width: 36px; height: 35px; padding: 0; border-radius: 10px;
+            border: 1px solid rgba(99,102,241,.52);
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            color: #4338ca; cursor: pointer;
+            box-shadow: 0 2px 7px rgba(79,70,229,.10);
+            transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease;
+        }
+        .ledger-payment-check i { font-size: 19px; line-height: 1; }
+        .ledger-payment-check:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(79,70,229,.18); }
+        .ledger-payment-check:active { transform: scale(.96); }
+        .ledger-payment-check.is-paid {
+            color: #fff; border-color: #059669;
+            background: linear-gradient(135deg, #047857, #10b981);
+            box-shadow: 0 3px 9px rgba(5,150,105,.19);
+        }
+        .ledger-payment-check.is-paid:hover { box-shadow: 0 5px 13px rgba(5,150,105,.25); }
+        .ledger-payment-check:focus-visible { outline: 3px solid rgba(99,102,241,.4); outline-offset: 2px; }
+        html.dark .ledger-payment-check:not(.is-paid) {
+            background: rgba(99,102,241,.18); border-color: rgba(129,140,248,.7); color: #c7d2fe;
+        }
         .calendar-event-actions { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
         @media (max-width: 640px) {
             .calendar-toolbar { align-items: flex-start; flex-direction: column; }
@@ -2818,6 +2840,7 @@
                 refreshFinanceSectionSummaries();
             } else if (options && options.partial === 'payment-status') {
                 renderCal();
+                refreshLedgerPaymentChecks();
                 if (Number.isInteger(selectedDay) && document.getElementById('modal-day-details').classList.contains('active')) {
                     renderDayDetails(selectedDay);
                 }
@@ -3515,6 +3538,14 @@
                         const cashflowNote = cashflowMonth !== state.month
                             ? '<span class="block px-1 text-[9px] font-extrabold text-amber-600 dark:text-amber-400 leading-tight">Este importe se descuenta del presupuesto de ' + escapeHtmlText(MONTHS[cashflowMonth]) + ', no de ' + escapeHtmlText(MONTHS[state.month]) + '.</span>'
                             : '';
+                        const showPaymentCheck = sec.type === 'expense' || sec.type === 'debt';
+                        const ledgerPaymentKey = showPaymentCheck
+                            ? getLedgerPaymentOccurrenceKey(state.month, sec.id, i)
+                            : null;
+                        const ledgerPaymentPaid = !!(ledgerPaymentKey && state.paidPayments && state.paidPayments[ledgerPaymentKey]);
+                        const paymentCheckHTML = showPaymentCheck
+                            ? `<button type="button" class="ledger-payment-check ${ledgerPaymentPaid ? 'is-paid' : ''}" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" aria-pressed="${ledgerPaymentPaid ? 'true' : 'false'}" aria-label="${ledgerPaymentPaid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado'}" title="${ledgerPaymentPaid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado'}"><i class="ph-bold ${ledgerPaymentPaid ? 'ph-check-circle' : 'ph-check'}" aria-hidden="true"></i><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span></button>`
+                            : '';
                         return `
                         <div class="finance-item-row flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group" data-finance-item-row="true" data-finance-item-index="${i}" data-finance-section-id="${escapeHtmlText(sec.id)}">
                             <span class="finance-drag-handle" title="Mantén pulsado y arrastra para mover este concepto" aria-label="Arrastrar concepto"><i class="ph-bold ph-dots-six-vertical text-sm"></i></span>
@@ -3527,6 +3558,7 @@
                     ${dateMeta && dateMeta.planningNote ? `<span class="block px-1 text-[9px] text-slate-400 leading-tight">${escapeHtmlText(dateMeta.planningNote)}</span>` : ''}
                     ${cashflowNote}
                             </div>
+                            ${paymentCheckHTML}
                             <button onclick="openPaymentDatesModal(${state.month},${sIdx},${i})" class="btn-icon !w-7 !h-7 shrink-0 ${dateMeta ? 'text-indigo-500 !bg-indigo-500/10' : 'opacity-60 group-hover:opacity-100'}" title="Configurar vencimiento y fecha de pago">
                                 <i class="ph-bold ph-calendar-dots text-sm"></i>
                             </button>
@@ -4179,6 +4211,62 @@
             const key = getPaymentOccurrenceKey(event);
             return !!(key && state.paidPayments && state.paidPayments[key]);
         }
+
+        function getLedgerPaymentOccurrenceKey(monthIndex, sectionId, itemIndex) {
+            const sourceMonth = Number(monthIndex);
+            if (!Number.isInteger(sourceMonth) || sourceMonth < 0 || sourceMonth > 11) return null;
+            const itemKey = sourceMonth + '-' + String(sectionId) + '-' + Number(itemIndex);
+            const section = state.struct[sourceMonth] && state.struct[sourceMonth].find(item => String(item.id) === String(sectionId));
+            const meta = state.paymentDates && state.paymentDates[itemKey];
+            let targetDate = '';
+
+            // Si el registro desplaza el flujo de caja o tiene fecha única de vencimiento,
+            // el check corresponde a ese mes; en otro caso corresponde al mes del presupuesto.
+            if (meta && typeof meta.plannedDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(meta.plannedDate)) {
+                targetDate = meta.plannedDate;
+            } else if (meta && meta.dueMode === 'specific' && typeof meta.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(meta.dueDate)) {
+                targetDate = meta.dueDate;
+            }
+
+            if (targetDate) return itemKey + '|' + targetDate.slice(0, 7);
+            return itemKey + '|2026-' + String(sourceMonth + 1).padStart(2, '0');
+        }
+
+        function refreshLedgerPaymentChecks() {
+            document.querySelectorAll('[data-ledger-payment-check="true"]').forEach(button => {
+                const key = getLedgerPaymentOccurrenceKey(
+                    button.dataset.ledgerMonth,
+                    button.dataset.ledgerSectionId,
+                    button.dataset.ledgerItemIndex
+                );
+                const paid = !!(key && state.paidPayments && state.paidPayments[key]);
+                button.classList.toggle('is-paid', paid);
+                button.setAttribute('aria-pressed', paid ? 'true' : 'false');
+                button.setAttribute('aria-label', paid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado');
+                button.title = paid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado';
+                const icon = button.querySelector('i');
+                if (icon) icon.className = 'ph-bold ' + (paid ? 'ph-check-circle' : 'ph-check');
+                const srText = button.querySelector('.sr-only');
+                if (srText) srText.textContent = paid ? 'Pago realizado' : 'Marcar como pagado';
+            });
+        }
+
+        window.toggleLedgerPaymentCompletion = function(button) {
+            if (!button) return;
+            const key = getLedgerPaymentOccurrenceKey(
+                button.dataset.ledgerMonth,
+                button.dataset.ledgerSectionId,
+                button.dataset.ledgerItemIndex
+            );
+            if (!key) return;
+            if (!state.paidPayments || typeof state.paidPayments !== 'object') state.paidPayments = {};
+            const paid = !state.paidPayments[key];
+            if (paid) state.paidPayments[key] = true;
+            else delete state.paidPayments[key];
+
+            save({ partial: 'payment-status' });
+            showToast(paid ? 'Pago marcado como realizado' : 'Pago marcado como pendiente', paid ? 'success' : 'info');
+        };
 
         window.togglePaymentCompletion = function(eventIndex, checked) {
             const event = state.events[Number(eventIndex)];

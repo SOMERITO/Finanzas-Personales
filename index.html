@@ -339,7 +339,66 @@
         .modal-wrap.active .modal-box { transform: scale(1) translateY(0); }
         .modal-xl { max-width: 1180px; } .modal-lg { max-width: 860px; } .modal-sm { max-width: 460px; }
 
-        /* CALENDARIO FINANCIERO */
+        /* HISTORIAL DE PAGOS Y AUDITORÍA */
+        .payment-history-modal { max-width: 1040px; }
+        .payment-history-summary {
+            display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-bottom: 20px;
+        }
+        .payment-history-stat {
+            min-width: 0; padding: 15px 17px; border: 1px solid var(--border-card); border-radius: 17px;
+            background: linear-gradient(140deg,rgba(148,163,184,.08),rgba(148,163,184,.025));
+        }
+        .payment-history-stat-value { display: block; font-size: 25px; font-weight: 850; line-height: 1.2; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+        .payment-history-stat-label { display: block; margin-top: 6px; color: #94a3b8; font-size: 9px; line-height: 1.35; font-weight: 850; text-transform: uppercase; letter-spacing: .075em; }
+        .payment-history-stat.is-paid .payment-history-stat-value { color: #059669; }
+        .payment-history-stat.is-reopened .payment-history-stat-value { color: #d97706; }
+        .payment-history-filters { display: grid; grid-template-columns: minmax(0,1fr) minmax(215px,.45fr); gap: 10px; margin-bottom: 12px; }
+        .payment-history-search {
+            display: flex; align-items: center; gap: 10px; min-width: 0; padding: 0 13px;
+            border: 1px solid var(--border-card); border-radius: 13px; background: var(--bg-card); color: #94a3b8;
+        }
+        .payment-history-search input { min-width: 0; width: 100%; padding: 12px 0; outline: none; background: transparent; color: var(--text-main); font-size: 12px; font-weight: 650; }
+        .payment-history-filter { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--border-card); border-radius: 13px; outline: none; background: var(--bg-card); color: var(--text-main); font-size: 11px; font-weight: 750; }
+        .payment-history-audit-note { display: flex; align-items: flex-start; gap: 7px; margin: 0 0 15px; color: #94a3b8; font-size: 10px; line-height: 1.55; }
+        .payment-history-audit-note i { flex-shrink: 0; margin-top: 1px; color: #6366f1; }
+        .payment-history-list { display: flex; flex-direction: column; gap: 9px; max-height: 48vh; overflow: auto; padding: 1px 3px 3px 1px; }
+        .payment-history-row {
+            display: grid; grid-template-columns: 40px minmax(0,1fr) auto; align-items: center; gap: 12px;
+            padding: 13px 14px; border: 1px solid var(--border-card); border-radius: 15px; background: var(--bg-card);
+        }
+        .payment-history-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(16,185,129,.1); color: #059669; font-size: 19px; }
+        .payment-history-row.is-pending-action .payment-history-icon { background: rgba(245,158,11,.12); color: #d97706; }
+        .payment-history-main { min-width: 0; }
+        .payment-history-concept { color: var(--text-main); font-size: 12px; line-height: 1.45; font-weight: 850; overflow-wrap: anywhere; }
+        .payment-history-details { display: flex; flex-wrap: wrap; gap: 5px 11px; margin-top: 4px; color: #94a3b8; font-size: 10px; line-height: 1.45; font-weight: 650; }
+        .payment-history-details span { overflow-wrap: anywhere; }
+        .payment-history-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: max-content; }
+        .payment-history-amount { color: var(--text-main); font-size: 13px; font-weight: 850; font-variant-numeric: tabular-nums; }
+        .payment-history-badge { padding: 4px 7px; border-radius: 7px; background: rgba(16,185,129,.1); color: #059669; font-size: 8px; font-weight: 850; text-transform: uppercase; letter-spacing: .045em; }
+        .payment-history-badge.is-pending { background: rgba(245,158,11,.12); color: #b45309; }
+        .payment-history-badge.is-current-pending { background: rgba(148,163,184,.13); color: #64748b; }
+        .payment-history-export {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0;
+            padding: 10px 13px; border-radius: 12px; border: 1px solid rgba(5,150,105,.28);
+            background: linear-gradient(135deg,rgba(5,150,105,.12),rgba(16,185,129,.07));
+            color: #059669; font-size: 10px; font-weight: 850;
+            transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+        }
+        .payment-history-export:hover { transform: translateY(-1px); box-shadow: 0 5px 13px rgba(5,150,105,.12); }
+        @media (max-width: 640px) {
+            .payment-history-summary { gap: 6px; margin-bottom: 14px; }
+            .payment-history-stat { padding: 10px 9px; border-radius: 12px; }
+            .payment-history-stat-value { font-size: 20px; }
+            .payment-history-stat-label { font-size: 8px; letter-spacing: .025em; }
+            .payment-history-filters { grid-template-columns: minmax(0,1fr); }
+            .payment-history-row { grid-template-columns: 32px minmax(0,1fr); align-items: start; gap: 9px; padding: 11px; }
+            .payment-history-icon { width: 32px; height: 32px; border-radius: 10px; font-size: 17px; }
+            .payment-history-side { grid-column: 2; flex-direction: row; justify-content: space-between; align-items: center; width: 100%; min-width: 0; }
+            .payment-history-export { padding: 9px 10px; font-size: 0; gap: 0; }
+            .payment-history-export i { font-size: 17px; }
+        }
+
+        /* CALENDARIO FINANCIERO */        /* CALENDARIO FINANCIERO */
         .calendar-modal-shell { max-width: 1040px; }
         .calendar-toolbar {
             display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -460,15 +519,16 @@
         }
         .payment-check.is-checked:hover { box-shadow: 0 8px 18px rgba(5,150,105,.27); }
         .ledger-payment-check {
-            display: inline-flex; align-items: center; justify-content: center; flex: 0 0 36px;
-            width: 36px; min-width: 36px; height: 35px; padding: 0; border-radius: 10px;
-            border: 1px solid rgba(99,102,241,.52);
-            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
-            color: #4338ca; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto;
+            min-width: 36px; height: 36px; padding: 0 10px; border-radius: 11px;
+            border: 1px solid rgba(99,102,241,.46);
+            background: linear-gradient(135deg, #f8faff, #e0e7ff);
+            color: #4338ca; cursor: pointer; white-space: nowrap; font-size: 10px; font-weight: 850;
             box-shadow: 0 2px 7px rgba(79,70,229,.10);
             transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease, color .16s ease, border-color .16s ease;
         }
-        .ledger-payment-check i { font-size: 21px; line-height: 1; }
+        .ledger-payment-check i { font-size: 18px; line-height: 1; }
+        .ledger-payment-label { font-size: 10px; font-weight: 850; letter-spacing: .01em; }
         .ledger-payment-check:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(79,70,229,.18); }
         .ledger-payment-check:active { transform: scale(.96); }
         .ledger-payment-check.is-paid {
@@ -478,6 +538,10 @@
         }
         .ledger-payment-check.is-paid:hover { box-shadow: 0 5px 13px rgba(5,150,105,.25); }
         .ledger-payment-check:focus-visible { outline: 3px solid rgba(99,102,241,.4); outline-offset: 2px; }
+        @media (max-width: 640px) {
+            .ledger-payment-check { width: 36px; min-width: 36px; padding: 0; }
+            .ledger-payment-label { display: none; }
+        }
         html.dark .ledger-payment-check:not(.is-paid) {
             background: rgba(99,102,241,.18); border-color: rgba(129,140,248,.7); color: #c7d2fe;
         }
@@ -872,6 +936,9 @@
                     <span id="sync-text">Sincronizando...</span>
                 </span>
                 
+                <button onclick="openPaymentHistory()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-emerald-300 hover:text-emerald-200" title="Historial de pagos" aria-label="Historial de pagos">
+                    <i class="ph-bold ph-receipt text-xl"></i>
+                </button>
                 <button onclick="openCalendar()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Calendario Financiero">
                     <i class="ph-bold ph-calendar-blank text-xl"></i>
                 </button>
@@ -1021,6 +1088,57 @@
                 <button onclick="createSection()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl transition-all shadow-lg shadow-indigo-500/30 btn-pro mt-2">
                     Crear Sección
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HISTORIAL DE PAGOS -->
+    <div id="modal-payment-history" class="modal-wrap">
+        <div class="modal-box payment-history-modal">
+            <button onclick="smartClose('modal-payment-history')" class="absolute top-5 right-5 btn-icon" aria-label="Cerrar historial"><i class="ph-bold ph-x"></i></button>
+            <div class="flex items-start justify-between gap-4 pr-10 mb-6">
+                <div>
+                    <span class="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[.16em] text-emerald-600 dark:text-emerald-400 mb-2">
+                        <i class="ph-bold ph-shield-check text-base"></i> Trazabilidad financiera
+                    </span>
+                    <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight">Historial de pagos</h3>
+                    <p class="text-xs font-semibold text-slate-400 mt-1">Registro de las marcas de pago y sus cambios, para consulta y auditoría.</p>
+                </div>
+                <button onclick="exportPaymentHistoryCsv()" class="payment-history-export" title="Exportar historial completo a CSV">
+                    <i class="ph-bold ph-download-simple text-base"></i><span>Exportar CSV</span>
+                </button>
+            </div>
+
+            <div class="payment-history-summary">
+                <div class="payment-history-stat">
+                    <span class="payment-history-stat-value" id="payment-history-movements">0</span>
+                    <span class="payment-history-stat-label">Movimientos registrados</span>
+                </div>
+                <div class="payment-history-stat is-paid">
+                    <span class="payment-history-stat-value" id="payment-history-current-paid">0</span>
+                    <span class="payment-history-stat-label">Obligaciones pagadas ahora</span>
+                </div>
+                <div class="payment-history-stat is-reopened">
+                    <span class="payment-history-stat-value" id="payment-history-reopened">0</span>
+                    <span class="payment-history-stat-label">Cambios a pendiente</span>
+                </div>
+            </div>
+
+            <div class="payment-history-filters">
+                <label class="payment-history-search">
+                    <i class="ph-bold ph-magnifying-glass" aria-hidden="true"></i>
+                    <input id="payment-history-search" type="search" placeholder="Buscar concepto, sección o periodo..." oninput="renderPaymentHistory()" autocomplete="off">
+                </label>
+                <select id="payment-history-filter" onchange="renderPaymentHistory()" class="payment-history-filter">
+                    <option value="all">Todos los movimientos</option>
+                    <option value="paid">Pagos marcados realizados</option>
+                    <option value="pending">Marcados nuevamente pendientes</option>
+                </select>
+            </div>
+
+            <p class="payment-history-audit-note"><i class="ph-fill ph-info"></i> Los movimientos se conservan aunque desmarques un pago. Los registros anteriores a esta función no tienen una fecha exacta disponible.</p>
+            <div id="payment-history-list" class="payment-history-list">
+                <p class="text-sm text-slate-400 text-center py-8">Todavía no hay movimientos de auditoría.</p>
             </div>
         </div>
     </div>
@@ -1398,7 +1516,7 @@
             {id:'s', title:'Ahorros', type:'savings', items:['Fondo'], collapsed:false}
         ];
         
-        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {}, paidPayments: {} };
+        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {}, paidPayments: {}, paymentHistory: [] };
         let editingPaymentDate = null;
         let charts = {};
         let calMonth = new Date().getMonth();
@@ -1462,7 +1580,8 @@
                 ],
                 goals: [{name:'Fondo Emergencia', target:5000, priority:1}],
                 paymentDates: {},
-                paidPayments: {}
+                paidPayments: {},
+                paymentHistory: []
             };
         }
 
@@ -1563,6 +1682,28 @@
                 ? normalized.paymentDates : {};
             normalized.paidPayments = normalized.paidPayments && typeof normalized.paidPayments === 'object' && !Array.isArray(normalized.paidPayments)
                 ? normalized.paidPayments : {};
+            normalized.paymentHistory = Array.isArray(normalized.paymentHistory)
+                ? normalized.paymentHistory.filter(record => record && typeof record === 'object')
+                : [];
+
+            // Migración honesta: conserva pagos que ya estaban marcados antes del historial,
+            // pero no inventa una fecha que la versión anterior no guardaba.
+            Object.keys(normalized.paidPayments).forEach(occurrenceKey => {
+                if (!normalized.paidPayments[occurrenceKey]) return;
+                const hasEarlierPaidRecord = normalized.paymentHistory.some(record =>
+                    record.occurrenceKey === occurrenceKey && record.action === 'paid'
+                );
+                if (hasEarlierPaidRecord) return;
+                const details = getPaymentAuditDetails(occurrenceKey, normalized);
+                normalized.paymentHistory.push(Object.assign({
+                    id: 'legacy-' + occurrenceKey,
+                    occurrenceKey,
+                    action: 'paid',
+                    recordedAt: null,
+                    source: 'Pago marcado antes del historial',
+                    legacy: true
+                }, details));
+            });
             return normalized;
         }
 
@@ -2841,11 +2982,17 @@
             } else if (options && options.partial === 'payment-status') {
                 renderCal();
                 refreshLedgerPaymentChecks();
+                if (document.getElementById('modal-payment-history') && document.getElementById('modal-payment-history').classList.contains('active')) {
+                    renderPaymentHistory();
+                }
                 if (Number.isInteger(selectedDay) && document.getElementById('modal-day-details').classList.contains('active')) {
                     renderDayDetails(selectedDay);
                 }
             } else {
                 render();
+            }
+            if (document.getElementById('modal-payment-history') && document.getElementById('modal-payment-history').classList.contains('active')) {
+                renderPaymentHistory();
             }
             sync(false);
         }
@@ -2859,7 +3006,9 @@
             redoHistory.push(JSON.stringify(state));
             if (redoHistory.length > MAX_UNDO_HISTORY) redoHistory.shift();
             try {
+                const retainedPaymentHistory = Array.isArray(state.paymentHistory) ? state.paymentHistory.slice() : [];
                 state = normalizeCfoState(JSON.parse(previousSnapshot));
+                state.paymentHistory = mergePaymentHistoryRecords(state.paymentHistory, retainedPaymentHistory);
                 lastCommittedStateSnapshot = JSON.stringify(state);
                 historyReplayInProgress = true;
                 render();
@@ -2882,7 +3031,9 @@
             undoHistory.push(JSON.stringify(state));
             if (undoHistory.length > MAX_UNDO_HISTORY) undoHistory.shift();
             try {
+                const retainedPaymentHistory = Array.isArray(state.paymentHistory) ? state.paymentHistory.slice() : [];
                 state = normalizeCfoState(JSON.parse(nextSnapshot));
+                state.paymentHistory = mergePaymentHistoryRecords(state.paymentHistory, retainedPaymentHistory);
                 lastCommittedStateSnapshot = JSON.stringify(state);
                 historyReplayInProgress = true;
                 render();
@@ -3544,7 +3695,7 @@
                             : null;
                         const ledgerPaymentPaid = !!(ledgerPaymentKey && state.paidPayments && state.paidPayments[ledgerPaymentKey]);
                         const paymentCheckHTML = showPaymentCheck
-                            ? `<button type="button" class="ledger-payment-check ${ledgerPaymentPaid ? 'is-paid' : ''}" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" aria-pressed="${ledgerPaymentPaid ? 'true' : 'false'}" aria-label="${ledgerPaymentPaid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado'}" title="${ledgerPaymentPaid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado'}"><i class="ph-bold ${ledgerPaymentPaid ? 'ph-check-square' : 'ph-square'}" aria-hidden="true"></i><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span></button>`
+                            ? `<button type="button" class="ledger-payment-check ${ledgerPaymentPaid ? 'is-paid' : ''}" data-ledger-payment-check="true" data-ledger-month="${state.month}" data-ledger-section-id="${escapeHtmlText(sec.id)}" data-ledger-item-index="${i}" aria-pressed="${ledgerPaymentPaid ? 'true' : 'false'}" aria-label="${ledgerPaymentPaid ? 'Marcar pago como pendiente' : 'Marcar pago como realizado'}" title="${ledgerPaymentPaid ? 'Pago realizado. Pulsar para desmarcar' : 'Marcar este pago como realizado'}"><i class="ph-bold ${ledgerPaymentPaid ? 'ph-check-square' : 'ph-square'}" aria-hidden="true"></i><span class="ledger-payment-label">${ledgerPaymentPaid ? 'Pagado' : 'Marcar pago'}</span><span class="sr-only">${ledgerPaymentPaid ? 'Pago realizado' : 'Marcar como pagado'}</span></button>`
                             : '';
                         return `
                         <div class="finance-item-row flex items-center gap-3 py-1.5 px-2.5 rounded-xl hover:bg-slate-100/70 dark:hover:bg-slate-800/50 transition-colors group" data-finance-item-row="true" data-finance-item-index="${i}" data-finance-section-id="${escapeHtmlText(sec.id)}">
@@ -4232,6 +4383,80 @@
             return itemKey + '|2026-' + String(sourceMonth + 1).padStart(2, '0');
         }
 
+        function getPaymentAuditDetails(occurrenceKey, sourceState = state) {
+            const partsByMonth = String(occurrenceKey || '').split('|');
+            const itemKey = partsByMonth[0] || '';
+            const paymentMonth = partsByMonth[1] || '';
+            const parts = itemKey.split('-');
+            const sourceMonth = Number(parts.shift());
+            const itemIndex = Number(parts.pop());
+            const sectionId = parts.join('-');
+            const monthSections = Array.isArray(sourceState.struct) ? sourceState.struct[sourceMonth] : [];
+            const section = Array.isArray(monthSections)
+                ? monthSections.find(item => String(item.id) === String(sectionId))
+                : null;
+            const label = section && Array.isArray(section.items) ? section.items[itemIndex] : '';
+            return {
+                itemKey,
+                paymentMonth,
+                sourceMonth: Number.isInteger(sourceMonth) ? sourceMonth : null,
+                sectionId,
+                itemIndex: Number.isInteger(itemIndex) ? itemIndex : null,
+                concept: String(label || 'Concepto eliminado o renombrado'),
+                sectionTitle: String(section && section.title || 'Sección no disponible'),
+                sectionType: String(section && section.type || ''),
+                amount: Number(sourceState.data && sourceState.data[itemKey]) || 0
+            };
+        }
+
+        function mergePaymentHistoryRecords(restoredHistory, retainedHistory) {
+            const records = [];
+            [...(Array.isArray(restoredHistory) ? restoredHistory : []),
+             ...(Array.isArray(retainedHistory) ? retainedHistory : [])].forEach(record => {
+                if (record && typeof record === 'object') records.push(record);
+            });
+            const hasRealPaidRecord = new Set(records
+                .filter(record => !record.legacy && record.action === 'paid')
+                .map(record => String(record.occurrenceKey) + '|paid'));
+            const filtered = records.filter(record =>
+                !(record.legacy && hasRealPaidRecord.has(String(record.occurrenceKey) + '|paid'))
+            );
+            const unique = new Map();
+            filtered.forEach((record, index) => {
+                const id = record.id !== undefined && record.id !== null ? String(record.id) : 'anonymous-history-' + index;
+                if (!unique.has(id)) unique.set(id, record);
+            });
+            return Array.from(unique.values());
+        }
+
+        function appendPaymentHistoryRecord(occurrenceKey, paid, source) {
+            if (!Array.isArray(state.paymentHistory)) state.paymentHistory = [];
+            const details = getPaymentAuditDetails(occurrenceKey, state);
+            state.paymentHistory.push(Object.assign({
+                id: 'audit-' + Date.now() + '-' + (state.paymentHistory.length + 1),
+                occurrenceKey: String(occurrenceKey),
+                action: paid ? 'paid' : 'pending',
+                recordedAt: new Date().toISOString(),
+                source: source || 'Registro principal',
+                legacy: false
+            }, details));
+        }
+
+        function formatPaymentHistoryDate(record) {
+            if (!record || !record.recordedAt) return 'Fecha no disponible · marcado antes del historial';
+            const date = new Date(record.recordedAt);
+            if (Number.isNaN(date.getTime())) return 'Fecha no disponible';
+            return new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+        }
+
+        function formatPaymentHistoryPeriod(value) {
+            const match = /^(\\d{4})-(\\d{2})$/.exec(String(value || ''));
+            if (!match) return 'Periodo no indicado';
+            const month = Number(match[2]);
+            return month >= 1 && month <= 12 ? MONTHS[month - 1] + ' ' + match[1] : 'Periodo no indicado';
+        }
+
+        function refreshLedgerPaymentChecks() {
         function refreshLedgerPaymentChecks() {
             document.querySelectorAll('[data-ledger-payment-check="true"]').forEach(button => {
                 const key = getLedgerPaymentOccurrenceKey(
@@ -4248,6 +4473,8 @@
                 if (icon) icon.className = 'ph-bold ' + (paid ? 'ph-check-square' : 'ph-square');
                 const srText = button.querySelector('.sr-only');
                 if (srText) srText.textContent = paid ? 'Pago realizado' : 'Marcar como pagado';
+                const label = button.querySelector('.ledger-payment-label');
+                if (label) label.textContent = paid ? 'Pagado' : 'Marcar pago';
             });
         }
 
@@ -4263,6 +4490,7 @@
             const paid = !state.paidPayments[key];
             if (paid) state.paidPayments[key] = true;
             else delete state.paidPayments[key];
+            appendPaymentHistoryRecord(key, paid, 'Registro principal');
 
             save({ partial: 'payment-status' });
             showToast(paid ? 'Pago marcado como realizado' : 'Pago marcado como pendiente', paid ? 'success' : 'info');
@@ -4274,13 +4502,135 @@
             if (!event || !key) return;
 
             if (!state.paidPayments || typeof state.paidPayments !== 'object') state.paidPayments = {};
+            const wasPaid = !!state.paidPayments[key];
+            if (wasPaid === !!checked) return;
             if (checked) state.paidPayments[key] = true;
             else delete state.paidPayments[key];
+            appendPaymentHistoryRecord(key, !!checked, 'Calendario');
 
             save({ partial: 'payment-status' });
             showToast(checked ? 'Pago marcado como realizado' : 'Pago marcado como pendiente', checked ? 'success' : 'info');
         };
 
+        window.openPaymentHistory = function() {
+            renderPaymentHistory();
+            openModal('modal-payment-history');
+        };
+
+        function renderPaymentHistory() {
+            const list = document.getElementById('payment-history-list');
+            if (!list) return;
+            const history = Array.isArray(state.paymentHistory) ? state.paymentHistory.slice() : [];
+            const currentPaid = Object.keys(state.paidPayments || {}).filter(key => !!state.paidPayments[key]).length;
+            const pendingActions = history.filter(record => record.action === 'pending').length;
+            const movementCount = document.getElementById('payment-history-movements');
+            const currentPaidEl = document.getElementById('payment-history-current-paid');
+            const reopenedEl = document.getElementById('payment-history-reopened');
+            if (movementCount) movementCount.textContent = String(history.length);
+            if (currentPaidEl) currentPaidEl.textContent = String(currentPaid);
+            if (reopenedEl) reopenedEl.textContent = String(pendingActions);
+
+            const searchBox = document.getElementById('payment-history-search');
+            const filterBox = document.getElementById('payment-history-filter');
+            const search = searchBox ? String(searchBox.value || '').trim().toLocaleLowerCase('es-PE') : '';
+            const filter = filterBox ? filterBox.value : 'all';
+            const filtered = history
+                .filter(record => filter === 'all' || record.action === filter)
+                .filter(record => {
+                    if (!search) return true;
+                    const searchable = [
+                        record.concept, record.sectionTitle, record.paymentMonth,
+                        record.source, record.sectionType, record.amount,
+                        record.occurrenceKey, record.recordedAt
+                    ].join(' ').toLocaleLowerCase('es-PE');
+                    return searchable.includes(search);
+                })
+                .sort((a, b) => {
+                    const aTime = a.recordedAt ? new Date(a.recordedAt).getTime() : 0;
+                    const bTime = b.recordedAt ? new Date(b.recordedAt).getTime() : 0;
+                    return bTime - aTime;
+                });
+
+            if (!filtered.length) {
+                list.innerHTML = history.length
+                    ? '<div class="text-sm text-slate-400 text-center py-10 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">No hay movimientos que coincidan con la búsqueda.</div>'
+                    : '<div class="text-sm text-slate-400 text-center py-10 border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl"><i class="ph-bold ph-receipt text-3xl block mb-2"></i>Los pagos que marques aparecerán aquí con su importe y fecha de registro.</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            filtered.forEach(record => {
+                const paidAction = record.action === 'paid';
+                const currentPaidStatus = !!(record.occurrenceKey && state.paidPayments && state.paidPayments[record.occurrenceKey]);
+                const statusText = paidAction ? 'Pago marcado como realizado' : 'Pago devuelto a pendiente';
+                const periodText = formatPaymentHistoryPeriod(record.paymentMonth || String(record.occurrenceKey || '').split('|')[1]);
+                const recordedText = formatPaymentHistoryDate(record);
+                const concept = escapeHtmlText(record.concept || 'Concepto no disponible');
+                const sectionTitle = escapeHtmlText(record.sectionTitle || 'Sección no disponible');
+                const source = escapeHtmlText(record.source || 'Registro principal');
+                const amount = fmt(Number(record.amount) || 0);
+                const currentStatusText = currentPaidStatus ? 'Actualmente pagado' : 'Actualmente pendiente';
+
+                list.insertAdjacentHTML('beforeend', `
+                    <article class="payment-history-row ${paidAction ? '' : 'is-pending-action'}">
+                        <div class="payment-history-icon"><i class="ph-bold ${paidAction ? 'ph-check-circle' : 'ph-arrow-counter-clockwise'}" aria-hidden="true"></i></div>
+                        <div class="payment-history-main">
+                            <p class="payment-history-concept">${concept}</p>
+                            <p class="payment-history-details">
+                                <span>${sectionTitle}</span>
+                                <span>Periodo: ${escapeHtmlText(periodText)}</span>
+                                <span>${escapeHtmlText(recordedText)}</span>
+                                <span>Origen: ${source}</span>
+                            </p>
+                        </div>
+                        <div class="payment-history-side">
+                            <span class="payment-history-amount">${amount}</span>
+                            <span class="payment-history-badge ${paidAction ? '' : 'is-pending'}">${statusText}</span>
+                            <span class="payment-history-badge ${currentPaidStatus ? '' : 'is-current-pending'}">${currentStatusText}</span>
+                        </div>
+                    </article>
+                `);
+            });
+        }
+
+        window.exportPaymentHistoryCsv = function() {
+            const history = Array.isArray(state.paymentHistory) ? state.paymentHistory.slice() : [];
+            const headers = ['Fecha de registro', 'Accion', 'Concepto', 'Seccion', 'Tipo', 'Importe PEN', 'Periodo del pago', 'Estado actual', 'Origen', 'Clave de obligacion'];
+            const rows = history
+                .slice()
+                .sort((a, b) => {
+                    const aTime = a.recordedAt ? new Date(a.recordedAt).getTime() : 0;
+                    const bTime = b.recordedAt ? new Date(b.recordedAt).getTime() : 0;
+                    return aTime - bTime;
+                })
+                .map(record => [
+                    record.recordedAt || 'Fecha no disponible (registro anterior)',
+                    record.action === 'paid' ? 'Pago marcado como realizado' : 'Pago devuelto a pendiente',
+                    record.concept || '',
+                    record.sectionTitle || '',
+                    record.sectionType || '',
+                    Number(record.amount) || 0,
+                    formatPaymentHistoryPeriod(record.paymentMonth || String(record.occurrenceKey || '').split('|')[1]),
+                    record.occurrenceKey && state.paidPayments && state.paidPayments[record.occurrenceKey] ? 'Pagado actualmente' : 'Pendiente actualmente',
+                    record.source || '',
+                    record.occurrenceKey || ''
+                ]);
+            const quote = value => '"' + String(value === undefined || value === null ? '' : value).replace(/"/g, '""') + '"';
+            const csv = '\\uFEFF' + [headers, ...rows].map(row => row.map(quote).join(',')).join('\\r\\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'historial_pagos_finanzas_personales.csv';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('Historial de pagos exportado', 'success');
+        };
+
+        function renderCal() {
         function renderCal() {
             const grid = document.getElementById('calendar-grid');
             if (!grid) return;

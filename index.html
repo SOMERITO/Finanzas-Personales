@@ -318,6 +318,11 @@
             }
         }
 
+        .shopping-modal-box { max-width: 1180px; max-height: calc(100dvh - 28px); padding: 24px; }
+        @media (max-width: 640px) {
+            .shopping-modal-box { max-height: calc(100dvh - 16px); padding: 18px 14px; border-radius: 20px; }
+        }
+
         /* MODALS */
         .modal-wrap {
             position: fixed; inset: 0; z-index: 70;
@@ -882,7 +887,14 @@
             <button onclick="toggleSidebar()" class="md:hidden btn-icon"><i class="ph-bold ph-x"></i></button>
         </div>
 
-        <div class="px-6 pt-4 pb-2">
+        <div class="px-4 pt-4 pb-2">
+            <button type="button" onclick="openShoppingModule()" class="w-full text-left px-4 py-3 rounded-xl text-sm font-extrabold flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 transition-colors btn-pro" aria-label="Abrir Compras inteligentes">
+                <i class="ph-bold ph-shopping-cart text-lg"></i>
+                <span class="flex-1">Compras inteligentes</span>
+                <i class="ph-bold ph-arrow-up-right text-xs opacity-60"></i>
+            </button>
+        </div>
+        <div class="px-6 pt-3 pb-2">
             <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Libros Mensuales (2026)</span>
         </div>
         <nav class="flex-1 overflow-y-auto px-4 py-2 space-y-1.5" id="month-nav"></nav>
@@ -1488,6 +1500,129 @@
         </div>
     </div>
 
+
+    <!-- MODULO: COMPRAS INTELIGENTES -->
+    <div id="modal-shopping" class="modal-wrap">
+        <div class="modal-box modal-xl shopping-modal-box">
+            <button type="button" onclick="smartClose('modal-shopping')" class="absolute top-5 right-5 btn-icon" aria-label="Cerrar Compras inteligentes"><i class="ph-bold ph-x"></i></button>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pr-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center"><i class="ph-bold ph-shopping-cart text-2xl"></i></div>
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-[.16em] text-emerald-600 dark:text-emerald-400">CFO Personal Pro</span>
+                        <h3 class="text-2xl md:text-3xl font-extrabold tracking-tight">Compras inteligentes</h3>
+                        <p class="text-xs font-semibold text-slate-400 mt-1">Recuerda tus productos, compara precios registrados y organiza por tienda.</p>
+                    </div>
+                </div>
+                <div class="text-[10px] font-bold text-slate-400 max-w-xs md:text-right"><i class="ph-bold ph-cloud-check mr-1"></i> Catálogo guardado con los datos de tu cuenta</div>
+            </div>
+
+            <div id="shopping-home">
+                <div class="flex flex-wrap gap-2 mb-5 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
+                    <button type="button" class="shopping-tab px-4 py-2.5 rounded-xl text-xs font-extrabold transition-colors" id="shopping-tab-list" onclick="setShoppingTab('list')"><i class="ph-bold ph-list-check mr-1.5"></i>Lista actual</button>
+                    <button type="button" class="shopping-tab px-4 py-2.5 rounded-xl text-xs font-extrabold transition-colors" id="shopping-tab-catalog" onclick="setShoppingTab('catalog')"><i class="ph-bold ph-books mr-1.5"></i>Catálogo de productos</button>
+                    <button type="button" class="shopping-tab px-4 py-2.5 rounded-xl text-xs font-extrabold transition-colors" id="shopping-tab-history" onclick="setShoppingTab('history')"><i class="ph-bold ph-clock-counter-clockwise mr-1.5"></i>Compras realizadas</button>
+                </div>
+
+                <section id="shopping-list-panel">
+                    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] gap-3 mb-3">
+                        <div class="relative">
+                            <label class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5" for="shopping-quick-input">Agregar un producto a la lista</label>
+                            <div class="flex gap-2">
+                                <input id="shopping-quick-input" type="text" autocomplete="off" class="min-w-0 flex-1 p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 font-semibold text-sm outline-none focus:border-emerald-500" placeholder="Ej. spray limpiavidrio" oninput="renderShoppingSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();addShoppingFromInput()}">
+                                <button type="button" onclick="addShoppingFromInput()" class="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold btn-pro"><i class="ph-bold ph-plus mr-1"></i>Agregar</button>
+                            </div>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" onclick="startNewShoppingProduct('', true)" class="w-full lg:w-auto px-4 py-3.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold btn-pro"><i class="ph-bold ph-package mr-1.5"></i>Nuevo producto</button>
+                        </div>
+                    </div>
+                    <div id="shopping-suggestions" class="mb-4"></div>
+                    <div id="shopping-list-content" class="space-y-4"></div>
+                </section>
+
+                <section id="shopping-catalog-panel" class="hidden">
+                    <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                        <label class="flex-1">
+                            <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Buscar en el catálogo</span>
+                            <div class="flex items-center gap-2 p-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700">
+                                <i class="ph-bold ph-magnifying-glass text-slate-400"></i>
+                                <input id="shopping-catalog-search" type="search" autocomplete="off" class="w-full bg-transparent outline-none text-sm font-semibold" placeholder="Nombre, categoría o tienda..." oninput="renderShoppingCatalog()">
+                            </div>
+                        </label>
+                        <div class="flex items-end">
+                            <button type="button" onclick="startNewShoppingProduct('', false)" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold btn-pro"><i class="ph-bold ph-plus mr-1.5"></i>Registrar producto</button>
+                        </div>
+                    </div>
+                    <div id="shopping-catalog-content" class="grid grid-cols-1 lg:grid-cols-2 gap-3"></div>
+                </section>
+
+                <section id="shopping-history-panel" class="hidden">
+                    <p class="text-xs text-slate-400 mb-4">Al marcar un producto como comprado, sale de la lista actual pero permanece en tu catálogo y en este historial.</p>
+                    <div id="shopping-history-content" class="space-y-3"></div>
+                </section>
+            </div>
+
+            <section id="shopping-editor" class="hidden">
+                <div class="flex items-center gap-3 mb-6">
+                    <button type="button" onclick="cancelShoppingProductEdit()" class="btn-icon nav" aria-label="Volver"><i class="ph-bold ph-arrow-left"></i></button>
+                    <div>
+                        <h4 id="shopping-editor-title" class="text-xl font-extrabold">Registrar producto</h4>
+                        <p class="text-xs text-slate-400 mt-1">Registra las tiendas en orden de preferencia; la primera será la opción principal.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Nombre del producto *</span>
+                        <input id="shopping-edit-name" type="text" maxlength="120" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-bold outline-none focus:border-indigo-500" placeholder="Ej. Spray limpiavidrio">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Categoría</span>
+                        <input id="shopping-edit-category" list="shopping-categories" maxlength="80" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" placeholder="Ej. Limpieza">
+                        <datalist id="shopping-categories">
+                            <option value="Despensa y abarrotes"></option><option value="Carnes y embutidos"></option><option value="Conservas"></option><option value="Frutas y verduras"></option><option value="Lácteos y refrigerados"></option><option value="Huevos"></option><option value="Higiene y papel"></option><option value="Limpieza"></option><option value="Cuidado personal"></option><option value="Bebidas"></option><option value="Hogar"></option><option value="Cocina"></option><option value="Otros"></option>
+                        </datalist>
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Marca (opcional)</span>
+                        <input id="shopping-edit-brand" type="text" maxlength="80" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" placeholder="Marca habitual">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Presentación o tamaño</span>
+                        <input id="shopping-edit-presentation" type="text" maxlength="100" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" placeholder="Ej. botella de 500 ml">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Cantidad habitual</span>
+                        <input id="shopping-edit-default-quantity" type="number" min="0.01" step="0.01" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" value="1">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Unidad de compra habitual</span>
+                        <input id="shopping-edit-unit" type="text" maxlength="40" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" value="unidades" placeholder="Ej. paquetes, botellas, kg">
+                    </label>
+                </div>
+                <label class="block mb-5">
+                    <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Notas (opcional)</span>
+                    <textarea id="shopping-edit-notes" rows="2" maxlength="500" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-indigo-500" placeholder="Detalles que quieras recordar sobre este producto..."></textarea>
+                </label>
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 md:p-5 mb-5">
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h5 class="font-extrabold text-sm">Tiendas y precios</h5>
+                            <p class="text-xs text-slate-400 mt-1">La primera tienda será tu preferida. Los precios se comparan solo cuando los registras.</p>
+                        </div>
+                        <button type="button" onclick="addShoppingEditorStore()" class="px-3 py-2 rounded-lg border border-indigo-500/25 bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-xs font-extrabold"><i class="ph-bold ph-plus mr-1"></i>Añadir tienda</button>
+                    </div>
+                    <div id="shopping-editor-stores" class="space-y-3"></div>
+                    <p class="text-[10px] leading-relaxed text-slate-400 mt-3">Puedes cambiar el orden, editar cualquier tienda o quitar una alternativa. Cada precio conserva la fecha en que se registró.</p>
+                </div>
+                <div class="flex flex-col-reverse sm:flex-row gap-3 justify-end">
+                    <button type="button" onclick="cancelShoppingProductEdit()" class="px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 text-xs font-extrabold">Cancelar</button>
+                    <button type="button" onclick="saveShoppingProduct()" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold btn-pro"><i class="ph-bold ph-floppy-disk mr-1.5"></i>Guardar producto</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <script>
         // Firebase handles cloud persistence in this test branch; legacy JSONBin credentials are not embedded here.
         const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -1498,7 +1633,7 @@
             {id:'s', title:'Ahorros', type:'savings', items:['Fondo'], collapsed:false}
         ];
         
-        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {}, paidPayments: {}, paymentHistory: [] };
+        let state = { month: new Date().getMonth(), struct: [], data: {}, events: [], goals: [], paymentDates: {}, paidPayments: {}, paymentHistory: [], shopping: makeInitialShoppingState() };
         let editingPaymentDate = null;
         let charts = {};
         let calMonth = new Date().getMonth();
@@ -1512,6 +1647,664 @@
         let redoHistory = [];
         let lastCommittedStateSnapshot = null;
         let historyReplayInProgress = false;
+
+
+        // --- COMPRAS INTELIGENTES: catálogo persistente, tiendas, precios y lista activa ---
+        let shoppingView = 'home';
+        let shoppingTab = 'list';
+        let shoppingEditingProductId = null;
+        let shoppingEditorStores = [];
+        let shoppingEditorAddToList = false;
+
+        function createShoppingId(prefix) {
+            return String(prefix || 'shopping') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+        }
+
+        function makeInitialShoppingState() {
+            const seed = [
+                {name:'Aceite',category:'Despensa y abarrotes',stores:['Makro']},
+                {name:'Fideos',category:'Despensa y abarrotes',presentation:'Paquetes',defaultQuantity:3,unit:'paquetes',stores:['Makro']},
+                {name:'Maggi de pollo',category:'Despensa y abarrotes',stores:['Makro']},
+                {name:'Salsa de tomate',category:'Despensa y abarrotes',stores:['Makro']},
+                {name:'Rapiditas',category:'Despensa y abarrotes',presentation:'Paquetes',defaultQuantity:2,unit:'paquetes',stores:['Makro']},
+                {name:'Caja de té',category:'Despensa y abarrotes',stores:['Makro']},
+                {name:'Papas al hilo',category:'Despensa y abarrotes',stores:['Makro']},
+                {name:'Arroz',category:'Despensa y abarrotes',stores:['Mass']},
+                {name:'Condimenteros',category:'Cocina',stores:[]},
+                {name:'Preparado para pollada',category:'Preparados',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Preparado para pachamanca',category:'Preparados',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Preparado para seco norteño',category:'Preparados',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Preparado de pollo al horno',category:'Preparados',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Nuggets de pollo',category:'Carnes y embutidos',stores:['Makro']},
+                {name:'Pollo',category:'Carnes y embutidos',stores:['Makro']},
+                {name:'Hot dog',category:'Carnes y embutidos',stores:['Makro']},
+                {name:'Carne',category:'Carnes y embutidos',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Chorizo',category:'Carnes y embutidos',stores:['Makro']},
+                {name:'Atún',category:'Conservas',presentation:'Latas',defaultQuantity:6,unit:'latas',stores:['Makro']},
+                {name:'Ajo',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Limón',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Cebolla',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Tomate',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Pepino',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Papa rosada',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Papa amarilla',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Sandía',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Piña',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Melón',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Papaya',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Palta',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Ají amarillo',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Cebolla china',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Yuca',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Naranja',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Culantro entero',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Perejil entero',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Coliflor',category:'Frutas y verduras',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Huevos',category:'Huevos',presentation:'Paquete de 90',unit:'paquete',stores:['Makro']},
+                {name:'Yogurt griego',category:'Lácteos y refrigerados',stores:['Makro']},
+                {name:'Yogurt Pequeños',category:'Lácteos y refrigerados',stores:['Makro']},
+                {name:'Leche',category:'Lácteos y refrigerados',stores:['Makro']},
+                {name:'Papel toalla',category:'Higiene y papel',stores:['Dollar City']},
+                {name:'Papel higiénico',category:'Higiene y papel',stores:['Tottus']},
+                {name:'Servilletas',category:'Higiene y papel',stores:['Plaza Vea']},
+                {name:'Toallas húmedas',category:'Higiene y papel',stores:['Mass']},
+                {name:'Pasta dental',category:'Cuidado personal',stores:['Makro']},
+                {name:'Jabón líquido para manos',category:'Cuidado personal',stores:['Makro']},
+                {name:'Shampoo y acondicionador de Leah',category:'Cuidado personal',stores:['Makro']},
+                {name:'Desodorante para Cams',category:'Cuidado personal',stores:['Makro']},
+                {name:'Desodorante para Leah',category:'Cuidado personal',stores:['Makro']},
+                {name:'Detergente Skip',category:'Limpieza',stores:['Makro']},
+                {name:'Spray quita grasa',category:'Limpieza',stores:[]},
+                {name:'Spray limpiavidrio',category:'Limpieza',stores:['Dollar City','Plaza Vea']},
+                {name:'Limpia paredes blancas',category:'Limpieza',stores:['Dollar City']},
+                {name:'Pastillas Pato',category:'Limpieza',stores:['Dollar City']},
+                {name:'Spray aromatizante para telas',category:'Limpieza',stores:['Dollar City']},
+                {name:'Bolsas de basura',category:'Limpieza',stores:[]},
+                {name:'Chicha de jora',category:'Bebidas',stores:['Mercado Lince / Santa Beatriz']},
+                {name:'Botellón de agua',category:'Bebidas',presentation:'11 litros',stores:['Mass']},
+                {name:'Galletas para Leah',category:'Despensa y abarrotes',stores:['Dollar City']},
+                {name:'Escoba',category:'Limpieza',stores:['Makro']},
+                {name:'Trapos secadores',category:'Hogar',stores:['Makro']},
+                {name:'Tupper de vidrio',category:'Hogar',stores:['Makro']},
+                {name:'Posavasos',category:'Hogar',stores:[]},
+                {name:'Posaplatos',category:'Hogar',stores:[]}
+            ];
+            return {
+                schemaVersion: 1,
+                catalog: seed.map(function(item, index) {
+                    return {
+                        id: 'shopping-seed-' + (index + 1),
+                        name: item.name,
+                        category: item.category || 'Otros',
+                        brand: '',
+                        presentation: item.presentation || '',
+                        notes: '',
+                        defaultQuantity: Number(item.defaultQuantity) > 0 ? Number(item.defaultQuantity) : 1,
+                        unit: item.unit || 'unidades',
+                        stores: (item.stores || []).map(function(storeName) {
+                            return { name: storeName, price: null, priceDate: '' };
+                        })
+                    };
+                }),
+                activeList: [],
+                purchaseHistory: []
+            };
+        }
+
+        function normalizeShoppingName(value) {
+            return String(value || '').trim().toLocaleLowerCase('es-PE')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+        }
+
+        function normalizeShoppingState(candidate) {
+            if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) return makeInitialShoppingState();
+            const fallback = makeInitialShoppingState();
+            const sourceCatalog = Array.isArray(candidate.catalog) ? candidate.catalog : fallback.catalog;
+            const catalog = sourceCatalog.filter(function(product) {
+                return product && typeof product === 'object' && String(product.name || '').trim();
+            }).map(function(product) {
+                const stores = Array.isArray(product.stores) ? product.stores.filter(function(store) {
+                    return store && typeof store === 'object' && String(store.name || '').trim();
+                }).map(function(store) {
+                    const rawPrice = store.price;
+                    const price = rawPrice === '' || rawPrice === null || rawPrice === undefined || !Number.isFinite(Number(rawPrice)) || Number(rawPrice) < 0
+                        ? null : Number(rawPrice);
+                    return { name: String(store.name).trim(), price: price, priceDate: String(store.priceDate || '') };
+                }) : [];
+                return {
+                    id: String(product.id || createShoppingId('product')),
+                    name: String(product.name).trim(),
+                    category: String(product.category || 'Otros'),
+                    brand: String(product.brand || ''),
+                    presentation: String(product.presentation || ''),
+                    notes: String(product.notes || ''),
+                    defaultQuantity: Number(product.defaultQuantity) > 0 ? Number(product.defaultQuantity) : 1,
+                    unit: String(product.unit || 'unidades'),
+                    stores: stores
+                };
+            });
+            const productIds = new Set(catalog.map(function(product) { return product.id; }));
+            const seenActive = new Set();
+            const activeList = (Array.isArray(candidate.activeList) ? candidate.activeList : []).filter(function(item) {
+                if (!item || !productIds.has(String(item.productId)) || seenActive.has(String(item.productId))) return false;
+                seenActive.add(String(item.productId));
+                return true;
+            }).map(function(item) {
+                return {
+                    id: String(item.id || createShoppingId('list')),
+                    productId: String(item.productId),
+                    quantity: Number(item.quantity) > 0 ? Number(item.quantity) : 1,
+                    unit: String(item.unit || 'unidades'),
+                    selectedStore: String(item.selectedStore || ''),
+                    addedAt: String(item.addedAt || '')
+                };
+            });
+            const purchaseHistory = (Array.isArray(candidate.purchaseHistory) ? candidate.purchaseHistory : []).filter(function(record) {
+                return record && typeof record === 'object';
+            }).map(function(record) {
+                return {
+                    id: String(record.id || createShoppingId('purchase')),
+                    productId: String(record.productId || ''),
+                    productName: String(record.productName || ''),
+                    storeName: String(record.storeName || 'Sin tienda asignada'),
+                    quantity: Number(record.quantity) > 0 ? Number(record.quantity) : 1,
+                    unit: String(record.unit || 'unidades'),
+                    purchasedAt: String(record.purchasedAt || '')
+                };
+            });
+            return { schemaVersion: 1, catalog: catalog, activeList: activeList, purchaseHistory: purchaseHistory };
+        }
+
+        function escapeShoppingHtml(value) {
+            return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function(character) {
+                return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]);
+            });
+        }
+
+        function getShoppingToday() {
+            const now = new Date();
+            return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+        }
+
+        function getShoppingData() {
+            if (!state.shopping || typeof state.shopping !== 'object') state.shopping = makeInitialShoppingState();
+            return state.shopping;
+        }
+
+        function getShoppingProduct(productId) {
+            return getShoppingData().catalog.find(function(product) { return product.id === String(productId); }) || null;
+        }
+
+        function getShoppingPreferredStore(product) {
+            return product && Array.isArray(product.stores) && product.stores.length ? product.stores[0].name : '';
+        }
+
+        function getShoppingCheapestStore(product) {
+            const priced = (product && Array.isArray(product.stores) ? product.stores : []).filter(function(store) {
+                return store.price !== null && store.price !== '' && Number.isFinite(Number(store.price)) && Number(store.price) >= 0;
+            }).sort(function(a, b) { return Number(a.price) - Number(b.price); });
+            return priced.length ? priced[0] : null;
+        }
+
+        function formatShoppingPrice(value) {
+            return new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(value));
+        }
+
+        function renderShoppingPriceSummary(product) {
+            const cheapest = getShoppingCheapestStore(product);
+            if (!cheapest) return '<span class="text-slate-400">Aún no hay precios registrados.</span>';
+            const age = cheapest.priceDate ? Math.floor((Date.now() - new Date(cheapest.priceDate + 'T12:00:00').getTime()) / 86400000) : null;
+            const stale = age !== null && age > 45;
+            const dateText = cheapest.priceDate ? 'Actualizado ' + escapeShoppingHtml(cheapest.priceDate) : 'Sin fecha de actualización';
+            return '<span class="font-extrabold text-emerald-600 dark:text-emerald-400">Menor precio registrado: ' +
+                escapeShoppingHtml(formatShoppingPrice(cheapest.price)) + '</span> <span class="text-slate-400">en ' +
+                escapeShoppingHtml(cheapest.name) + ' · ' + dateText + '</span>' +
+                (stale ? ' <span class="inline-flex ml-1 px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-500/10 text-amber-600">Precio antiguo</span>' : '');
+        }
+
+        function renderShopping() {
+            const home = document.getElementById('shopping-home');
+            const editor = document.getElementById('shopping-editor');
+            if (!home || !editor) return;
+            home.classList.toggle('hidden', shoppingView === 'editor');
+            editor.classList.toggle('hidden', shoppingView !== 'editor');
+            if (shoppingView === 'editor') {
+                renderShoppingEditorStores();
+                return;
+            }
+            const tabs = {
+                list: document.getElementById('shopping-tab-list'),
+                catalog: document.getElementById('shopping-tab-catalog'),
+                history: document.getElementById('shopping-tab-history')
+            };
+            Object.keys(tabs).forEach(function(key) {
+                const button = tabs[key];
+                if (!button) return;
+                button.className = 'shopping-tab px-4 py-2.5 rounded-xl text-xs font-extrabold transition-colors ' +
+                    (shoppingTab === key ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' :
+                    'text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800');
+            });
+            document.getElementById('shopping-list-panel').classList.toggle('hidden', shoppingTab !== 'list');
+            document.getElementById('shopping-catalog-panel').classList.toggle('hidden', shoppingTab !== 'catalog');
+            document.getElementById('shopping-history-panel').classList.toggle('hidden', shoppingTab !== 'history');
+            renderShoppingList();
+            renderShoppingCatalog();
+            renderShoppingHistory();
+        }
+
+        window.openShoppingModule = function() {
+            if (window.innerWidth < 768 && document.body.classList.contains('sb-open')) toggleSidebar();
+            shoppingView = 'home';
+            renderShopping();
+            openModal('modal-shopping');
+        };
+
+        function setShoppingTab(tab) {
+            shoppingView = 'home';
+            shoppingTab = ['list', 'catalog', 'history'].includes(tab) ? tab : 'list';
+            renderShopping();
+        }
+
+        function renderShoppingSuggestions() {
+            const input = document.getElementById('shopping-quick-input');
+            const target = document.getElementById('shopping-suggestions');
+            if (!input || !target) return;
+            const query = normalizeShoppingName(input.value);
+            if (!query) { target.innerHTML = ''; return; }
+            const matches = getShoppingData().catalog.filter(function(product) {
+                return normalizeShoppingName(product.name).includes(query) ||
+                    normalizeShoppingName(product.category).includes(query);
+            }).slice(0, 6);
+            if (!matches.length) {
+                target.innerHTML = '<div class="px-3 py-2.5 text-xs text-slate-400">No hay coincidencias. Al pulsar «Agregar» podrás registrar un producto nuevo.</div>';
+                return;
+            }
+            target.innerHTML = '<div class="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden divide-y divide-slate-200 dark:divide-slate-700">' +
+                matches.map(function(product) {
+                    const store = getShoppingPreferredStore(product) || 'Sin tienda asignada';
+                    return '<button type="button" onclick="addShoppingProductToList(\'' + escapeShoppingHtml(product.id) + '\')" class="w-full text-left flex items-center justify-between gap-3 px-3 py-3 hover:bg-emerald-500/5 transition-colors">' +
+                        '<span class="min-w-0"><span class="block text-sm font-extrabold">' + escapeShoppingHtml(product.name) + '</span><span class="block mt-0.5 text-[10px] text-slate-400">' +
+                        escapeShoppingHtml(product.category) + ' · ' + escapeShoppingHtml(store) + '</span></span>' +
+                        '<span class="shrink-0 text-xs font-extrabold text-emerald-600"><i class="ph-bold ph-plus-circle mr-1"></i>Añadir</span></button>';
+                }).join('') + '</div>';
+        }
+
+        function addShoppingFromInput() {
+            const input = document.getElementById('shopping-quick-input');
+            const query = String(input && input.value || '').trim();
+            if (!query) { showToast('Escribe el nombre de un producto.', 'info'); return; }
+            const normalized = normalizeShoppingName(query);
+            const products = getShoppingData().catalog;
+            const exact = products.find(function(product) { return normalizeShoppingName(product.name) === normalized; });
+            if (exact) {
+                addShoppingProductToList(exact.id);
+                if (input) input.value = '';
+                document.getElementById('shopping-suggestions').innerHTML = '';
+                return;
+            }
+            const similar = products.filter(function(product) { return normalizeShoppingName(product.name).includes(normalized) || normalized.includes(normalizeShoppingName(product.name)); });
+            if (similar.length) {
+                renderShoppingSuggestions();
+                showToast('Selecciona una sugerencia para evitar registrar un duplicado.', 'info');
+                return;
+            }
+            startNewShoppingProduct(query, true);
+        }
+
+        function addShoppingProductToList(productId, quantityOverride, unitOverride) {
+            const product = getShoppingProduct(productId);
+            if (!product) { showToast('No se encontró el producto en el catálogo.', 'error'); return; }
+            const shopping = getShoppingData();
+            if (shopping.activeList.some(function(item) { return item.productId === product.id; })) {
+                showToast('Este producto ya está en la lista actual.', 'info');
+                shoppingTab = 'list';
+                shoppingView = 'home';
+                renderShopping();
+                return;
+            }
+            shopping.activeList.push({
+                id: createShoppingId('list'),
+                productId: product.id,
+                quantity: Number(quantityOverride) > 0 ? Number(quantityOverride) : (Number(product.defaultQuantity) > 0 ? Number(product.defaultQuantity) : 1),
+                unit: String(unitOverride || product.unit || 'unidades'),
+                selectedStore: getShoppingPreferredStore(product),
+                addedAt: getShoppingToday()
+            });
+            shoppingTab = 'list';
+            shoppingView = 'home';
+            const input = document.getElementById('shopping-quick-input');
+            if (input) input.value = '';
+            const suggestions = document.getElementById('shopping-suggestions');
+            if (suggestions) suggestions.innerHTML = '';
+            save();
+            showToast('Producto añadido a la lista actual.', 'success');
+        }
+
+        function renderShoppingList() {
+            const target = document.getElementById('shopping-list-content');
+            if (!target) return;
+            const shopping = getShoppingData();
+            const validItems = shopping.activeList.map(function(item) {
+                return { item: item, product: getShoppingProduct(item.productId) };
+            }).filter(function(entry) { return !!entry.product; });
+            if (!validItems.length) {
+                target.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 py-12 px-5 text-center"><div class="w-12 h-12 rounded-2xl mx-auto mb-3 bg-emerald-500/10 text-emerald-600 flex items-center justify-center"><i class="ph-bold ph-basket text-2xl"></i></div><h4 class="font-extrabold">Tu lista está vacía</h4><p class="text-xs text-slate-400 mt-1">Escribe un producto arriba o selecciónalo del catálogo. Sus tiendas y preferencias se conservarán para la próxima compra.</p></div>';
+                return;
+            }
+            const groups = new Map();
+            validItems.forEach(function(entry) {
+                const storeName = entry.item.selectedStore || getShoppingPreferredStore(entry.product) || 'Sin tienda asignada';
+                if (!groups.has(storeName)) groups.set(storeName, []);
+                groups.get(storeName).push(entry);
+            });
+            target.innerHTML = Array.from(groups.entries()).map(function(group) {
+                const storeName = group[0];
+                const rows = group[1].map(function(entry) {
+                    const item = entry.item;
+                    const product = entry.product;
+                    const storeOptions = product.stores.length
+                        ? product.stores.map(function(store) { return '<option value="' + escapeShoppingHtml(store.name) + '" ' + (store.name === (item.selectedStore || getShoppingPreferredStore(product)) ? 'selected' : '') + '>' + escapeShoppingHtml(store.name) + '</option>'; }).join('')
+                        : '<option value="">Sin tienda asignada</option>';
+                    const selectedStore = product.stores.find(function(store) { return store.name === (item.selectedStore || getShoppingPreferredStore(product)); });
+                    const priceText = selectedStore && selectedStore.price !== null
+                        ? '<span class="text-emerald-600 dark:text-emerald-400 font-extrabold">' + escapeShoppingHtml(formatShoppingPrice(selectedStore.price)) + '</span>'
+                        : '<span class="text-slate-400">Sin precio registrado</span>';
+                    return '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 md:p-4 flex flex-col lg:flex-row lg:items-center gap-3">' +
+                        '<div class="min-w-0 flex-1"><div class="font-extrabold text-sm break-words">' + escapeShoppingHtml(product.name) + '</div>' +
+                        '<div class="text-[10px] text-slate-400 mt-1">' + escapeShoppingHtml(product.category) +
+                        (product.presentation ? ' · ' + escapeShoppingHtml(product.presentation) : '') + ' · ' + priceText + '</div>' +
+                        '<div class="mt-2 text-[10px] leading-relaxed">' + renderShoppingPriceSummary(product) + '</div></div>' +
+                        '<div class="flex flex-wrap items-center gap-2">' +
+                        '<label class="flex items-center gap-2 text-[10px] font-bold text-slate-500"><span>Tienda</span><select aria-label="Tienda elegida para la compra de ' + escapeShoppingHtml(product.name) + '" onchange="setShoppingItemStore(\'' + escapeShoppingHtml(item.id) + '\',this.value)" class="max-w-[180px] min-w-[125px] p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">' + storeOptions + '</select></label>' +
+                        '<label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500"><span>Cant.</span><input aria-label="Cantidad de ' + escapeShoppingHtml(product.name) + '" type="number" min="0.01" step="0.01" value="' + escapeShoppingHtml(item.quantity) + '" onchange="updateShoppingQuantity(\'' + escapeShoppingHtml(item.id) + '\',this.value)" class="w-20 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold"></label>' +
+                        '<span class="text-[10px] text-slate-400">' + escapeShoppingHtml(item.unit) + '</span>' +
+                        '<button type="button" onclick="markShoppingItemBought(\'' + escapeShoppingHtml(item.id) + '\')" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-extrabold whitespace-nowrap"><i class="ph-bold ph-check mr-1"></i>Comprado</button>' +
+                        '<button type="button" onclick="removeShoppingListItem(\'' + escapeShoppingHtml(item.id) + '\')" class="btn-icon" title="Quitar de la lista" aria-label="Quitar ' + escapeShoppingHtml(product.name) + ' de la lista"><i class="ph-bold ph-trash"></i></button>' +
+                        '</div></div>';
+                }).join('');
+                return '<div class="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"><div class="px-4 py-3 bg-slate-100/80 dark:bg-slate-800/70 flex items-center justify-between gap-3"><h4 class="font-extrabold text-sm"><i class="ph-bold ph-storefront mr-2 text-emerald-600"></i>' + escapeShoppingHtml(storeName) + '</h4><span class="text-[10px] font-extrabold text-slate-400">' + group[1].length + (group[1].length === 1 ? ' producto' : ' productos') + '</span></div><div class="p-3 space-y-2">' + rows + '</div></div>';
+            }).join('');
+        }
+
+        function renderShoppingCatalog() {
+            const target = document.getElementById('shopping-catalog-content');
+            if (!target) return;
+            const input = document.getElementById('shopping-catalog-search');
+            const query = normalizeShoppingName(input ? input.value : '');
+            const products = getShoppingData().catalog.filter(function(product) {
+                const haystack = normalizeShoppingName([product.name, product.category, product.brand, product.presentation].concat((product.stores || []).map(function(store) { return store.name; })).join(' '));
+                return !query || haystack.includes(query);
+            }).sort(function(a, b) { return a.name.localeCompare(b.name, 'es'); });
+            if (!products.length) {
+                target.innerHTML = '<div class="col-span-full py-10 text-center text-sm text-slate-400">No hay productos que coincidan con la búsqueda.</div>';
+                return;
+            }
+            target.innerHTML = products.map(function(product) {
+                const preferred = getShoppingPreferredStore(product) || 'Sin tienda asignada';
+                const active = getShoppingData().activeList.some(function(item) { return item.productId === product.id; });
+                const storesText = product.stores.length ? product.stores.map(function(store, index) { return (index + 1) + '. ' + store.name; }).join(' · ') : 'Agrega las tiendas donde puedes encontrarlo';
+                return '<article class="rounded-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col gap-3">' +
+                    '<div class="flex items-start justify-between gap-3"><div class="min-w-0"><h4 class="font-extrabold text-sm break-words">' + escapeShoppingHtml(product.name) + '</h4>' +
+                    '<p class="text-[10px] text-slate-400 mt-1">' + escapeShoppingHtml(product.category) +
+                    (product.presentation ? ' · ' + escapeShoppingHtml(product.presentation) : '') + '</p></div><span class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[9px] font-extrabold">Preferida: ' + escapeShoppingHtml(preferred) + '</span></div>' +
+                    '<p class="text-[10px] text-slate-500 dark:text-slate-400">' + escapeShoppingHtml(storesText) + '</p>' +
+                    '<div class="text-[11px] leading-relaxed">' + renderShoppingPriceSummary(product) + '</div>' +
+                    (product.notes ? '<p class="text-xs text-slate-400">' + escapeShoppingHtml(product.notes) + '</p>' : '') +
+                    '<div class="flex flex-wrap gap-2 mt-auto"><button type="button" onclick="addShoppingProductToList(\'' + escapeShoppingHtml(product.id) + '\')" class="px-3 py-2 rounded-lg ' + (active ? 'bg-slate-100 dark:bg-slate-800 text-slate-400' : 'bg-emerald-600 hover:bg-emerald-700 text-white') + ' text-[10px] font-extrabold" ' + (active ? 'disabled' : '') + '><i class="ph-bold ph-plus mr-1"></i>' + (active ? 'Ya está en la lista' : 'Añadir a la lista') + '</button>' +
+                    '<button type="button" onclick="editShoppingProduct(\'' + escapeShoppingHtml(product.id) + '\')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold"><i class="ph-bold ph-pencil-simple mr-1"></i>Editar</button>' +
+                    '<button type="button" onclick="deleteShoppingProduct(\'' + escapeShoppingHtml(product.id) + '\')" class="px-3 py-2 rounded-lg border border-rose-500/20 text-rose-600 text-[10px] font-extrabold"><i class="ph-bold ph-trash mr-1"></i>Eliminar</button></div></article>';
+            }).join('');
+        }
+
+        function renderShoppingHistory() {
+            const target = document.getElementById('shopping-history-content');
+            if (!target) return;
+            const records = getShoppingData().purchaseHistory.slice().reverse();
+            if (!records.length) {
+                target.innerHTML = '<div class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 py-10 px-5 text-center"><i class="ph-bold ph-clock-counter-clockwise text-2xl text-slate-400"></i><h4 class="font-extrabold mt-2">Todavía no hay compras registradas</h4><p class="text-xs text-slate-400 mt-1">Cuando marques un producto como comprado, aparecerá aquí.</p></div>';
+                return;
+            }
+            target.innerHTML = records.map(function(record) {
+                const exists = !!getShoppingProduct(record.productId);
+                let dateLabel = 'Fecha no disponible';
+                if (record.purchasedAt) {
+                    const date = new Date(record.purchasedAt);
+                    if (!Number.isNaN(date.getTime())) dateLabel = date.toLocaleDateString('es-PE', { year:'numeric', month:'short', day:'numeric' });
+                }
+                return '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex flex-col sm:flex-row sm:items-center gap-3"><div class="flex-1 min-w-0"><div class="font-extrabold text-sm">' + escapeShoppingHtml(record.productName) + '</div><div class="text-[10px] text-slate-400 mt-1">' +
+                    escapeShoppingHtml(record.quantity) + ' ' + escapeShoppingHtml(record.unit) + ' · ' + escapeShoppingHtml(record.storeName) + ' · ' + escapeShoppingHtml(dateLabel) + '</div></div>' +
+                    (exists ? '<button type="button" onclick="readdShoppingHistoryItem(\'' + escapeShoppingHtml(record.id) + '\')" class="px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold"><i class="ph-bold ph-arrow-counter-clockwise mr-1"></i>Volver a agregar</button>' : '<span class="text-[10px] text-slate-400">Producto retirado del catálogo</span>') +
+                    '</div>';
+            }).join('');
+        }
+
+        function setShoppingItemStore(itemId, storeName) {
+            const item = getShoppingData().activeList.find(function(entry) { return entry.id === String(itemId); });
+            if (!item) return;
+            item.selectedStore = String(storeName || '');
+            save();
+        }
+
+        function updateShoppingQuantity(itemId, value) {
+            const item = getShoppingData().activeList.find(function(entry) { return entry.id === String(itemId); });
+            const quantity = Number(value);
+            if (!item || !Number.isFinite(quantity) || quantity <= 0) {
+                showToast('La cantidad debe ser mayor que cero.', 'info');
+                renderShoppingList();
+                return;
+            }
+            item.quantity = quantity;
+            save();
+        }
+
+        function removeShoppingListItem(itemId) {
+            const shopping = getShoppingData();
+            shopping.activeList = shopping.activeList.filter(function(item) { return item.id !== String(itemId); });
+            save();
+            showToast('Producto retirado de la lista actual; se conserva en el catálogo.', 'info');
+        }
+
+        function markShoppingItemBought(itemId) {
+            const shopping = getShoppingData();
+            const index = shopping.activeList.findIndex(function(item) { return item.id === String(itemId); });
+            if (index < 0) return;
+            const item = shopping.activeList[index];
+            const product = getShoppingProduct(item.productId);
+            if (!product) return;
+            shopping.purchaseHistory.push({
+                id: createShoppingId('purchase'),
+                productId: product.id,
+                productName: product.name,
+                storeName: item.selectedStore || getShoppingPreferredStore(product) || 'Sin tienda asignada',
+                quantity: item.quantity,
+                unit: item.unit,
+                purchasedAt: new Date().toISOString()
+            });
+            shopping.activeList.splice(index, 1);
+            shoppingTab = 'list';
+            save();
+            showToast('Compra registrada. El producto sigue disponible en tu catálogo.', 'success');
+        }
+
+        function readdShoppingHistoryItem(historyId) {
+            const record = getShoppingData().purchaseHistory.find(function(item) { return item.id === String(historyId); });
+            if (!record) return;
+            addShoppingProductToList(record.productId, record.quantity, record.unit);
+        }
+
+        function startNewShoppingProduct(initialName, addToListAfterSave) {
+            shoppingEditingProductId = null;
+            shoppingEditorStores = [];
+            shoppingEditorAddToList = !!addToListAfterSave;
+            shoppingView = 'editor';
+            document.getElementById('shopping-editor-title').textContent = 'Registrar producto';
+            document.getElementById('shopping-edit-name').value = String(initialName || '');
+            document.getElementById('shopping-edit-category').value = '';
+            document.getElementById('shopping-edit-brand').value = '';
+            document.getElementById('shopping-edit-presentation').value = '';
+            document.getElementById('shopping-edit-default-quantity').value = '1';
+            document.getElementById('shopping-edit-unit').value = 'unidades';
+            document.getElementById('shopping-edit-notes').value = '';
+            renderShopping();
+            window.setTimeout(function() { const input = document.getElementById('shopping-edit-name'); if (input) input.focus(); }, 30);
+        }
+
+        function editShoppingProduct(productId) {
+            const product = getShoppingProduct(productId);
+            if (!product) return;
+            shoppingEditingProductId = product.id;
+            shoppingEditorAddToList = false;
+            shoppingEditorStores = product.stores.map(function(store) { return Object.assign({}, store); });
+            shoppingView = 'editor';
+            document.getElementById('shopping-editor-title').textContent = 'Editar producto';
+            document.getElementById('shopping-edit-name').value = product.name;
+            document.getElementById('shopping-edit-category').value = product.category;
+            document.getElementById('shopping-edit-brand').value = product.brand;
+            document.getElementById('shopping-edit-presentation').value = product.presentation;
+            document.getElementById('shopping-edit-default-quantity').value = String(product.defaultQuantity || 1);
+            document.getElementById('shopping-edit-unit').value = product.unit || 'unidades';
+            document.getElementById('shopping-edit-notes').value = product.notes;
+            renderShopping();
+        }
+
+        function renderShoppingEditorStores() {
+            const target = document.getElementById('shopping-editor-stores');
+            if (!target) return;
+            if (!shoppingEditorStores.length) {
+                target.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 p-4 text-xs text-slate-400">Todavía no has añadido tiendas. Puedes guardar el producto sin tienda y completar esta información después.</div>';
+                return;
+            }
+            target.innerHTML = shoppingEditorStores.map(function(store, index) {
+                const first = index === 0;
+                return '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_150px_auto] gap-2.5 items-end">' +
+                    '<label class="block min-w-0"><span class="block text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">' + (first ? 'Tienda preferida (primera opción)' : 'Tienda alternativa ' + (index + 1)) + '</span>' +
+                    '<input type="text" maxlength="100" value="' + escapeShoppingHtml(store.name) + '" oninput="updateShoppingEditorStore(' + index + ',\'name\',this.value)" class="w-full p-3 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" placeholder="Ej. Dollar City"></label>' +
+                    '<label class="block"><span class="block text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">Precio (S/)</span><input type="number" min="0" step="0.01" value="' + (store.price === null || store.price === '' || store.price === undefined ? '' : escapeShoppingHtml(store.price)) + '" oninput="updateShoppingEditorStore(' + index + ',\'price\',this.value)" class="w-full p-3 rounded-lg bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-indigo-500" placeholder="Sin precio"></label>' +
+                    '<div class="flex items-center gap-1"><button type="button" onclick="moveShoppingEditorStore(' + index + ',-1)" class="btn-icon nav" ' + (first ? 'disabled style="opacity:.35;cursor:not-allowed"' : '') + ' title="Subir en prioridad" aria-label="Subir tienda"><i class="ph-bold ph-arrow-up"></i></button>' +
+                    '<button type="button" onclick="moveShoppingEditorStore(' + index + ',1)" class="btn-icon nav" ' + (index === shoppingEditorStores.length - 1 ? 'disabled style="opacity:.35;cursor:not-allowed"' : '') + ' title="Bajar en prioridad" aria-label="Bajar tienda"><i class="ph-bold ph-arrow-down"></i></button>' +
+                    '<button type="button" onclick="removeShoppingEditorStore(' + index + ')" class="btn-icon" title="Quitar tienda" aria-label="Quitar tienda"><i class="ph-bold ph-trash"></i></button></div>' +
+                    (store.priceDate ? '<p class="md:col-span-3 text-[9px] text-slate-400">Precio registrado el ' + escapeShoppingHtml(store.priceDate) + '</p>' : '') +
+                    '</div>';
+            }).join('');
+        }
+
+        function updateShoppingEditorStore(index, field, value) {
+            const store = shoppingEditorStores[index];
+            if (!store || !['name', 'price'].includes(field)) return;
+            if (field === 'name') store.name = String(value || '');
+            else store.price = String(value).trim() === '' ? null : Number(value);
+        }
+
+        function addShoppingEditorStore() {
+            shoppingEditorStores.push({ name: '', price: null, priceDate: '' });
+            renderShoppingEditorStores();
+        }
+
+        function moveShoppingEditorStore(index, direction) {
+            const nextIndex = index + direction;
+            if (nextIndex < 0 || nextIndex >= shoppingEditorStores.length) return;
+            const current = shoppingEditorStores[index];
+            shoppingEditorStores[index] = shoppingEditorStores[nextIndex];
+            shoppingEditorStores[nextIndex] = current;
+            renderShoppingEditorStores();
+        }
+
+        function removeShoppingEditorStore(index) {
+            shoppingEditorStores.splice(index, 1);
+            renderShoppingEditorStores();
+        }
+
+        function cancelShoppingProductEdit() {
+            shoppingView = 'home';
+            shoppingTab = shoppingEditorAddToList ? 'list' : 'catalog';
+            shoppingEditorAddToList = false;
+            renderShopping();
+        }
+
+        function saveShoppingProduct() {
+            const name = String(document.getElementById('shopping-edit-name').value || '').trim();
+            if (!name) { showToast('El nombre del producto es obligatorio.', 'info'); document.getElementById('shopping-edit-name').focus(); return; }
+            const shopping = getShoppingData();
+            const normalizedName = normalizeShoppingName(name);
+            const duplicate = shopping.catalog.find(function(product) {
+                return product.id !== shoppingEditingProductId && normalizeShoppingName(product.name) === normalizedName;
+            });
+            if (duplicate) {
+                showToast('Ese producto ya existe en el catálogo. Abre el registro existente para editarlo.', 'info');
+                return;
+            }
+            const normalizedStores = shoppingEditorStores.map(function(store) { return normalizeShoppingName(store.name); }).filter(Boolean);
+            if (new Set(normalizedStores).size !== normalizedStores.length) {
+                showToast('Hay tiendas repetidas. Deja una sola fila por tienda.', 'info');
+                return;
+            }
+            const existing = shoppingEditingProductId ? getShoppingProduct(shoppingEditingProductId) : null;
+            const cleanStores = [];
+            for (const store of shoppingEditorStores) {
+                const storeName = String(store.name || '').trim();
+                const rawPrice = store.price;
+                if (!storeName) {
+                    if (rawPrice !== null && rawPrice !== '' && rawPrice !== undefined) { showToast('Completa el nombre de la tienda o deja vacío el precio.', 'info'); return; }
+                    continue;
+                }
+                const price = rawPrice === null || rawPrice === '' || rawPrice === undefined ? null : Number(rawPrice);
+                if (price !== null && (!Number.isFinite(price) || price < 0)) { showToast('Revisa el precio de ' + storeName + '. Debe ser un importe válido.', 'info'); return; }
+                const previous = existing && existing.stores.find(function(oldStore) { return normalizeShoppingName(oldStore.name) === normalizeShoppingName(storeName); });
+                const samePrice = previous && ((previous.price === null && price === null) || (previous.price !== null && price !== null && Number(previous.price) === price));
+                cleanStores.push({ name: storeName, price: price, priceDate: price === null ? '' : (samePrice && previous.priceDate ? previous.priceDate : getShoppingToday()) });
+            }
+            const defaultQuantity = Number(document.getElementById('shopping-edit-default-quantity').value);
+            const product = {
+                id: existing ? existing.id : createShoppingId('product'),
+                name: name,
+                category: String(document.getElementById('shopping-edit-category').value || 'Otros').trim() || 'Otros',
+                brand: String(document.getElementById('shopping-edit-brand').value || '').trim(),
+                presentation: String(document.getElementById('shopping-edit-presentation').value || '').trim(),
+                notes: String(document.getElementById('shopping-edit-notes').value || '').trim(),
+                defaultQuantity: Number.isFinite(defaultQuantity) && defaultQuantity > 0 ? defaultQuantity : 1,
+                unit: String(document.getElementById('shopping-edit-unit').value || 'unidades').trim() || 'unidades',
+                stores: cleanStores
+            };
+            const existingIndex = shopping.catalog.findIndex(function(item) { return item.id === product.id; });
+            if (existingIndex >= 0) shopping.catalog[existingIndex] = product;
+            else shopping.catalog.push(product);
+
+            shopping.activeList.forEach(function(item) {
+                if (item.productId !== product.id) return;
+                if (item.selectedStore && !product.stores.some(function(store) { return store.name === item.selectedStore; })) {
+                    item.selectedStore = getShoppingPreferredStore(product);
+                }
+                item.unit = item.unit || product.unit;
+            });
+            if (shoppingEditorAddToList && !shopping.activeList.some(function(item) { return item.productId === product.id; })) {
+                shopping.activeList.push({
+                    id: createShoppingId('list'),
+                    productId: product.id,
+                    quantity: product.defaultQuantity,
+                    unit: product.unit,
+                    selectedStore: getShoppingPreferredStore(product),
+                    addedAt: getShoppingToday()
+                });
+            }
+            shoppingView = 'home';
+            shoppingTab = shoppingEditorAddToList ? 'list' : 'catalog';
+            shoppingEditingProductId = null;
+            shoppingEditorAddToList = false;
+            save();
+            showToast(existing ? 'Producto actualizado y preferencias guardadas.' : 'Producto guardado en el catálogo.', 'success');
+        }
+
+        function deleteShoppingProduct(productId) {
+            const product = getShoppingProduct(productId);
+            if (!product) return;
+            if (!confirm('¿Eliminar "' + product.name + '" del catálogo y de la lista actual? El historial de compras se conservará.')) return;
+            const shopping = getShoppingData();
+            shopping.catalog = shopping.catalog.filter(function(item) { return item.id !== product.id; });
+            shopping.activeList = shopping.activeList.filter(function(item) { return item.productId !== product.id; });
+            save();
+            showToast('Producto eliminado del catálogo.', 'info');
+        }
 
         // --- NOTIFICACIONES TOAST ---
         function showToast(msg, type = 'success') {
@@ -1563,7 +2356,8 @@
                 goals: [{name:'Fondo Emergencia', target:5000, priority:1}],
                 paymentDates: {},
                 paidPayments: {},
-                paymentHistory: []
+                paymentHistory: [],
+                shopping: makeInitialShoppingState()
             };
         }
 
@@ -1667,6 +2461,7 @@
             normalized.paymentHistory = Array.isArray(normalized.paymentHistory)
                 ? normalized.paymentHistory.filter(record => record && typeof record === 'object')
                 : [];
+            normalized.shopping = normalizeShoppingState(normalized.shopping);
 
             // Migración honesta: conserva pagos que ya estaban marcados antes del historial,
             // pero no inventa una fecha que la versión anterior no guardaba.
@@ -2910,7 +3705,10 @@
             if (undoHistory.length > MAX_UNDO_HISTORY) undoHistory.shift();
             redoHistory = [];
 
+            const retainedShoppingState = JSON.parse(JSON.stringify(state.shopping || makeInitialShoppingState()));
             state = makeInitialState();
+            // El reinicio financiero no debe borrar el catálogo ni la lista de compras.
+            state.shopping = normalizeShoppingState(retainedShoppingState);
             // Un reinicio solicitado por el usuario debe respetarse y no reimportar estos registros automáticamente.
             state[PAYROLL_HISTORY_MARKER] = true;
             state[OCT_NOV_COMMITMENTS_MARKER] = true;
@@ -3045,6 +3843,8 @@
             document.getElementById('month-title').innerText = MONTHS[state.month];
             renderLedger();
             renderStats();
+            const shoppingModal = document.getElementById('modal-shopping');
+            if (shoppingModal && shoppingModal.classList.contains('active')) renderShopping();
         }
 
         function renderSidebar() {

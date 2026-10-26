@@ -2062,6 +2062,7 @@
                         '<label class="flex items-center gap-2 text-[10px] font-bold text-slate-500"><span>Tienda</span><select aria-label="Tienda elegida para la compra de ' + escapeShoppingHtml(product.name) + '" onchange="setShoppingItemStore(\'' + escapeShoppingHtml(item.id) + '\',this.value)" class="max-w-[180px] min-w-[125px] p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold">' + storeOptions + '</select></label>' +
                         '<label class="flex items-center gap-1.5 text-[10px] font-bold text-slate-500"><span>Cant.</span><input aria-label="Cantidad de ' + escapeShoppingHtml(product.name) + '" type="number" min="0.01" step="0.01" value="' + escapeShoppingHtml(item.quantity) + '" onchange="updateShoppingQuantity(\'' + escapeShoppingHtml(item.id) + '\',this.value)" class="w-20 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold"></label>' +
                         '<span class="text-[10px] text-slate-400">' + escapeShoppingHtml(item.unit) + '</span>' +
+                        '<button type="button" onclick="editShoppingProduct(\'' + escapeShoppingHtml(product.id) + '\',true)" class="px-3 py-2 rounded-lg border border-indigo-500/25 bg-indigo-500/10 hover:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] font-extrabold whitespace-nowrap" title="Editar los datos del producto"><i class="ph-bold ph-pencil-simple mr-1"></i>Editar</button>' +
                         '<button type="button" onclick="markShoppingItemBought(\'' + escapeShoppingHtml(item.id) + '\')" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-extrabold whitespace-nowrap"><i class="ph-bold ph-check mr-1"></i>Comprado</button>' +
                         '<button type="button" onclick="removeShoppingListItem(\'' + escapeShoppingHtml(item.id) + '\')" class="btn-icon" title="Quitar de la lista" aria-label="Quitar ' + escapeShoppingHtml(product.name) + ' de la lista"><i class="ph-bold ph-trash"></i></button>' +
                         '</div></div>';
@@ -2252,11 +2253,11 @@
             window.setTimeout(function() { const input = document.getElementById('shopping-edit-name'); if (input) input.focus(); }, 30);
         }
 
-        function editShoppingProduct(productId) {
+        function editShoppingProduct(productId, returnToList) {
             const product = getShoppingProduct(productId);
             if (!product) return;
             shoppingEditingProductId = product.id;
-            shoppingEditorAddToList = false;
+            shoppingEditorAddToList = !!returnToList;
             shoppingEditorStores = product.stores.map(function(store) { return Object.assign({}, store); });
             shoppingView = 'editor';
             document.getElementById('shopping-editor-title').textContent = 'Editar producto';

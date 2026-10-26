@@ -887,13 +887,6 @@
             <button onclick="toggleSidebar()" class="md:hidden btn-icon"><i class="ph-bold ph-x"></i></button>
         </div>
 
-        <div class="px-4 pt-4 pb-2">
-            <button type="button" onclick="openShoppingModule()" class="w-full text-left px-4 py-3 rounded-xl text-sm font-extrabold flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/15 transition-colors btn-pro" aria-label="Abrir Compras inteligentes">
-                <i class="ph-bold ph-shopping-cart text-lg"></i>
-                <span class="flex-1">Compras inteligentes</span>
-                <i class="ph-bold ph-arrow-up-right text-xs opacity-60"></i>
-            </button>
-        </div>
         <div class="px-6 pt-3 pb-2">
             <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Libros Mensuales (2026)</span>
         </div>
@@ -930,6 +923,10 @@
                     <span id="sync-text">Sincronizando...</span>
                 </span>
                 
+                <button type="button" onclick="openShoppingModule()" class="relative p-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 transition-colors btn-pro text-emerald-300 ring-1 ring-emerald-400/30" title="Compras inteligentes" aria-label="Abrir Compras inteligentes">
+                    <i class="ph-bold ph-shopping-cart text-xl"></i>
+                    <span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-300" aria-hidden="true"></span>
+                </button>
                 <button onclick="openPaymentHistory()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-emerald-300 hover:text-emerald-200" title="Historial de pagos" aria-label="Historial de pagos">
                     <i class="ph-bold ph-receipt text-xl"></i>
                 </button>
@@ -1620,6 +1617,47 @@
                     <button type="button" onclick="saveShoppingProduct()" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold btn-pro"><i class="ph-bold ph-floppy-disk mr-1.5"></i>Guardar producto</button>
                 </div>
             </section>
+
+            <section id="shopping-purchase-editor" class="hidden">
+                <div class="flex items-center gap-3 mb-6">
+                    <button type="button" onclick="cancelShoppingPurchaseEdit()" class="btn-icon nav" aria-label="Volver al historial"><i class="ph-bold ph-arrow-left"></i></button>
+                    <div>
+                        <h4 class="text-xl font-extrabold">Editar compra registrada</h4>
+                        <p class="text-xs text-slate-400 mt-1">Corrige los datos de esta compra sin borrar el registro.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Producto *</span>
+                        <input id="shopping-purchase-edit-name" type="text" maxlength="120" required class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-bold outline-none focus:border-emerald-500">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Tienda</span>
+                        <input id="shopping-purchase-edit-store" type="text" maxlength="100" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-emerald-500" placeholder="Ej. Makro">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Cantidad *</span>
+                        <input id="shopping-purchase-edit-quantity" type="number" min="0.01" step="0.01" required class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-emerald-500">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Unidad</span>
+                        <input id="shopping-purchase-edit-unit" type="text" maxlength="40" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-emerald-500" placeholder="Ej. unidades, paquetes, kg">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Fecha de compra *</span>
+                        <input id="shopping-purchase-edit-date" type="date" required class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-emerald-500">
+                    </label>
+                    <label class="block">
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">Precio unitario pagado (S/)</span>
+                        <input id="shopping-purchase-edit-price" type="number" min="0" step="0.01" class="w-full p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm font-semibold outline-none focus:border-emerald-500" placeholder="Deja vacío si no lo recuerdas">
+                    </label>
+                </div>
+                <p class="text-[10px] leading-relaxed text-slate-400 mb-5">Estos cambios corrigen el historial de esa compra. El catálogo y sus precios se mantienen independientes.</p>
+                <div class="flex flex-col-reverse sm:flex-row gap-3 justify-end">
+                    <button type="button" onclick="cancelShoppingPurchaseEdit()" class="px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 text-xs font-extrabold">Cancelar</button>
+                    <button type="button" onclick="saveShoppingPurchase()" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold btn-pro"><i class="ph-bold ph-floppy-disk mr-1.5"></i>Guardar cambios</button>
+                </div>
+            </section>
         </div>
     </div>
 
@@ -1655,6 +1693,7 @@
         let shoppingEditingProductId = null;
         let shoppingEditorStores = [];
         let shoppingEditorAddToList = false;
+        let shoppingEditingPurchaseId = null;
 
         function createShoppingId(prefix) {
             return String(prefix || 'shopping') + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
@@ -1810,6 +1849,7 @@
                     storeName: String(record.storeName || 'Sin tienda asignada'),
                     quantity: Number(record.quantity) > 0 ? Number(record.quantity) : 1,
                     unit: String(record.unit || 'unidades'),
+                    unitPrice: record.unitPrice === '' || record.unitPrice === null || record.unitPrice === undefined || !Number.isFinite(Number(record.unitPrice)) || Number(record.unitPrice) < 0 ? null : Number(record.unitPrice),
                     purchasedAt: String(record.purchasedAt || '')
                 };
             });
@@ -1866,13 +1906,16 @@
         function renderShopping() {
             const home = document.getElementById('shopping-home');
             const editor = document.getElementById('shopping-editor');
-            if (!home || !editor) return;
-            home.classList.toggle('hidden', shoppingView === 'editor');
+            const purchaseEditor = document.getElementById('shopping-purchase-editor');
+            if (!home || !editor || !purchaseEditor) return;
+            home.classList.toggle('hidden', shoppingView !== 'home');
             editor.classList.toggle('hidden', shoppingView !== 'editor');
+            purchaseEditor.classList.toggle('hidden', shoppingView !== 'purchaseEditor');
             if (shoppingView === 'editor') {
                 renderShoppingEditorStores();
                 return;
             }
+            if (shoppingView === 'purchaseEditor') return;
             const tabs = {
                 list: document.getElementById('shopping-tab-list'),
                 catalog: document.getElementById('shopping-tab-catalog'),
@@ -2072,10 +2115,15 @@
                     const date = new Date(record.purchasedAt);
                     if (!Number.isNaN(date.getTime())) dateLabel = date.toLocaleDateString('es-PE', { year:'numeric', month:'short', day:'numeric' });
                 }
-                return '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex flex-col sm:flex-row sm:items-center gap-3"><div class="flex-1 min-w-0"><div class="font-extrabold text-sm">' + escapeShoppingHtml(record.productName) + '</div><div class="text-[10px] text-slate-400 mt-1">' +
-                    escapeShoppingHtml(record.quantity) + ' ' + escapeShoppingHtml(record.unit) + ' · ' + escapeShoppingHtml(record.storeName) + ' · ' + escapeShoppingHtml(dateLabel) + '</div></div>' +
-                    (exists ? '<button type="button" onclick="readdShoppingHistoryItem(\'' + escapeShoppingHtml(record.id) + '\')" class="px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold"><i class="ph-bold ph-arrow-counter-clockwise mr-1"></i>Volver a agregar</button>' : '<span class="text-[10px] text-slate-400">Producto retirado del catálogo</span>') +
-                    '</div>';
+                const hasPrice = record.unitPrice !== null && record.unitPrice !== undefined && record.unitPrice !== '' && Number.isFinite(Number(record.unitPrice)) && Number(record.unitPrice) >= 0;
+                const priceLabel = hasPrice
+                    ? ' · ' + escapeShoppingHtml(formatShoppingPrice(record.unitPrice)) + ' por unidad · Total ' + escapeShoppingHtml(formatShoppingPrice(Number(record.unitPrice) * Number(record.quantity)))
+                    : ' · Precio no registrado';
+                return '<div class="rounded-xl border border-slate-200 dark:border-slate-700 p-3 flex flex-col sm:flex-row sm:items-center gap-3"><div class="flex-1 min-w-0"><div class="font-extrabold text-sm break-words">' + escapeShoppingHtml(record.productName) + '</div><div class="text-[10px] text-slate-400 mt-1">' +
+                    escapeShoppingHtml(record.quantity) + ' ' + escapeShoppingHtml(record.unit) + ' · ' + escapeShoppingHtml(record.storeName) + ' · ' + escapeShoppingHtml(dateLabel) + priceLabel + '</div></div>' +
+                    '<div class="flex flex-wrap items-center gap-2"><button type="button" onclick="editShoppingPurchase(\'' + escapeShoppingHtml(record.id) + '\')" class="px-3 py-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold"><i class="ph-bold ph-pencil-simple mr-1"></i>Editar compra</button>' +
+                    (exists ? '<button type="button" onclick="readdShoppingHistoryItem(\'' + escapeShoppingHtml(record.id) + '\')" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-extrabold"><i class="ph-bold ph-arrow-counter-clockwise mr-1"></i>Volver a agregar</button>' : '<span class="text-[10px] text-slate-400">Producto retirado del catálogo</span>') +
+                    '</div></div>';
             }).join('');
         }
 
@@ -2112,13 +2160,16 @@
             const item = shopping.activeList[index];
             const product = getShoppingProduct(item.productId);
             if (!product) return;
+            const boughtStoreName = item.selectedStore || getShoppingPreferredStore(product) || 'Sin tienda asignada';
+            const boughtStore = product.stores.find(function(store) { return store.name === boughtStoreName; });
             shopping.purchaseHistory.push({
                 id: createShoppingId('purchase'),
                 productId: product.id,
                 productName: product.name,
-                storeName: item.selectedStore || getShoppingPreferredStore(product) || 'Sin tienda asignada',
+                storeName: boughtStoreName,
                 quantity: item.quantity,
                 unit: item.unit,
+                unitPrice: boughtStore && boughtStore.price !== null && boughtStore.price !== '' ? Number(boughtStore.price) : null,
                 purchasedAt: new Date().toISOString()
             });
             shopping.activeList.splice(index, 1);
@@ -2131,6 +2182,57 @@
             const record = getShoppingData().purchaseHistory.find(function(item) { return item.id === String(historyId); });
             if (!record) return;
             addShoppingProductToList(record.productId, record.quantity, record.unit);
+        }
+
+        function editShoppingPurchase(historyId) {
+            const record = getShoppingData().purchaseHistory.find(function(item) { return item.id === String(historyId); });
+            if (!record) { showToast('No se encontró esa compra.', 'error'); return; }
+            shoppingEditingPurchaseId = record.id;
+            shoppingTab = 'history';
+            shoppingView = 'purchaseEditor';
+            document.getElementById('shopping-purchase-edit-name').value = record.productName || '';
+            document.getElementById('shopping-purchase-edit-store').value = record.storeName === 'Sin tienda asignada' ? '' : (record.storeName || '');
+            document.getElementById('shopping-purchase-edit-quantity').value = String(record.quantity || 1);
+            document.getElementById('shopping-purchase-edit-unit').value = record.unit || 'unidades';
+            const parsedDate = record.purchasedAt ? new Date(record.purchasedAt) : null;
+            document.getElementById('shopping-purchase-edit-date').value = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.toISOString().slice(0, 10) : getShoppingToday();
+            document.getElementById('shopping-purchase-edit-price').value = record.unitPrice === null || record.unitPrice === undefined || record.unitPrice === '' ? '' : String(record.unitPrice);
+            renderShopping();
+        }
+
+        function cancelShoppingPurchaseEdit() {
+            shoppingEditingPurchaseId = null;
+            shoppingView = 'home';
+            shoppingTab = 'history';
+            renderShopping();
+        }
+
+        function saveShoppingPurchase() {
+            const record = getShoppingData().purchaseHistory.find(function(item) { return item.id === String(shoppingEditingPurchaseId); });
+            if (!record) { showToast('No se encontró esa compra para guardar los cambios.', 'error'); cancelShoppingPurchaseEdit(); return; }
+            const name = String(document.getElementById('shopping-purchase-edit-name').value || '').trim();
+            const storeName = String(document.getElementById('shopping-purchase-edit-store').value || '').trim();
+            const quantity = Number(document.getElementById('shopping-purchase-edit-quantity').value);
+            const unit = String(document.getElementById('shopping-purchase-edit-unit').value || '').trim() || 'unidades';
+            const dateValue = String(document.getElementById('shopping-purchase-edit-date').value || '').trim();
+            const priceValue = String(document.getElementById('shopping-purchase-edit-price').value || '').trim();
+            const unitPrice = priceValue === '' ? null : Number(priceValue);
+            if (!name) { showToast('El nombre del producto es obligatorio.', 'info'); document.getElementById('shopping-purchase-edit-name').focus(); return; }
+            if (!Number.isFinite(quantity) || quantity <= 0) { showToast('La cantidad debe ser mayor que cero.', 'info'); document.getElementById('shopping-purchase-edit-quantity').focus(); return; }
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue) || Number.isNaN(new Date(dateValue + 'T12:00:00').getTime())) { showToast('Selecciona una fecha de compra válida.', 'info'); document.getElementById('shopping-purchase-edit-date').focus(); return; }
+            if (unitPrice !== null && (!Number.isFinite(unitPrice) || unitPrice < 0)) { showToast('El precio unitario debe ser un importe válido igual o mayor que cero.', 'info'); document.getElementById('shopping-purchase-edit-price').focus(); return; }
+            record.productName = name;
+            record.storeName = storeName || 'Sin tienda asignada';
+            record.quantity = quantity;
+            record.unit = unit;
+            record.unitPrice = unitPrice;
+            record.purchasedAt = new Date(dateValue + 'T12:00:00').toISOString();
+            shoppingEditingPurchaseId = null;
+            shoppingView = 'home';
+            shoppingTab = 'history';
+            save();
+            renderShopping();
+            showToast('Compra actualizada. El registro anterior se conservó con los cambios.', 'success');
         }
 
         function startNewShoppingProduct(initialName, addToListAfterSave) {

@@ -323,6 +323,94 @@
             .shopping-modal-box { max-height: calc(100dvh - 16px); padding: 18px 14px; border-radius: 20px; }
         }
 
+        /* DESCRIPCIONES NEGRAS PARA LOS BOTONES DE LA BARRA SUPERIOR */
+        .header-tooltip { position: relative; }
+        .header-tooltip::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 2px);
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-bottom-color: #05070b;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .14s ease;
+            z-index: 150;
+        }
+        .header-tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            top: calc(100% + 13px);
+            transform: translate(-50%, -3px);
+            width: max-content;
+            max-width: 220px;
+            white-space: normal;
+            text-align: center;
+            padding: 9px 11px;
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 8px;
+            background: #05070b;
+            color: #f8fafc;
+            font-size: 11px;
+            font-weight: 650;
+            line-height: 1.4;
+            letter-spacing: 0;
+            box-shadow: 0 10px 25px rgba(0,0,0,.35);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .14s ease, transform .14s ease;
+            z-index: 150;
+        }
+        .header-tooltip:hover::before,
+        .header-tooltip:focus-visible::before,
+        .header-tooltip:hover::after,
+        .header-tooltip:focus-visible::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        .header-tooltip:hover::after,
+        .header-tooltip:focus-visible::after { transform: translate(-50%, 0); }
+
+        /* COMPRAS INTELIGENTES: VISTA DE PÁGINA COMPLETA (SOLO ESTE MÓDULO) */
+        body.shopping-page-open { overflow: hidden !important; }
+        #modal-shopping.shopping-fullscreen {
+            padding: 0;
+            align-items: stretch;
+            justify-content: stretch;
+            background: var(--bg-card);
+            z-index: 120;
+        }
+        #modal-shopping.shopping-fullscreen .shopping-modal-box {
+            width: 100%;
+            max-width: none;
+            height: 100vh;
+            height: 100dvh;
+            max-height: 100vh;
+            max-height: 100dvh;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 26px clamp(16px, 3vw, 42px) 38px;
+            border: 0;
+            border-radius: 0;
+            box-shadow: none;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            transform: none;
+        }
+        #modal-shopping.shopping-fullscreen.active .shopping-modal-box {
+            transform: none;
+        }
+        @media (max-width: 640px) {
+            #modal-shopping.shopping-fullscreen .shopping-modal-box {
+                padding: 20px 12px 30px;
+            }
+        }
+
         /* MODALS */
         .modal-wrap {
             position: fixed; inset: 0; z-index: 70;
@@ -923,26 +1011,26 @@
                     <span id="sync-text">Sincronizando...</span>
                 </span>
                 
-                <button type="button" onclick="openShoppingModule()" class="relative p-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 transition-colors btn-pro text-emerald-300 ring-1 ring-emerald-400/30" title="Compras inteligentes" aria-label="Abrir Compras inteligentes">
+                <button type="button" onclick="openShoppingModule()" class="header-tooltip relative p-2.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 transition-colors btn-pro text-emerald-300 ring-1 ring-emerald-400/30" data-tooltip="Organiza tu lista, compara precios y consulta tiendas." aria-label="Abrir Compras inteligentes">
                     <i class="ph-bold ph-shopping-cart text-xl"></i>
                     <span class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-emerald-300" aria-hidden="true"></span>
                 </button>
-                <button onclick="openPaymentHistory()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-emerald-300 hover:text-emerald-200" title="Historial de pagos" aria-label="Historial de pagos">
+                <button onclick="openPaymentHistory()" class="header-tooltip p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-emerald-300 hover:text-emerald-200" data-tooltip="Consulta los pagos registrados y sus movimientos." aria-label="Historial de pagos">
                     <i class="ph-bold ph-receipt text-xl"></i>
                 </button>
-                <button onclick="openCalendar()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Calendario Financiero">
+                <button onclick="openCalendar()" class="header-tooltip p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" data-tooltip="Revisa vencimientos, fechas y pagos pendientes." aria-label="Calendario financiero">
                     <i class="ph-bold ph-calendar-blank text-xl"></i>
                 </button>
-                <button onclick="openAnnual()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Tablero Anual 2026">
+                <button onclick="openAnnual()" class="header-tooltip p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" data-tooltip="Visualiza el resumen de tus finanzas del año." aria-label="Tablero anual 2026">
                     <i class="ph-bold ph-chart-line-up text-xl"></i>
                 </button>
-                <button onclick="openAdvisor()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-indigo-300 hover:text-indigo-200" title="Consejero Inteligente CFO">
+                <button onclick="openAdvisor()" class="header-tooltip p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-indigo-300 hover:text-indigo-200" data-tooltip="Obtén recomendaciones para organizar tus finanzas." aria-label="Consejero inteligente CFO">
                     <i class="ph-fill ph-sparkle text-xl"></i>
                 </button>
-                <button onclick="toggleTheme()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-amber-300" title="Cambiar Tema Claro/Oscuro">
+                <button onclick="toggleTheme()" class="header-tooltip p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-amber-300" data-tooltip="Cambia entre el tema claro y el oscuro." aria-label="Cambiar tema claro u oscuro">
                     <i id="theme-icon" class="ph-fill ph-moon text-xl"></i>
                 </button>
-                <button onclick="openSettings()" class="p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" title="Configuración y Respaldo">
+                <button onclick="openSettings()" class="header-tooltip p-2.5 hover:bg-white/10 rounded-xl transition-colors btn-pro text-slate-200 hover:text-white" data-tooltip="Configura la plataforma y gestiona tus respaldos." aria-label="Configuración y respaldo">
                     <i class="ph-bold ph-gear text-xl"></i>
                 </button>
             </div>
@@ -1940,6 +2028,9 @@
             if (window.innerWidth < 768 && document.body.classList.contains('sb-open')) toggleSidebar();
             shoppingView = 'home';
             renderShopping();
+            const shoppingModal = document.getElementById('modal-shopping');
+            if (shoppingModal) shoppingModal.classList.add('shopping-fullscreen');
+            document.body.classList.add('shopping-page-open');
             openModal('modal-shopping');
         };
 
@@ -3838,12 +3929,21 @@
             if(!modalStack.includes(id)) modalStack.push(id);
         }
         window.smartClose = function(id) {
-            document.getElementById(id).classList.remove('active');
+            const modal = document.getElementById(id);
+            if (!modal) return;
+            modal.classList.remove('active');
+            if (id === 'modal-shopping') {
+                modal.classList.remove('shopping-fullscreen');
+                document.body.classList.remove('shopping-page-open');
+            }
             const idx = modalStack.indexOf(id);
             if(idx > -1) modalStack.splice(idx, 1);
         };
         function closeModals() {
             document.querySelectorAll('.modal-wrap').forEach(m => m.classList.remove('active'));
+            const shoppingModal = document.getElementById('modal-shopping');
+            if (shoppingModal) shoppingModal.classList.remove('shopping-fullscreen');
+            document.body.classList.remove('shopping-page-open');
             modalStack = [];
         }
 
